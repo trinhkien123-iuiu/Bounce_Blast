@@ -1,0 +1,17 @@
+Id,ColorName,MinOffset,MaxOffset
+1,Green,-0.075,0.075
+2,Red,-0.15,0
+3,Blue,-0.05,0.1
+4,Yellow,-0.05,0.05
+5,Orange,-0.075,0.075
+6,Pink,-0.1,0.1
+7,White,-0.04,0.04
+8,Black,-0.075,0.1
+9,Brown,-0.05,0.1
+10,Purple,-0.1,0.025
+11,Teal,-0.05,0.05
+12,Peach,-0.05,0.05
+13,Silver,-0.2,-0.1
+14,DarkGreen,-0.15,0
+15,Gray,-0.1,0.1
+16,Cyan,-0.075,0.075

@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: QMark World
+  m_Shader: {fileID: 4800000, guid: e3b4f754ed942dd40ad39cd95e406574, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties:
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+      _DissolveTex:
+        m_Texture: {fileID: 2800000, guid: 33cffbf47f3cdbc468704b6aa136b3b3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+      _MainTex:
+        m_Texture: {fileID: 2800000, guid: d03cd283864780a4c87a19456909d1b6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: {}
+    m_Floats:
+      _Density: 8
+      _DissolveAmount: 0
+      _DissolveEdgeWidth: 0.1
+      _DissolveScale: 2
+      _DissolveSoftness: 0.154
+      _DissolveWidth: 0.05
+      _DissolveYMax: 1
+      _DissolveYMin: 0
+      _FresnelPower: 2
+      _Glossiness: 0.5
+      _Metallic: 0
+      _QMarkStrength: 1
+      _RampIntensity: 0.215
+      _RotationDegrees: 0.61
+      _RotationVariance: 260
+      _Scale: 0.9
+      _ShadeSteps: 3
+      _Smoothness: 0.3
+      _Spacing: 0.5
+      _Speed: 1
+      _TriplanarBlendSharpness: 48.2
+      _UseWorldSpace: 0
+      _WorldScale: 0.83
+    m_Colors:
+      _BackgroundColor: {r: 1, g: 1, b: 1, a: 1}
+      _Color: {r: 0, g: 0, b: 0, a: 1}
+      _ColorDark: {r: 0.2509804, g: 0.34509805, b: 0.5372549, a: 1}
+      _ColorLight: {r: 0.2509804, g: 0.34509805, b: 0.5372549, a: 1}
+      _ColorMid: {r: 0.26633143, g: 0.3741698, b: 0.5943396, a: 1}
+      _Direction: {r: 1, g: 0, b: 0, a: 0}
+      _DissolveColor: {r: 1, g: 0, b: 0, a: 1}
+      _DissolveEdgeColor: {r: 1, g: 1, b: 1, a: 1}
+      _DissolveScroll: {r: 0, g: 0.2, b: 0, a: 0}
+      _HighlightColor: {r: 0.18431373, g: 0.2, b: 0.39607844, a: 1}
+      _LightDir: {r: 0, g: 0, b: 0, a: 0}
+      _Offset: {r: 1.55, g: 4.78, b: 0.65, a: -2.25}
+      _QuestionColor: {r: 1, g: 1, b: 1, a: 1}
+      _ScrollSpeed: {r: 0.4, g: 0, b: 0.4, a: 0}
+      _ShadowColor: {r: 0.18431373, g: 0.2, b: 0.39607844, a: 1}
+      _SteamColor: {r: 0, g: 1, b: 1, a: 1}
+      _WorldOffset: {r: 0, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 0

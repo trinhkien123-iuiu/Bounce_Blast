@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2a9481deaeb59238ba7a522023d233f, type: 3}
+  m_Name: SpriteConfig
+  m_EditorClassIdentifier:
+  spriteBase: {fileID: 11400000, guid: 6fb25dd9302e13a4692476cad4b48392, type: 2}
+  spritesIAP: []
+  spritesBooster:
+  - name: 54
+    sprite: {fileID: 21300000, guid: 8a786efe639e8984f959f6e6087bcf38, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 55ca6bc0faa517d49833e0aa2fdd5463, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: 963e2681d68ee9d4aa022c1db9aae0de, type: 2}
+  - name: 55
+    sprite: {fileID: 21300000, guid: f3d321ea6a5c89c49bb95d856d771333, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 0109feac26a2f6f4c96b5340d3d13ed9, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: 96810a77eaf98a848bfebdc171a6202c, type: 2}
+  - name: 56
+    sprite: {fileID: 21300000, guid: cd998bf850a74034282a6dd5e3855e74, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 94147cab55545bf40964aac59bd198f6, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: 087fd318e4fff364095adfe15a2ed6de, type: 2}
+  - name: 57
+    sprite: {fileID: 21300000, guid: 11b51c8f4755e974abc4ccc6962ed9ad, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 2fd84b6f96161d8468c95736f3404310, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: 255dd7f89b1e7684786c93cf3dc54f67, type: 2}
+  - name: 58
+    sprite: {fileID: 21300000, guid: fa40de78b2103b848adbfad34454577c, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 2e8c62c41cc46e349b856e52ee7a7513, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: 24bd7bf7db6c2dc48b02410e58dcf94f, type: 2}
+  - name: 59
+    sprite: {fileID: 21300000, guid: 5780b3617160ea04583f3cec45b05c06, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 46cc3ae5edd4f6a4b91060ad3fcb74c6, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: a23ea13d411c7ae44b99664b1df16fe7, type: 2}
+  - name: 60
+    sprite: {fileID: 21300000, guid: f0821348cca3cfc4c99fcc3d50769a6e, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 918804a5173f1ea4dab0ad5cf511be94, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: bad903fb42bb88640884078a994bd4c7, type: 2}
+  - name: 61
+    sprite: {fileID: 21300000, guid: ae8329ce66b2f0c45999a9cafe5a09cb, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 9709108a3cd8cbe4f8cf61335ac2a904, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: b0b426a5543dd4947aacd28ec75e71df, type: 2}
+  - name: 62
+    sprite: {fileID: 21300000, guid: edb2f5591d961e74e9a4a655bab3f76e, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 8574bfa4256eac9479885ce692d3b3ca, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: b2cd7c0edab7c8643b9edcd6d3bdc8ad, type: 2}
+  - name: 63
+    sprite: {fileID: 21300000, guid: fe3ebce0858608b48b940f80d47cf245, type: 2}
+    spriteHardOverride: {fileID: 21300000, guid: 7f866588b49e415489d78bc36822d37c, type: 2}
+    spriteSuperHardOverride: {fileID: 21300000, guid: 33893ba0799f2f34480a656eca5697d8, type: 2}
+  spritesLiveOps: []
+  spritesOther:
+  - name: 64
+    sprite: {fileID: 0}
+    spriteHardOverride: {fileID: 0}
+    spriteSuperHardOverride: {fileID: 21300000, guid: 51f7032a72a7d674f9a8c9a4977e8692, type: 2}
+  - name: 65
+    sprite: {fileID: 0}
+    spriteHardOverride: {fileID: 0}
+    spriteSuperHardOverride: {fileID: 21300000, guid: 500107addee81264da9db0d7ac73388f, type: 2}

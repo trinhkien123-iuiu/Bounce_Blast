@@ -1,0 +1,18 @@
+{
+ "Toony Colors Pro 2/Hybrid Shader 2": "TCP2_HybridShader2.shader",
+ "Toony Colors Pro 2/Hybrid Shader 2 Directional": "TCP2_HybridShader2_Directional.shader",
+ "Toony Colors Pro 2/Hybrid Shader 2 Directional Cube": "TCP2_HybridShader2_DirectionalCube.shader",
+ "Toony Colors Pro 2/Hybrid Shader 2 Directional Cube (Outline)": "TCP2_HybridShader2_DirectionalCube_Outline.shader",
+ "BounceBlast/CubeIsolatedOptimized": "BounceBlast_CubeIsolatedOptimized.shader",
+ "ELCAPITAN/IceBlockerWorld": "ELCAPITAN_IceBlockerWorld.shader",
+ "Custom/Lit/TwoColorByWorldY": "Custom_Lit_TwoColorByWorldY.shader",
+ "URP/QMark": "URP_QMark.shader",
+ "Custom/HiddenBlocker": "Custom_HiddenBlocker.shader",
+ "PerformantTrailShader": "PerformantTrailShader.shader",
+ "UI/Additive": "UI_Additive.shader",
+ "AssetKits/Additive": "AssetKits_Additive.shader",
+ "UI/AlwaysOnTopParticle": "UI_AlwaysOnTopParticle.shader",
+ "UI/Hidden/UI-Effect-Shiny": "UI_Hidden_UI-Effect-Shiny.shader",
+ "Custom/Outline Mask": "Custom_OutlineMask.shader",
+ "Custom/Outline Fill": "Custom_OutlineFill.shader"
+}

@@ -1,0 +1,130 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff0299279d34be04ab34906a2f57bead, type: 3}
+  m_Name: ColorLibrary
+  m_EditorClassIdentifier: 
+  entries:
+  - code: g
+    name: Green
+    color: {r: 0.07749526, g: 0.9056604, b: 0.07262372, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 663ebb7342530404f87f09c8b81df523, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: c487875d60e008e448f4bc5ae70ba91b, type: 2}
+    ballMaterial: {fileID: 2100000, guid: c487875d60e008e448f4bc5ae70ba91b, type: 2}
+    shadeOffset: {x: -0.075, y: 0.075}
+  - code: r
+    name: Red
+    color: {r: 1, g: 0.3443396, b: 0.36230284, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: a68a36f464b49b744a1cd4ce6c5096f5, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+    ballMaterial: {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+    shadeOffset: {x: -0.15, y: 0}
+  - code: b
+    name: Blue
+    color: {r: 0.11792451, g: 0.5994246, b: 1, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 6333f6080de38cf42b28811f3a40cde8, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: ccf3c3685fba8544883404718d74b0e7, type: 2}
+    ballMaterial: {fileID: 2100000, guid: ccf3c3685fba8544883404718d74b0e7, type: 2}
+    shadeOffset: {x: -0.05, y: 0.1}
+  - code: y
+    name: Yellow
+    color: {r: 1, g: 0.8705883, b: 0.011764707, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: eccd4a974f732eb4ca2a0af24ddd5eb9, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+    ballMaterial: {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+    shadeOffset: {x: -0.05, y: 0.05}
+  - code: o
+    name: Orange
+    color: {r: 1, g: 0.44715133, b: 0.0141509175, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: a6e61919edabdbd48b4ece9f3505b1de, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: 4ca60ad79f43bb941a5f424c36b99281, type: 2}
+    ballMaterial: {fileID: 2100000, guid: 4ca60ad79f43bb941a5f424c36b99281, type: 2}
+    shadeOffset: {x: -0.075, y: 0.075}
+  - code: p
+    name: Pink
+    color: {r: 0.97032845, g: 0.3537736, b: 1, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 2d12c2fe784676e46bf558e1724ffc8f, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: c8223742cbf73d144b732a73e38bf8d9, type: 2}
+    ballMaterial: {fileID: 2100000, guid: c8223742cbf73d144b732a73e38bf8d9, type: 2}
+    shadeOffset: {x: -0.1, y: 0.1}
+  - code: w
+    name: White
+    color: {r: 1, g: 1, b: 1, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: b38240308d70af64a864db14d714cf16, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: fe55c7d4245c4094196a5c4b5d9f1c63, type: 2}
+    ballMaterial: {fileID: 2100000, guid: fe55c7d4245c4094196a5c4b5d9f1c63, type: 2}
+    shadeOffset: {x: -0.04, y: 0.04}
+  - code: bl
+    name: Black
+    color: {r: 0.3584906, g: 0.3584906, b: 0.3584906, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 7058167700814a04c9891a1bb08064b0, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: a88e3f9d6d166d549906c6baad9a3f48, type: 2}
+    ballMaterial: {fileID: 2100000, guid: a88e3f9d6d166d549906c6baad9a3f48, type: 2}
+    shadeOffset: {x: -0.075, y: 0.1}
+  - code: br
+    name: Brown
+    color: {r: 0.5882353, g: 0.29411766, b: 0, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 7b8223ea006ff67449b0dacc313240c5, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+    ballMaterial: {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+    shadeOffset: {x: -0.05, y: 0.1}
+  - code: pr
+    name: Purple
+    color: {r: 0.78, g: 0.40899786, b: 0.9528302, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 45fd054dc97adf7429e6b04d14ccd83f, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: 2fb42366c78013c4187d6df235647b5f, type: 2}
+    ballMaterial: {fileID: 2100000, guid: 2fb42366c78013c4187d6df235647b5f, type: 2}
+    shadeOffset: {x: -0.1, y: 0.025}
+  - code: te
+    name: Teal
+    color: {r: 0, g: 0.5019608, b: 0.5019608, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 7f724fca0c52bac488b71b2be6237736, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: 2dd68f9c97ff61445a8cd736be96aee8, type: 2}
+    ballMaterial: {fileID: 2100000, guid: 2dd68f9c97ff61445a8cd736be96aee8, type: 2}
+    shadeOffset: {x: -0.05, y: 0.05}
+  - code: pe
+    name: Peach
+    color: {r: 1, g: 0.827451, b: 0.6745098, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 763913e38b656a548921829c0f4f87f7, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: afc7b2628e657ae419663a22346b1a54, type: 2}
+    ballMaterial: {fileID: 2100000, guid: afc7b2628e657ae419663a22346b1a54, type: 2}
+    shadeOffset: {x: -0.05, y: 0.05}
+  - code: si
+    name: Silver
+    color: {r: 0.764151, g: 0.74612856, b: 0.74612856, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 80179aa2f68024443a8ebbdfdbefc5dd, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: 4e7d599fe42e1524a8c2df86bc7be55b, type: 2}
+    ballMaterial: {fileID: 2100000, guid: 4e7d599fe42e1524a8c2df86bc7be55b, type: 2}
+    shadeOffset: {x: -0.2, y: -0.1}
+  - code: gr
+    name: Dark Green
+    color: {r: 0, g: 0.53333336, b: 0, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: a5e16937b065b2e42a68c9ea75d13a73, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: 3875d656eec9cd94cac55d6933da8702, type: 2}
+    ballMaterial: {fileID: 2100000, guid: 3875d656eec9cd94cac55d6933da8702, type: 2}
+    shadeOffset: {x: -0.15, y: 0}
+  - code: gra
+    name: Gray
+    color: {r: 0.67467993, g: 0.6784314, b: 0.6745098, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: 45a7990437f1d534190b196adc1c4be5, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: 45a7990437f1d534190b196adc1c4be5, type: 2}
+    ballMaterial: {fileID: 2100000, guid: 45a7990437f1d534190b196adc1c4be5, type: 2}
+    shadeOffset: {x: -0.1, y: 0.1}
+  - code: c
+    name: Cyan
+    color: {r: 0.0990566, g: 0.94050384, b: 1, a: 1}
+    cubeMaterial: {fileID: 2100000, guid: c603868c8f2f57c4d82a1fd6d6298c6d, type: 2}
+    ammoMaterial: {fileID: 2100000, guid: af822057088b85e4a86c70f303f77818, type: 2}
+    ballMaterial: {fileID: 2100000, guid: af822057088b85e4a86c70f303f77818, type: 2}
+    shadeOffset: {x: -0.075, y: 0.075}
+  fallbackCube: {fileID: 2100000, guid: e1f2e0bbf328a3149a7eda99a8c516a2, type: 2}
+  fallbackAmmo: {fileID: 2100000, guid: e1f2e0bbf328a3149a7eda99a8c516a2, type: 2}
+  fallbackBall: {fileID: 2100000, guid: e1f2e0bbf328a3149a7eda99a8c516a2, type: 2}

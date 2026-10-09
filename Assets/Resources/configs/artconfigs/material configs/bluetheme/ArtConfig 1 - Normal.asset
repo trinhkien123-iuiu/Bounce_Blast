@@ -1,0 +1,345 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4ccab4e38a96deb25d2020b172620b9, type: 3}
+  m_Name: ArtConfig 1 - Normal
+  m_EditorClassIdentifier:
+  matPairsObject:
+  - type: 0
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 51f0401ef8d09934099b1b498e6ad90b, type: 2}
+    materials: []
+  - type: 1
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: fa838fe692272074a94b8e7568ca8f56, type: 2}
+    materials: []
+  - type: 2
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: d57f61eba25c68043ad7376b59c1f1d5, type: 2}
+    materials: []
+  - type: 3
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: a18775d6fccf5eb4fa7c0365461debb8, type: 2}
+    materials: []
+  - type: 4
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 23079ce6b5c1927478e8f86fe901e2e7, type: 2}
+    materials: []
+  - type: 5
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 8cbbc24e86b43e540a0a30730d11c665, type: 2}
+    materials: []
+  - type: 6
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 7b425dd658041104297ecf4e237f67e2, type: 2}
+    materials: []
+  - type: 7
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 8cbbc24e86b43e540a0a30730d11c665, type: 2}
+    materials: []
+  - type: 8
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 6b05fd8ac941c2b4c88ac033598c503d, type: 2}
+    materials: []
+  - type: 9
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: a53d76f43d32a3643ac6d13ea57c0ba7, type: 2}
+    materials: []
+  - type: 13
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 8cbbc24e86b43e540a0a30730d11c665, type: 2}
+    materials: []
+  - type: 15
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 8cbbc24e86b43e540a0a30730d11c665, type: 2}
+    materials: []
+  - type: 10
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 8cbbc24e86b43e540a0a30730d11c665, type: 2}
+    materials: []
+  - type: 11
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 1ba8335c74c934942b1887daa490b8ff, type: 2}
+    materials: []
+  - type: 12
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 2a5f603b8ae17ca42990d377fc2d29ac, type: 2}
+    materials: []
+  - type: 14
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: e22ee40fcc8b2dc46834ec7c61f23ce0, type: 2}
+    materials: []
+  - type: 16
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 83a27019d1cbe014b946b8550adf077d, type: 2}
+    materials: []
+  matPairsTop:
+  - type: 14
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+  - type: 15
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+    materials:
+    - {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+  - type: 13
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 154b0c8b474aa5b439c64e278d92f946, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 154b0c8b474aa5b439c64e278d92f946, type: 2}
+  - type: 10
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+  - type: 11
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 63cef806cdd78ea4e8200eab4354fd09, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 63cef806cdd78ea4e8200eab4354fd09, type: 2}
+  - type: 0
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: c487875d60e008e448f4bc5ae70ba91b, type: 2}
+    materials:
+    - {fileID: 2100000, guid: c487875d60e008e448f4bc5ae70ba91b, type: 2}
+  - type: 1
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+  - type: 2
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: ccf3c3685fba8544883404718d74b0e7, type: 2}
+    materials:
+    - {fileID: 2100000, guid: ccf3c3685fba8544883404718d74b0e7, type: 2}
+  - type: 3
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+    materials:
+    - {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+  - type: 8
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+  - type: 4
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 4ca60ad79f43bb941a5f424c36b99281, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 4ca60ad79f43bb941a5f424c36b99281, type: 2}
+  - type: 5
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: c8223742cbf73d144b732a73e38bf8d9, type: 2}
+    materials:
+    - {fileID: 2100000, guid: c8223742cbf73d144b732a73e38bf8d9, type: 2}
+  - type: 6
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: fe55c7d4245c4094196a5c4b5d9f1c63, type: 2}
+    materials:
+    - {fileID: 2100000, guid: fe55c7d4245c4094196a5c4b5d9f1c63, type: 2}
+  - type: 7
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: a88e3f9d6d166d549906c6baad9a3f48, type: 2}
+    materials:
+    - {fileID: 2100000, guid: a88e3f9d6d166d549906c6baad9a3f48, type: 2}
+  - type: 9
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 2fb42366c78013c4187d6df235647b5f, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 2fb42366c78013c4187d6df235647b5f, type: 2}
+  - type: 12
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: af822057088b85e4a86c70f303f77818, type: 2}
+  - type: 17
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: 2dd68f9c97ff61445a8cd736be96aee8, type: 2}
+  - type: 18
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: afc7b2628e657ae419663a22346b1a54, type: 2}
+  - type: 19
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: 4e7d599fe42e1524a8c2df86bc7be55b, type: 2}
+  - type: 20
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: 3875d656eec9cd94cac55d6933da8702, type: 2}
+  - type: 21
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: 154b0c8b474aa5b439c64e278d92f946, type: 2}
+  - type: 22
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: adc92454b2668b64fbaf9415d97badec, type: 2}
+  - type: 23
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 32634e79aff4eb540a97addc2861b6fe, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 32634e79aff4eb540a97addc2861b6fe, type: 2}
+  - type: 24
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 151ce36c73e2f3e45a9464d9bc8570bd, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 151ce36c73e2f3e45a9464d9bc8570bd, type: 2}
+  matPairsBottom:
+  - type: 14
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+  - type: 15
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+    materials:
+    - {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+  - type: 13
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 154b0c8b474aa5b439c64e278d92f946, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 154b0c8b474aa5b439c64e278d92f946, type: 2}
+  - type: 10
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+  - type: 11
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 63cef806cdd78ea4e8200eab4354fd09, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 63cef806cdd78ea4e8200eab4354fd09, type: 2}
+  - type: 0
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: c487875d60e008e448f4bc5ae70ba91b, type: 2}
+    materials:
+    - {fileID: 2100000, guid: c487875d60e008e448f4bc5ae70ba91b, type: 2}
+  - type: 1
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 4d6c88faff967da43b2546b0086a191c, type: 2}
+  - type: 2
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: ccf3c3685fba8544883404718d74b0e7, type: 2}
+    materials:
+    - {fileID: 2100000, guid: ccf3c3685fba8544883404718d74b0e7, type: 2}
+  - type: 3
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+    materials:
+    - {fileID: 2100000, guid: f3f2b467cbfccc3448410bac082d79a0, type: 2}
+  - type: 8
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 51c49c21b70c2f743b41fd56408d22bd, type: 2}
+  - type: 4
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 4ca60ad79f43bb941a5f424c36b99281, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 4ca60ad79f43bb941a5f424c36b99281, type: 2}
+  - type: 5
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: c8223742cbf73d144b732a73e38bf8d9, type: 2}
+    materials:
+    - {fileID: 2100000, guid: c8223742cbf73d144b732a73e38bf8d9, type: 2}
+  - type: 6
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: fe55c7d4245c4094196a5c4b5d9f1c63, type: 2}
+    materials:
+    - {fileID: 2100000, guid: fe55c7d4245c4094196a5c4b5d9f1c63, type: 2}
+  - type: 7
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: a88e3f9d6d166d549906c6baad9a3f48, type: 2}
+    materials:
+    - {fileID: 2100000, guid: a88e3f9d6d166d549906c6baad9a3f48, type: 2}
+  - type: 9
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 2fb42366c78013c4187d6df235647b5f, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 2fb42366c78013c4187d6df235647b5f, type: 2}
+  - type: 12
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: af822057088b85e4a86c70f303f77818, type: 2}
+  - type: 17
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: 2dd68f9c97ff61445a8cd736be96aee8, type: 2}
+  - type: 18
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: afc7b2628e657ae419663a22346b1a54, type: 2}
+  - type: 19
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: 4e7d599fe42e1524a8c2df86bc7be55b, type: 2}
+  - type: 20
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: 3875d656eec9cd94cac55d6933da8702, type: 2}
+  - type: 21
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: 154b0c8b474aa5b439c64e278d92f946, type: 2}
+  - type: 22
+    useSingleMaterial: 0
+    material: {fileID: 0}
+    materials:
+    - {fileID: 2100000, guid: adc92454b2668b64fbaf9415d97badec, type: 2}
+  - type: 23
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 32634e79aff4eb540a97addc2861b6fe, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 32634e79aff4eb540a97addc2861b6fe, type: 2}
+  - type: 24
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 151ce36c73e2f3e45a9464d9bc8570bd, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 151ce36c73e2f3e45a9464d9bc8570bd, type: 2}
+  matPairsBlockerEnum:
+  - type: 0
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: 2e9f45aa89d8ba94eb66f9ef1e014572, type: 2}
+    materials:
+    - {fileID: 2100000, guid: 2e9f45aa89d8ba94eb66f9ef1e014572, type: 2}
+  - type: 1
+    useSingleMaterial: 1
+    material: {fileID: 2100000, guid: ffdae556d5c213c4d92e3586a7c617fe, type: 2}
+    materials:
+    - {fileID: 2100000, guid: ffdae556d5c213c4d92e3586a7c617fe, type: 2}
+  colorPairs:
+  - Enum: 6
+    ColorModularWallBoardGround: {r: 0.654902, g: 0.8117647, b: 1, a: 1}
+    ColorConveyorArrows: {r: 0.34117648, g: 0.3882353, b: 0.49411765, a: 1}
+    ColorCamera: {r: 0, g: 0, b: 0, a: 1}
+  - Enum: 7
+    ColorModularWallBoardGround: {r: 0.654902, g: 0.8117647, b: 1, a: 1}
+    ColorConveyorArrows: {r: 0.34117648, g: 0.3882353, b: 0.49411765, a: 1}
+    ColorCamera: {r: 0, g: 0, b: 0, a: 1}

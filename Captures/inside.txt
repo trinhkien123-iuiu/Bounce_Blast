@@ -1,0 +1,13 @@
+f150 INSIDE NONBLOCK Ball ball r p (5.20, 6.62) prev - v (0.65, -10.98)
+f150 INSIDE NONBLOCK Ball ball r p (5.22, 6.62) prev - v (-8.37, -7.13)
+f160 INSIDE NONBLOCK Ball ball r p (5.38, 6.62) prev - v (-2.43, -10.73)
+f160 INSIDE NONBLOCK Ball ball r p (5.49, 6.72) prev (5.41, 6.62) v (4.67, -9.96)
+f162 INSIDE NONBLOCK Ball ball r p (5.34, 6.62) prev - v (-6.11, -9.14)
+f163 INSIDE NONBLOCK Ball ball r p (3.29, 6.45) prev (3.57, 6.10) v (-6.94, 8.53)
+f165 INSIDE NONBLOCK Ball ball r p (5.40, 6.62) prev - v (5.19, -9.70)
+f165 INSIDE NONBLOCK Ball ball r p (5.25, 6.66) prev (5.28, 6.62) v (-0.04, -11.00)
+f166 INSIDE NONBLOCK Ball ball r p (5.25, 6.62) prev - v (4.43, -10.07)
+f171 INSIDE NONBLOCK Ball ball r p (5.41, 6.62) prev - v (-4.32, -10.11)
+f171 INSIDE NONBLOCK Ball ball r p (5.47, 6.49) prev (5.37, 6.62) v (10.28, 3.91)
+f172 INSIDE NONBLOCK Ball ball r p (5.31, 6.62) prev - v (-6.92, -8.55)
+frames 172
