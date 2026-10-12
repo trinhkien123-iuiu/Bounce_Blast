@@ -9,7 +9,12 @@ namespace BounceBlast.Gameplay
     /// </summary>
     public class CrusherFx : MonoBehaviour
     {
-        const float ShakeMagnitude = 0.06f, ShakeFrequency = 28f, Dampening = 6f, SpinSpeed = 800f;
+        /// <summary>ConveyorSystem gán – 4 thông số dưới chỉnh trong GameConfig.</summary>
+        public GameConfig Config;
+        float ShakeMagnitude => Config != null ? Config.crusherShakeMagnitude : 0.06f;
+        float ShakeFrequency => Config != null ? Config.crusherShakeFrequency : 28f;
+        float Dampening => Config != null ? Config.crusherShakeDamping : 6f;
+        float SpinSpeed => Config != null ? Config.crusherSpinSpeed : 800f;
 
         Transform _cutter1, _cutter2;
         Vector3 _basePos;

@@ -394,3 +394,287 @@ Sửa: dùng chính thân gắn xương `AmmoFlightTube` (như lúc bay): quỹ 
 ### 3.40 Thanh đậu trong máy xay dài hơn
 User: "độ cao của ammo khi vào máy xay hơi ngắn… dài hơn, xay lâu hơn thì feeling oke hơn". `AmmoBox.DockHeightRatio` 2.0 → 2.6 (chiều cao thanh đậu = 2.6 × bề ngang lòng máy xay; đáy vẫn dưới tâm lưỡi cắt 0.3W) → phần nhô trên khung dài thêm ~35% (1.7W → 2.3W), thanh lún dần theo số bi còn lại nên nhìn như xay lâu hơn. Đường bay (`FlyRoutine` DockLen) và khoảng xếp hàng chờ trên dock (`ConveyorLane.WaitPosition`, step = W·(ratio+0.15)) tự theo hằng số này. Thời gian xay thực (= số bi × laneBallSpacing / laneSpeed ≈ 0.05 s/bi) KHÔNG đổi.
 Kèm: `ThemeApplier.ApplyGround` tự tạo MaterialPropertyBlock nếu Apply chạy trước Init (lỗi null khi LoadLevel sớm ngay lúc vào Play làm LoadLevel dừng giữa chừng).
+
+## 4. Refactor: đưa hằng số tinh chỉnh ra Inspector
+
+### 4.1 Vì sao
+Dự án đang nghiêng hẳn về dựng object bằng code (47 chỗ `new GameObject()` / 14 chỗ `Instantiate`), nên nhiều giá trị tinh chỉnh nằm rải rác dưới dạng `const` trong code: muốn đổi phải sửa code + chờ compile. Chuẩn phổ biến trong ngành là prefab + dữ liệu; bước rẻ nhất và không rủi ro là đưa các con số ra `GameConfig` (ScriptableObject đã có sẵn trong Inspector).
+
+Đo trước khi làm, để trả lời lo ngại "tách ra có lag không": dựng 2000 object bằng code 16.7 ms, bằng `Instantiate` 14.1 ms → prefab KHÔNG chậm hơn, còn nhanh hơn chút. Thời gian load level (97–339 ms) không nằm ở việc tạo object mà ở sinh mesh khối gộp + dọn level cũ.
+
+### 4.2 Đã chuyển sang GameConfig (20 giá trị, có Header + Tooltip)
+| Nhóm | Trường |
+|---|---|
+| Bố cục màn hình | `frameTopY` 8.43, `viewHalfWidth` 5.98, `viewMaxZoomOut` 1.3, `viewMinHalfHeight` 11.6, `ammoTargetCell` 1.45, `ammoBoosterGap` 0.2 |
+| Đậu máy xay | `dockHeightRatio` 2.6, `dockBottomRatio` 0.3 |
+| Lơ lửng hết sức chứa | `hoverAngle` 28, `hoverLength` 3, `hoverTime` 0.38, `doorExtraSink` 1.6 |
+| Khay đạn | `trayPanelPad` 0.10, `trayPanelRadius` 0.22, `traySlotSize` 0.92, `traySlotRadius` 0.2 |
+| Gạch | `blockBevel` 0.14, `blockDepth` 1.1, `cubeOverlap` 1.10, `columnWidthRatio` 0.6 |
+
+Ghi chú kỹ thuật:
+- `AmmoBox.DockHeightRatio/DockBottomRatio` từ `public const` thành property đọc config; giữ `DefaultDockHeightRatio` cho `ConveyorLane.WaitPosition` (có thể gọi trước `Init`).
+- `GameManager.AmmoBoxShift` trước hardcode −0.218, nay tính từ `ViewSpace.LegacyShift(-0.6)`.
+- `BoardController.BuildSolidMesh` (static) nhận thêm tham số bevel/depth; khoá cache `_solidMeshes` thêm bevel+depth để chỉnh trong Inspector là mesh dựng lại ngay.
+- Xoá `AmmoBox.SinkDrop` (khai báo nhưng không nơi nào dùng).
+
+### 4.3 Kiểm chứng
+- Compile sạch; load 7 level (44, 74, 76, 79, 2, 1, 10) không lỗi console.
+- Bố cục giữ nguyên: Lv44 ô khay 1.45 / orthoSize 13.87 / camY −5.332, trùng số trước refactor. Ảnh: Captures/refactor3_cmp.png (trái trước, phải sau — khác duy nhất là badge booster do state khác phiên).
+- Thử đổi `blockBevel` 0.14 → 0.45 rồi load lại: dải vát khối gộp dày lên rõ (Captures/refactor3_bevel_cmp.png) → chỉnh Inspector ăn ngay, cache mesh tự làm mới. Đã trả về 0.14.
+- Thời gian load không xấu đi: 94–125 ms (trước 97–339 ms; chênh lệch chủ yếu do lần đo trước là lần dựng mesh đầu tiên, chưa có cache).
+
+## 5. Refactor mục 2: thanh booster thành prefab (dùng art gốc)
+
+### 5.1 Trước
+`GameUI.BuildBoosters` dựng toàn bộ bằng code, và quan trọng hơn: **sprite nút là tự vẽ** – `MakeRing()` sinh texture vòng tròn tím viền vàng, `MakeTriangleSprite()` sinh tam giác cảnh báo. `UiSkin.boosterFrame`/`plusBadge` có khai báo nhưng trỏ sai vào `Circle.asset` (menu Setup khớp tên lỏng) và code không dùng tới.
+
+### 5.2 Tìm lại art gốc
+`Assets/_Project/UI/Prefabs/Boosters.prefab` (1539 object, đã tách từ ManagerScene nhưng chưa nối vào game) chứa nút gốc dạng **world-space SpriteRenderer**, kèm cả shop/tutorial/currency. Lấy ra được các sprite thật:
+| Vai trò | Asset gốc |
+|---|---|
+| Nút (khung + icon trong MỘT sprite) | `_Ripped/Sprite/Magical Hand`, `Hammer`, `Shuffle`, `Capacity` |
+| Ô số còn lượt | `_Ripped/Sprite/Number` |
+| Nút "+" khi hết lượt | `_Ripped/UI/Sprite/Add_BTN (1)_mir` (vẽ bằng `MirroredImage`, lật ngang) |
+
+Mũi tên cảnh báo: `Arrow_0` trong "Canvas Of Booster Arrows" là mũi tên cong, **không phải** cái dùng ở đây – đối chiếu `lose_coche.mp4` f486–510 thì nó là **tam giác vàng chỉ xuống**, đúng như hàm tự vẽ cũ. Trong `_Ripped` không có sprite tam giác nào khớp, nên xuất hàm vẽ cũ ra asset `Assets/_Project/UI/Sprites/BoosterWarnArrow.png` để nằm trong prefab (sửa/thay được), không vẽ trong code nữa.
+
+### 5.3 Sau
+- Prefab mới `Assets/_Project/UI/Prefabs/BoosterBar.prefab`:
+  `BoosterBar / Strip(+GoldLine) / Buttons / {MagicHand, Hammer, Shuffle, Capacity} / {Badge(+Count), BadgeAdd, WarnArrow}`
+- `UiSkin`: 6 trường sprite booster → còn **1 trường** `boosterBarPrefab`. Art nằm trong prefab, không qua UiSkin nữa.
+- `GameUI.BuildBoosters` chỉ Instantiate + tìm con theo tên + gắn `onClick`; bỏ `MakeRing` và `MakeTriangleSprite`. `_boosters` đổi từ tuple sang class `BoosterUi` để giữ thêm `badgeAdd`.
+- `SetBooster`: còn lượt → hiện `Badge` (ô số); hết lượt → hiện `BadgeAdd` (nút "+" xanh gốc). Trước đây tô màu xanh đè lên sprite tím nên ra sai màu.
+- `GameplaySetup.cs` (menu Setup) cập nhật theo.
+- GameUI: 1009 → 972 dòng; `new GameObject()` trong GameUI 7 → 6; toàn dự án 47 → 46.
+
+### 5.4 Kiểm chứng
+- Compile sạch, load Lv44/79/2 không lỗi console.
+- Bấm nút: `onClick` bắn đúng `BoosterType.Hammer`.
+- Dải nền vẫn đổi tông theo độ khó: Hard đỏ (0.745, 0.165, 0.173), SuperHard navy (0.149, 0.157, 0.278), Normal tím (0.278, 0.180, 0.886).
+- Mũi tên cảnh báo bật đúng ở Hammer + Capacity khi sức chứa đầy.
+- Ảnh: Captures/booster_cmp2.png (trước/sau), Captures/booster_vs_goc.png (so với video gốc).
+
+### 5.5 Tách luôn Canvas (user: "ủa nhưng mà phần canvas UI đâu")
+Bước 5.3 mới tách thanh booster; bản thân `OverlayCanvas` (Canvas + CanvasScaler + GraphicRaycaster) cùng Vignette và Toast vẫn `new GameObject()` trong `BuildOverlay` → trong Editor vẫn không thấy/sửa được lớp UI.
+- Prefab mới `Assets/_Project/UI/Prefabs/OverlayCanvas.prefab`: `OverlayCanvas / BoosterBar (prefab lồng) + Vignette + Toast`. `BoosterBar` lồng dạng prefab nên sửa BoosterBar.prefab là cả hai cùng đổi.
+- `UiSkin`: `boosterBarPrefab` → `overlayCanvasPrefab`; bỏ luôn trường `vignette` (sprite đã nằm trong prefab).
+- `BuildOverlay` giờ chỉ Instantiate + `UseCamera`/`SetupScaler` (camera không serialize được) + tìm `Vignette`/`Toast` theo tên; `BuildBoosters` → `BindBoosters` (bar có sẵn trong prefab, không tạo nữa).
+- **Sửa luôn chỗ lệch ở 5.5 cũ**: trong prefab, Vignette đặt SAU BoosterBar nên vignette đỏ phủ lên cả hàng nút như game gốc (lose_coche f498). Trước đó vignette tạo trước nên nằm dưới, nút vẫn tím sáng khi sức chứa 100%. Ảnh: Captures/overlay_vs_goc.png.
+- Kiểm chứng: trạng thái thường không đổi (Captures/overlay_normal_cmp.png); popup Settings vẫn mở đúng; load Lv44 không lỗi console.
+
+### 5.6 Còn dựng bằng code trong GameUI (5 chỗ, đều có lý do)
+| Dòng | Việc | Vì sao giữ |
+|---|---|---|
+| 76 | `EventSystem` | chỉ tạo khi scene chưa có; là singleton hạ tầng, không phải UI |
+| 439 | canvas bọc popup | bọc prefab popup gốc cho vừa màn hình, không có hình ảnh riêng |
+| 773, 948, 957 | helper `Img()` / `Txt()` / node rỗng | dùng cho các phần còn lại (HUD warn, coin bay, confetti…) – chưa tách |
+Tam giác cảnh báo gốc vẫn to hơn bản làm lại một chút và mũi gần sát mép nút hơn.
+
+### 5.7 Số liệu
+GameUI 1009 → 971 dòng; `new GameObject()` trong GameUI 7 → 5, toàn dự án 47 → 45. Prefab UI: thêm `BoosterBar.prefab`, `OverlayCanvas.prefab`, sprite `BoosterWarnArrow.png`.
+
+### 5.8 Đưa UI vào Hierarchy (user: "phần canvas trên hierarchy chưa có mà")
+5.5 mới tạo prefab dạng FILE; scene vẫn chỉ có `Systems/GameManager`, mở Editor không thấy UI đâu. Nguyên nhân gốc: `GameManager.Awake` tạo mọi hệ thống bằng `CreateChild<T>()` nên không hệ nào có tham chiếu Inspector.
+Sửa:
+- `GameUI.Spawn(prefab, name)` đổi thành: **có sẵn con đúng tên trong scene thì dùng luôn**, chưa có mới Instantiate từ prefab. Áp cho cả OverlayCanvas, HUD và CapacityBar → scene trống vẫn chạy được như cũ.
+- `GameManager` thêm trường `public GameUI ui` (Header "Scene"): gán thì dùng cái trong scene, bỏ trống thì tự tạo như trước.
+- Scene `Gameplay.unity` nay có:
+```
+Systems
+  GameManager        (ui -> Systems/UI)
+  UI                 [GameUI]
+    OverlayCanvas    <prefab>  (BoosterBar + Vignette + Toast)
+    HUD (GameCanvas) <prefab>
+    CapacityBar      <prefab>
+```
+Cả 3 là prefab instance nên sửa prefab là scene theo, và ngược lại chỉnh trong scene thì Apply ngược lại prefab được.
+- Kiểm chứng: chỉ 1 GameUI và 1 OverlayCanvas lúc chạy (không nhân đôi), Lv44 hiện đúng như trước (Captures/hier_cmp.png), console sạch, scene đã lưu.
+
+### 5.9 Thanh CAPACITY hỏng trong Edit mode (user: "sao lại có thanh CAPACITY bị lỗi kìaaa")
+Sau 5.8, mở Editor thấy thanh CAPACITY trôi giữa màn hình, chữ bị đè, và cả màn phủ một lớp xám. Nguyên nhân: `CapacityBar.prefab` vẫn giữ nguyên trạng thái gốc, còn code mới chỉnh nó lúc chạy:
+- root ở (5.34, −12.10, −0.41) rot X 270 scale 0.726 → nằm sai chỗ, dựng ngang;
+- `Canvas Base/Image` = lớp xám phủ toàn màn của prefab gốc, code `SetActive(false)` lúc chạy;
+- `endless icon (1)` bật sẵn → đè lên chữ CAPACITY, code cũng tắt lúc chạy.
+Sửa: **nung các giá trị đó thẳng vào prefab** (root (5.30, −6.77, −0.60) rot 0 scale 0.62; `Canvas` pos 0 rot 0 scale y ×0.8; tắt `Canvas Base` và `endless icon (1)`), rồi **bỏ phần đặt tư thế khỏi `BuildCapacityBar`** – giữ lại đúng thứ không serialize được là `Canvas.worldCamera` + `sortingOrder`. Tránh được cả rủi ro code nhân scale y ×0.8 lần thứ hai lên giá trị đã nung. Instance trong scene còn override tư thế cũ nên phải đồng bộ lại và lưu scene.
+
+**Lỗi thứ hai lòi ra khi kiểm chứng:** `FitCamera` đo vị trí hàng HUD và hàng booster TRÊN MÀN HÌNH, nhưng `Start()` gọi `LoadLevel` ngay khung hình đầu, lúc Canvas chưa có kích thước thật → đo sai, nhánh thu nhỏ không chạy, bàn chơi bị nhỏ hơn mức cần (Lv44: orthoSize 12.624 / ô khay 1.22 thay vì 13.871 / 1.45) và chỉ đúng lại khi đổi level. Sửa: `Start()` thành coroutine, `yield return null` một khung hình rồi mới `LoadLevel`. Kiểm chứng: vào Play thẳng Lv44 giờ ra đúng 13.871 / 1.450 ngay từ đầu.
+
+Ảnh: Captures/capfix_cmp.png (Edit mode trước/sau, và Play Lv44).
+Còn lại ở Edit mode: lòng bàn và nền dưới có màu xám xanh vì `ThemeApplier` chỉ tô màu khi nạp level — vào Play là đúng màu.
+
+## 6. Refactor mục 1: tư thế hộp đạn chuyển sang GameConfig
+
+### 6.1 Vấn đề
+Tư thế hộp trong khay (nghiêng / dài cột jelly / dịch / cỡ / độ lún) nằm ở biến **static** `AmmoBoxTuning`, được component `AmmoLayoutTuner` (gắn trên GameManager) ghi đè. Chính doc của component đã mô tả chỗ đau: *"Thoát Play thì giá trị trên Inspector bị Unity trả về: muốn giữ thì Copy Component trong lúc Play rồi Paste Component Values sau khi dừng"*. Tức là mỗi lần tinh chỉnh phải chép số thủ công, rất dễ mất.
+
+### 6.2 Sửa
+- `GameConfig` thêm lớp `[Serializable] AmmoPose` (tiltX / length / offset / scale, đủ Range + Tooltip) và 3 trường: `ammoActivePose`, `ammoInactivePose`, `ammoSinkDepth`. Mặc định = bộ số user đã chốt (Docs 3.28).
+- `GameConfig.OnValidate()` gọi `AmmoBoxTuning.Bump()` → kéo thanh trượt là hộp dựng lại tư thế ngay.
+- `AmmoBoxTuning` tách sang file riêng `Ammo/AmmoBoxTuning.cs`, không còn giữ dữ liệu: chỉ đọc từ `Config` (GameManager gán trong Awake), có giá trị dự phòng nếu chưa gán.
+- `AmmoLayoutTuner.cs` thành stub rỗng (giữ lại để scene cũ không báo missing script); component đã gỡ khỏi GameManager trong scene. **Xoá được file này nếu không cần.**
+- Vì là ScriptableObject asset chứ không phải component trong scene, Unity KHÔNG hoàn tác khi thoát Play.
+
+### 6.3 Kiểm chứng
+- Compile sạch; load Lv44/74/79/2 không lỗi console.
+- Giá trị khởi đầu khớp bộ đã chốt: active tilt −55 / len 0.6 / off (−0.01, 0.69, 0) / scale 1.038; inactive tilt −78 / len 0.4 / off (0, 0.07, 0) / scale 1.06; sink 1.1.
+- Đổi lúc đang Play (tilt −55 → −80, len 0.6 → 1.1): hộp đổi ngay trên màn (Captures/tuner_cmp.png).
+- **Thoát Play: giá trị vẫn là −80 / 1.1** → đúng mục tiêu, không phải Copy/Paste Component nữa. Sau đó đã trả về bộ số cũ và chụp đối chiếu khớp hoàn toàn (Captures/tuner_restore_cmp.png).
+
+### 6.4 Việc ngoài ý muốn
+Khi dọn script hỏng, mình đã gỡ luôn một MonoBehaviour mồ côi trên `KPConveyorSlot_Left` (script guid 45ead289…, file không còn trong dự án từ trước). Nó vốn đã hỏng nên không chạy gì, nhưng đây là thay đổi user không yêu cầu — khôi phục được bằng git nếu cần.
+
+### 6.5 Chưa làm trong mục 1
+Khay đạn (mặt khay, miệng hố, sàn giếng trong `AmmoGridController`) vẫn dựng bằng mesh sinh lúc chạy. Hình dạng phụ thuộc ô nào có trong level nên không gói thành prefab được, giống mesh khối gộp trên bàn. Các thông số hình khối của khay đã đưa ra Inspector ở mục 4.
+
+### 6.6 Thông số miệng hố khay (user hỏi)
+`GameConfig` → mục **Khay đạn – hình khối**, 7 thông số, chỉnh xong nạp lại level là thấy (hình khối khay dựng lúc nạp level, không đổi tức thì như tư thế hộp):
+| Trường | Mặc định | Tác dụng |
+|---|---|---|
+| `traySlotSize` | 0.92 | cạnh miệng hố so với ô khay; nhỏ đi = hố bé, gờ giữa 2 hố dày lên |
+| `traySlotRadius` | 0.2 | bo góc miệng hố (0 = góc vuông) |
+| `trayHoleTopInset` | 0 | hạ mép TRÊN của miệng hố xuống |
+| `trayPanelDepth` | 0.35 | độ sâu mặt khay so với mặt hộp |
+| `trayHoleDepth` | 3.0 | độ sâu đáy giếng – phải sâu hơn hộp đã lún + cửa đóng, không thì hộp xuyên đáy |
+| `trayPanelPad` | 0.10 | viền mặt khay chìa ra ngoài ô |
+| `trayPanelRadius` | 0.22 | bo góc ngoài mặt khay |
+
+Hai cái đầu đã đưa ra ở mục 4; `trayHoleTopInset`, `trayPanelDepth`, `trayHoleDepth` bổ sung lần này (trước là `const HoleTopInset / TrayPanelZ / TrayFloorZ`). Dọn luôn 2 biến chết trong `AmmoGridController`: `lips` (MeshBuilder khai báo không dùng) và `lipH`.
+
+Kiểm chứng: đổi `traySlotSize` 0.92 → 0.68 và `traySlotRadius` 0.2 → 0.45, nạp lại Lv44 thì miệng hố nhỏ và tròn hẳn (Captures/hole_cmp.png); trả về giá trị cũ thì khớp lại như ban đầu (Captures/hole_restore_cmp.png). Console sạch.
+
+Chưa đưa ra Inspector: dải thạch đọng ở mép trên hố và các sợi nhỏ giọt trong `AmmoHoleLid` (`band = cell*0.09`, `DripIn`, `LidDelay`, `LidTime`) – đó là hiệu ứng nắp hố khi hộp bay đi, không phải hình khối miệng hố.
+
+### 6.7 Đưa nốt hằng số tinh chỉnh còn lại ra GameConfig
+Sau mục 4 và 6.6 vẫn còn một loạt `const` chỉ sửa được bằng cách mở code. Đưa nốt 13 cái ảnh hưởng tới hình ảnh / cảm giác:
+
+| Nhóm | Trường | Mặc định | Trước đây |
+|---|---|---|---|
+| Bi | `ballMinVerticalSpeed` / `ballDeflectDeg` / `ballAimMinBounces` | 1.6 / 8 / 3 | `Ball.MinVerticalSpeed / DeflectDeg / LosMinBounces` |
+| Máng | `laneArrowSpacing` / `laneArrowSpeed` | 1.25 / 1.5 | `ConveyorLane.ArrowSpacing / ArrowSpeed` |
+| Máy xay | `crusherSpinSpeed` / `crusherShakeMagnitude` / `crusherShakeFrequency` / `crusherShakeDamping` | 800 / 0.06 / 28 / 6 | `CrusherFx` const |
+| Nắp hố | `holeLidBand` / `holeLidDripTime` / `holeLidDelay` / `holeLidTime` | 0.09 / 0.18 / 0.55 / 0.22 | `AmmoHoleLid.DripIn / LidDelay / LidTime` + `band` |
+
+Cách nối config: `Ball` đọc qua `_owner.Config` (BallManager đã giữ sẵn); `ConveyorLane` dùng `_config` sẵn có; `CrusherFx` thêm trường `public GameConfig Config` do `ConveyorSystem` gán; `AmmoHoleLid.Init` nhận thêm tham số `GameConfig`. Tất cả đều có giá trị dự phòng nếu config null.
+
+Kiểm chứng: compile sạch, Lv44 chạy 40 bi không lỗi console; `CrusherFx.Config` và `AmmoHoleLid._config` đều trỏ đúng GameConfig lúc chạy. Test lưỡi cắt: đặt `_spinTimer` dài rồi so 2 trạng thái — `crusherSpinSpeed = 0` thì góc lưỡi đứng yên (13.378 → 13.378), `= 800` thì quay (13.378 → 327.414). (Hai phép đo trước đó không hợp lệ: lưỡi chỉ quay khi `_spinTimer > 0`, và `localEulerAngles` bị cuộn nên không đo được độ/giây.)
+
+**Lưu ý:** trong lúc làm mục này, giá trị trong GameConfig.asset đã bị user chỉnh tay (active −68 / 0.62, inactive −80.2 / 0.52, traySlotSize 0.9 — khác mặc định −55 / 0.6, −78 / 0.4, 0.92). Đã GIỮ NGUYÊN, không ghi đè. Con số mặc định trong bảng trên là giá trị khởi tạo trong code, không phải giá trị hiện tại của asset.
+
+## 7. Mỗi prefab một script quản lý riêng (user yêu cầu)
+
+### 7.1 Ý
+Trước đó prefab chỉ là "vỏ": `GameUI` ôm hết logic rồi đi tìm con bằng `transform.Find("tên")` lúc chạy. Cách chuẩn trong nghề là **mỗi prefab có script của chính nó**, giữ tham chiếu con bằng Inspector (`[SerializeField]`) và phơi ra API; script cha chỉ ra lệnh. Lợi: đổi tên/đổi chỗ con trong prefab không làm vỡ code, và nhìn Inspector là biết prefab cần những mảnh nào.
+
+### 7.2 `BoosterBarView` (trên gốc BoosterBar.prefab)
+- Danh sách `Entry` (một dòng mỗi nút): `type`, `frame`, `button`, `badge`, `count`, `badgeAdd`, `warnArrow` – kéo thả trong Inspector.
+- Tự lo: gắn `onClick` (Awake), đổi số lượt / nút "+" xanh (`SetBooster`), tông dải nền (`SetStripColor`), mũi tên nhấp nhô (`SetWarn` + `LateUpdate`).
+- Phơi `ButtonsRow` cho `GameManager.FitCamera` đo mép trên hàng nút.
+- `Validate()` trả về danh sách ô tham chiếu còn trống → GameUI log lỗi rõ ràng ngay khi dựng, thay vì null lặng lẽ.
+- Mũi tên: chỉ Hammer & Capacity giữ `WarnArrow`, 2 nút kia xoá hẳn node thừa trong prefab (trước đây tạo đủ 4 rồi Destroy 2 lúc chạy).
+
+### 7.3 `CapacityBarView` (trên gốc CapacityBar.prefab)
+- Tham chiếu: `worldCanvas`, `fill`, `label`, `infiniteIcon`.
+- Tự lo vẽ % / chữ CAPACITY / icon vô hạn / màu thanh (`SetFill`), kể cả mẹo chỉ dựng chuỗi khi số % đổi.
+- `Bind(camera, sortingOrder, font, material)` nhận những thứ không serialize được.
+
+### 7.4 GameUI gọn lại
+Bỏ hẳn: lớp nội bộ `BoosterUi`, dict `_boosters`, `_boosterStrip`, `_boosterBar`, `_warnArrows`, `_warnOn`, `_capacityRoot`, `_capacityFill`, `_capacityText`, `_capacityInfinite`, `_capacityKey`. `SetBooster`/`SetCapacity` nay chỉ chuyển tiếp lệnh. GameUI: 971 → 879 dòng.
+
+### 7.5 Kiểm chứng
+Compile sạch; Lv44 chạy không lỗi console; `Validate()` của cả hai view trả "đủ tham chiếu" lúc chạy. Bấm nút Shuffle → sự kiện bắn đúng `BoosterType.Shuffle` và nút chuyển sang badge "+" xanh. Sức chứa đầy → mũi tên bật đúng ở Hammer + Capacity, dải nền đúng tông Hard (0.745, 0.165, 0.173). Bắn 1 hộp → thanh hiện "20%", fillAmount 0.200, màu xanh lá (Captures/view_cmp.png, view_capacity_c.png).
+
+Ghi chú quy trình: khi nối tham chiếu bằng script Editor, chuỗi tự kiểm tra kiểu `"Canvas="+(cv!=null)` in ra False dù thực tế đã nối đúng — phải đọc lại `SerializedObject` của asset đã lưu mới là bằng chứng tin được.
+
+### 7.6 Chưa làm
+`GameUI` còn 36 chỗ `Find(...)`, gần hết nằm ở **HUD và 4 popup gốc** (GameCanvas, Fail, Success, Settings, OutOfCapacity). Đó là prefab rip nguyên bản, tên node do game gốc đặt; muốn làm tương tự thì thêm `HudView` / `PopupView` và kéo khá nhiều ô tham chiếu.
+
+### 7.7 Đưa popup vào Hierarchy (user: "trong UI Canvas vẫn thiếu, ví dụ chưa có setting")
+Sau 5.8 scene chỉ có OverlayCanvas / HUD / CapacityBar; 4 popup vẫn `Instantiate` lúc chạy rồi `Destroy` khi đóng nên không thấy trong Editor.
+- `OpenPopup` nay ưu tiên popup ĐẶT SẴN trong scene (con của UI, đúng tên): bật nó lên, mở lại CanvasGroup; chưa đặt thì dựng từ prefab như trước.
+- `ClosePopup`: popup đặt sẵn thì `SetActive(false)` (huỷ là mất luôn, lần sau phải dựng lại); popup dựng lúc chạy thì vẫn `Destroy`. Cờ `_popupPlaced` phân biệt.
+- Đã đặt vào `Systems/UI`, TẮT sẵn: `FailPopup`, `SuccessPopup`, `Settings`, và `OutOfCapacity` (prefab gốc không có Canvas riêng nên bọc trong một Canvas + CanvasScaler như code vẫn làm).
+- `Wire()` đã `RemoveAllListeners()` trước khi gắn nên dùng lại cùng một object không bị cộng dồn sự kiện.
+
+**Lỗi lòi ra:** `HUD (GameCanvas)` trong scene đang TẮT (prefab gốc để tắt, lúc chạy `Spawn` mới bật). Đó là lý do ảnh Edit mode ở 5.9 không thấy badge Lv. Đã bật trong scene.
+
+Kiểm chứng: Lv44, mở Settings → đúng 1 object (không nhân đôi), popup hiện đúng (Captures/popup_settings_s.png); đóng lại → còn trong scene, `active=False`, `IsPopupOpen=False`; console sạch.
+
+Hierarchy hiện tại:
+```
+Systems/UI  [GameUI]
+  OverlayCanvas   (BoosterBar[BoosterBarView] + Vignette + Toast)
+  HUD (GameCanvas)
+  CapacityBar     [CapacityBarView]
+  FailPopup       (tắt)
+  SuccessPopup    (tắt)
+  Settings        (tắt)
+  OutOfCapacity   (tắt, bọc Canvas riêng)
+```
+
+### 7.8 Bấm hộp đạn lúc trúng lúc không (user báo lỗi, 2 lần)
+Có **hai nguyên nhân chồng nhau**; lần sửa đầu mới trúng một.
+
+**(a) Dò hộp theo ô lưới trong khi hộp vẽ lệch ô.** `BoxAtWorld` suy ô từ toạ độ bấm, nhưng hộp được vẽ cao hơn tâm ô theo `ammoActivePose.offset` → bấm vào chỗ nhìn thấy hộp thì trượt. Lần sửa đầu đổi sang dò theo `_visual.position`.
+
+**(b) Lần sửa đầu vẫn sai** (user: "do mình chỉnh ở GameConfig, mình vẫn chưa click được"). `_visual.position` là GỐC XOAY của model, không phải chỗ nhìn thấy: đo với bộ số hiện tại (tilt −68, length 0.62, offset y 0.51) thì gốc xoay **cao hơn tâm phần nhìn thấy 0.71**, còn vùng bấm chỉ rộng ½ ô = 0.725 → chỉ bấm được mép trên hộp, bấm thân dưới là hụt, và độ lệch đổi theo mọi thông số trong GameConfig. Sửa: `AmmoBox.TryGetVisibleBounds` gộp bounds mọi renderer đang bật (bỏ particle/trail/line) = khung hình thật; `BoxAtWorld` coi một hộp là "trúng" khi điểm bấm nằm trong khung hình thật HOẶC trong ô lưới của nó (hộp lún vẫn bấm được để ra hiệu ứng từ chối), nhiều hộp cùng trúng thì lấy hộp có tâm hình gần nhất.
+
+**(c) Nguyên nhân thứ hai, thật sự chặn chuột: `FailPopup` bật sẵn trong scene.** Scene lưu `FailPopup` với `m_IsActive: 1`. Prefab gốc để CanvasGroup alpha 0 nhưng vẫn `blocksRaycasts` → popup **trong suốt phủ cả màn hình, nuốt mọi cú bấm** (đo: `IsOverUiButton` = true tại cả 3 điểm thử trên hộp, kẻ chặn là `FailPopup/.../BTN-Try Again`). Không rõ ai bật (có thể kéo nhầm trong Hierarchy); scene còn lưu `CapacityBar` ở trạng thái tắt.
+Sửa 3 lớp: (1) scene: tắt 4 popup, bật `CapacityBar`, lưu; (2) code: `GameUI.HideScenePopups()` chạy cuối `Build` – popup đặt sẵn luôn bắt đầu TẮT bất kể scene lưu gì; (3) popup Thắng (`PlayWinSequence`) cũng đặt cờ `_popupPlaced` để đóng thì tắt chứ không `Destroy` mất object đặt sẵn.
+
+**Kiểm chứng (Lv44):** cố ý bật `FailPopup` trong scene rồi vào Play → tự tắt (chốt chặn chạy); 3 hộp bấm được × 5 điểm trong khung hình thật (giữa, ±35% dọc, ±30% ngang) đi đúng đường `ScreenPointToRay → PointOnPlane → BoxAtWorld`: **bị UI chặn 0/15, trúng sai hộp 0/15**. Trước đó cùng phép thử cho thấy UI chặn 3/6. Console sạch. Đã trả `FailPopup` về tắt và lưu scene.
+
+### 7.9 `HudView` (HUD: badge Level + nút Settings)
+`GameCanvas.prefab` thêm script `HudView` trên gốc. Tham chiếu kéo trong Inspector: `canvas`, `badge`, `levelText`, `difficultyText`, `settingsIcon`, `settingsButton`.
+**Kiểu dáng theo độ khó nay nằm TRONG View** (3 struct `Style`: `normal` / `hard` / `superHard`), mỗi style giữ: sprite badge, sprite nút Settings, cỡ + vị trí badge, vùng chữ "Lv n", nhãn độ khó (`"Hard"` / `"Super Hard"` / trống) và danh sách `onlyHere` (đối tượng chỉ hiện ở độ khó đó – 2 dải `CurrencyBg` mỗi độ khó). Số liệu giữ NGUYÊN so với `LayoutLevelBadge` cũ (203×90 @ (40,−43) cho Normal; 203×164 @ (40,−17) cho Hard/Super Hard).
+API: `Apply(level, difficulty)`, `event OnSettingsPressed`, `SettingsRect` (GameManager đo tâm dọc để đặt mép trên khung máng), `Canvas`, `Validate()`.
+**Nung vào prefab** những thiết lập trước đây code đặt lại mỗi lần: badge `Image` type Simple / preserveAspect off / anchor-pivot góc trên-trái; hai `TMP_Text` margin 0, không wrap, overflow Overflow, autosize (10–44 và 8–30), canh giữa; vùng chữ độ khó anchor (0.22,0.05)–(0.78,0.3).
+**Dọn:** xoá khỏi `UiSkin` 7 trường sprite HUD (`levelBadge`, `settingsButton`, `levelBadgeNormal/Hard/SuperHard`, `settingsHard`, `settingsSuperHard`) và các dòng tương ứng trong `GameplaySetup`; xoá khỏi `GameUI` 7 biến HUD, `LayoutLevelBadge` (~50 dòng) và `ApplyDifficultyVariants` áp lên HUD; `BuildHud`/`SetLevel` chỉ còn lấy View + gọi `Apply`.
+**Kiểm chứng:** compile sạch; `Validate()` đọc lại từ asset đã lưu = đủ tham chiếu; Lv2/44/79 ra đúng badge (`Level` 203×90 / `Hard Level` 203×164 / `Super Hard Level` 203×164), chữ "Lv n", nhãn độ khó và nút Settings tương ứng; `HudCenterScreenY` vẫn 2202.8 (bố cục camera không đổi); bấm Settings → `OnSettingsPressed` bắn và popup Settings mở; ảnh HUD sau refactor trùng trước refactor (Captures/hudview_cmp.png).
+
+### 7.10 `PopupViewBase` + `FailPopupView`
+Bốn popup sắp phải làm giống nhau (bật, mở lại CanvasGroup do prefab gốc để alpha 0, bật khung theo độ khó, nảy vào, tắt) nên tách phần chung thành lớp nền `PopupViewBase`: `OpenBase(difficulty)`, `Hide()`, `Canvas`, `Validate()` + hook `CollectMissing`. Ba mảng `normalOnly/hardOnly/superHardOnly` thay cho `ApplyDifficultyVariants` dò theo tên; `content` + `rootGroup` thay cho `PopIn` + `Find("Content Top")`.
+`FailPopupView` (trên gốc `FailCanvas.prefab`): `levelText`, `retryButton`, `closeButton`, `event OnRetry`, `Show(level, difficulty)`. Nối trong prefab: content = `Content Top`; khung độ khó = `NormalLevel/HardLevel/SuperHard` của tab tiêu đề.
+`GameUI`: thêm `GetPopupView<T>` (ưu tiên bản đặt sẵn trong scene kể cả đang tắt, chưa có thì dựng từ prefab; tự `Validate`), `PrepareCanvas`, `_activeView`; `ClosePopup`/`IsPopupOpen`/`HideScenePopups` hiểu cả View lẫn popup cũ chưa chuyển. `ShowFail` còn ~12 dòng, hết `SetText`/`Wire`/`Find`.
+Kiểm chứng (Lv44): `Validate()` đọc từ asset = đủ; popup hiện đúng khung đỏ Hard, "Level 44", nhãn "Hard" (Captures/fail_view_hard_s.png); Try Again → `onRetry` gọi 1 lần, popup tắt, `timeScale` về 1; nút X → cũng gọi lại, tắt; 3 độ khó bật đúng khung (Normal/Hard/Super); luôn đúng 1 `FailPopupView` trong scene; console sạch. Lưu ý: chụp ảnh ngay trong cùng khung hình với `ShowFail` sẽ bắt đúng lúc alpha = 0 (đang fade) → phải chụp sau vài khung hình.
+
+### 7.11 `OutOfCapacityPopupView`
+`OutOfCapacityPanel.prefab` (gốc) không có Canvas riêng, trước đây `OpenPopup(..., wrapInCanvas: true)` dựng host `new GameObject` + Canvas + CanvasScaler lúc chạy. Nay có prefab bọc mới `Assets/_Project/UI/Prefabs/OutOfCapacityPopup.prefab`: gốc = Canvas (Overlay, order 30) + CanvasScaler 1242×2688 + GraphicRaycaster + CanvasGroup + `OutOfCapacityPopupView`; bên trong lồng panel gốc `OutOfCapacityPanel` (prefab lồng prefab, bật `active` ở bản lồng vì prefab gốc để tắt). `AB_EGP` ("PLAY ON?" quảng cáo) vốn đã tắt sẵn trong prefab gốc nên không cần code tắt nữa.
+View: `playOnButton`, `giveUpButton`, `event OnPlayOn / OnGiveUp`, `Show(difficulty)`; kế thừa `PopupViewBase` (nảy vào, CanvasGroup, khung độ khó – prefab này không có khung độ khó nên 3 mảng để trống).
+`UiSkin.outOfCapacityPrefab` + `GameplaySetup` trỏ sang prefab bọc. Scene: bỏ host dựng tay `OutOfCapacity`, đặt `OutOfCapacityPopup` (tắt sẵn).
+Kiểm chứng (Lv44) bằng luồng THẬT: đặt sức chứa = 1 rồi bắn hộp → sau 0.6 s panel tự hiện, giống ảnh game (Captures/ooc_view_s.png); **Play On** → panel đóng, `timeScale` 1, sức chứa 1 → 1.25, hộp bay đi, `state=Playing`; **Give Up** → panel đóng, `state=Lost`, popup Thua (`FailPopupView`) tự mở; `Validate()` đọc từ asset = đủ; luôn đúng 1 view; console sạch.
+
+### 7.12 `SettingsPopupView`
+`SettingsCanvas.prefab` thêm `SettingsPopupView` (kế thừa `PopupViewBase`): `closeButton`, `restartButton`, `homeButton` và 3 `ToggleRow` (`sound`, `music`, `vibration`; mỗi hàng = `button` + `onState` (Parent Active) + `offState` (Parent Passive)). Mỗi công tắc **tự giữ trạng thái bật/tắt và tự đổi hình**, chỉ báo ra ngoài bằng `OnSoundChanged / OnMusicChanged / OnVibrationChanged`; việc ghi vào `AudioManager.SoundOn/MusicOn` và `PlayerPrefs "bb_vibration"` là của GameUI (View không biết đến). Thứ tự giữ nguyên như cũ: báo ra ngoài TRƯỚC rồi mới phát tiếng bấm (để lúc vừa tắt âm thì tiếng bấm không kêu). `Home` vẫn chơi lại màn như trước (`OnRestart`).
+**Nung vào prefab** (trước đây code làm lại mỗi lần mở): `Release Debugger Opener` tắt; 7 ảnh `Icon` (Support/Volume/Music/Vibration on-off) đặt cỡ theo CÙNG công thức của `FixTrimmedIcons` cũ (sprite cạnh dài > 200 → cỡ × 173.35/512, còn lại `preserveAspect`) vì sprite bị cắt gọn. Xoá `SetupToggle` và `FixTrimmedIcons` khỏi GameUI; `ShowSettings` còn ~25 dòng.
+Kiểm chứng (Lv44): `Validate()` đọc từ asset = đủ; mở → `timeScale` 0; bấm 3 công tắc: `SoundOn` True→False, `MusicOn` True→False, `bb_vibration` 1→0, hình chuyển xanh (BẬT) ↔ xám có dấu gạch (TẮT), icon không méo (Captures/settings_view_cmp.png); Close → `onClose` 1 lần; Restart và Home → `onRestart` mỗi nút 1 lần; popup tắt, `timeScale` về 1; luôn đúng 1 view trong scene; console sạch. (Bài học đo: chụp ảnh trong cùng lệnh với lúc đổi trạng thái sẽ bắt trạng thái SAU khi đã trả về – phải giữ trạng thái qua nhiều khung hình rồi mới chụp.)
+
+### 7.13 `SuccessPopupView` + dọn `GameUI` (xong 5/5 panel)
+**`SuccessPopupView`** (trên gốc `SuccessCanvas.prefab`, kế thừa `PopupViewBase` với `UsesPopIn = false` vì có chuỗi riêng) SỞ HỮU cả chuỗi màn thắng: màn logo "BOUNCE BLAST" (badge → 6 chữ b-o-u-n-c-e → blast) + pháo giấy + mưa pháo + pháo hoa → giữ `winFireworksTime` (rải 2 tiếng pháo) → bảng thắng nảy lên → đống xu rơi → chớp sáng + tia → chữ PERFECT! → sao lấp lánh → vệt sáng quét nút Continue/x2. API: `IEnumerator Play(level, difficulty, coins, fireworksHold)` + `event OnContinue`. ~25 tham chiếu `[SerializeField]` thay cho mọi `Find`: `container`, `levelText`, `prizeText`, `continueButton`, `x2Button`, `alwaysHidden[]`, `dim`, `logoArea/logo/logoAnimation/logoBadge/logoBlast`, `logoLetters[6]` (mỗi chữ = nền + chữ chính), `confettiBursts/confettiRain/fireworks`, `areaShine/coinRoot/coinIcon/perfect/burstEffects[]`. 4 texture hiệu ứng (pháo giấy, quầng sáng, tia, sao) chuyển từ `UiSkin` vào View.
+`Dim` (nền đen che bàn chơi, trước tạo bằng `new GameObject` mỗi lần thắng) nay là node nằm sẵn trong prefab, tắt sẵn. Ảnh chớp sáng/tia (`FxImage`) vẫn dựng bằng code vì là vật thể sống vài trăm ms.
+**Phát hiện khi tách:** popup Thắng đặt sẵn nên được DÙNG LẠI qua nhiều màn, nhưng code cũ giả định mỗi lần là bản mới → (1) vị trí đống xu `localPosition + CoinLift` cộng dồn 45 mỗi lần thắng; (2) mưa pháo bị `Destroy(rain, 6f)` nên từ lần thắng thứ hai không còn mưa. Sửa: ghi vị trí gốc ở `Awake` rồi luôn đặt lại từ đó; mưa pháo `SetActive(false)` sau 6 s thay vì huỷ (và bật lại khi chơi).
+**Dọn `GameUI` (920 → 419 dòng):** xoá `OpenPopup`, `PopIn`, `EaseOutBack`, `Wire`, `SetText`, `FindButton`, `Find`, `Img`, `Txt`, `Stretch`, `ApplyDifficultyVariants`, `PanelEffects`, `PlayLogoEffects`, `AnimateLogo`, `Pop`, `Pulse`, `FxImage`, `FixTrimmedSprites`, `CoinLift`, trường `_popup`/`_popupPlaced`/`PopupNames`; `UiSkin` bỏ 4 trường texture + `GameplaySetup` bỏ 4 dòng. `HideScenePopups` nay tắt mọi `PopupViewBase` bằng `GetComponentsInChildren`. `IsPopupOpen => _activeView != null`.
+**Kiểm chứng (luồng THẬT):**
+- Thắng lần 1 qua `HandleWin`: bảng thắng đúng "Level 2", PERFECT!, đống xu, "50", Continue + x2, vệt sáng quét nút (Captures/win_seq.png). `y` xu = 45.00 (gốc 0 + CoinLift). Continue → popup tắt, level 2→3, `state=Playing`, `timeScale` 1.
+- Thắng lần 2 liền sau (giữ logo 40 s để chụp): logo BOUNCE BLAST đủ 14/14 phần tử + pháo hoa nổ (Captures/win2_logo_seq.png); `y` xu vẫn 45.00 → KHÔNG cộng dồn. Đã trả `winFireworksTime` về 2.4.
+- Smoke test sau khi xoá mã chết: Settings/Fail/OutOfCapacity mở → `timeScale` 0, đóng → 1; mở Settings rồi mở Fail ngay → chỉ 1 popup bật; trong scene đúng 4 `PopupViewBase`, 1 `HudView`, 1 `BoosterBarView`, 1 `CapacityBarView`; console sạch.
+Lưu ý quy trình: Editor ở nền chỉ dựng ~1 khung hình mỗi lệnh MCP nên các animation "chạy chậm" khi quan sát — không phải lỗi. Và lỡ đổi tên object `GameManager` để ghi nhớ giá trị rồi phải trả lại: đừng dùng tên object làm biến tạm.
+**Còn lại (xem bảng mục 6 của kien-truc-ui-dung.md):** `Vignette` + `Toast` chưa có View riêng; `GameUI.Spawn()` vẫn tìm HUD/CapacityBar/OverlayCanvas theo tên thay vì giữ tham chiếu `[SerializeField]`.
+
+### 7.14 Xem trước popup trong Editor (user: "ấn vào các prefab đang unactive thì không thấy panel gì")
+Hai nguyên nhân: (1) `FailCanvas`/`SuccessCanvas` gốc có `CanvasGroup` alpha 0 (SettingsCanvas còn `interactable`/`blocksRaycasts` tắt) → bật trong Editor vẫn trong suốt; (2) Canvas Overlay vẽ trong Scene view thành khung 1273×2688 đơn vị ở gốc toạ độ, bàn chơi chỉ ~10 đơn vị nên chọn xong không thấy gì gần bàn.
+Sửa: nung `alpha 1 / interactable / blocksRaycasts` cho mọi `CanvasGroup` của 4 prefab popup (runtime `OpenBase` vốn đã ép lại, nên hành vi không đổi; popup tắt sẵn nên không chặn chuột); thêm `PopupViewEditor` (Inspector có nút **Xem trước** / **Tắt xem trước**, hộp cảnh báo khi đang bật, báo `Validate()` lỗi ngay trong Inspector) và `PopupSaveGuard` (`EditorSceneManager.sceneSaving` tắt mọi `PopupViewBase` đang bật, log `[PopupSaveGuard]`).
+Kiểm chứng (Edit mode): bật từng popup → canvas bật, alpha 1, 0 CanvasGroup con còn alpha < 1, rect = 1273×2688; lưu scene khi cả 4 popup đang bật → **4 → 0** popup bật sau khi lưu, log `[PopupSaveGuard]` đủ 4 dòng; console sạch. Không chụp được ảnh Game view ở Edit mode (Editor ở nền không vẽ khung hình) nên bằng chứng là thuộc tính, không phải ảnh.
+
+### 7.15 HUD trong suốt ở Edit mode (user: "UI nào hiện lên màn hình cũng phải hiển thị ở chỗ Canvas, sao không thấy nút Settings, panel Settings…")
+Ảnh Scene view chỉ có thanh booster trong khung Canvas. Dò chuỗi từ nút Settings lên gốc: `HUD (GameCanvas)` có `CanvasGroup` **alpha 0, interactable/blocksRaycasts tắt** (prefab gốc để vậy vì script fade-in gốc đã mất; runtime `GameUI.Spawn()` mới ép lên 1) → badge Lv và nút Settings trong suốt. Đã nung `alpha 1 / interactable / blocksRaycasts` vào `GameCanvas.prefab` (đây là CanvasGroup duy nhất còn lệch trong mọi UI hiện có: đã quét cả 7 mục trong `Systems/UI`).
+Thêm bản đồ "mỗi UI nằm ở đâu" vào `kien-truc-ui-dung.md`: Overlay (OverlayCanvas, HUD) nằm trong khung Canvas trắng; `CapacityBar` là canvas **World Space** (đo: renderMode WorldSpace, rect 904×124, lossyScale 0.0074, toạ độ (5.30, −6.77)) nên nằm dưới bàn chơi chứ không trong khung Canvas – cố ý; 4 popup tắt sẵn, dùng nút Xem trước.
+Kiểm chứng: Edit mode – Nút Settings, Badge Level, Thanh booster đều "nhìn thấy" (không node nào tắt, không CanvasGroup alpha 0 trên đường lên gốc); Play – bấm Settings → `OnSettingsPressed` bắn, popup mở; `HudCenterScreenY` = 2202.8, `orthoSize` = 13.87 ổn định qua 3 lần `LoadLevel`; console sạch. (Một số đo thoáng qua 1855 ngay khi vừa vào Play không tái hiện – Canvas chưa bố trí xong.) Chưa có ảnh Edit mode vì Editor ở nền không vẽ khung hình.
+
+### 7.16 Edit mode lệch Play (user: "khi chạy play vị trí các UI bị khác đi, vẫn gọi sinh ra từ code hả")
+**Trả lời:** các PANEL không còn sinh từ code (Play: đúng 7 prefab đặt sẵn + EventSystem, không nhân đôi). Nhưng code vẫn (a) TẠO `UI Camera` và `EventSystem` lúc chạy, (b) GHI ĐÈ cấu hình UI lúc chạy → vị trí lệch. Đo Edit mode vs Play:
+- **Badge Level**: prefab 348×174 tại (137,−99) → lúc chạy `HudView.Apply` ép thành 203×90 tại (40,−43) (số đo từ ảnh gốc 858×1908) – nhỏ hơn và dời chỗ.
+- **Canvas**: prefab/scene là `Screen Space - Overlay` order 1–2; lúc chạy `GameUI.UseCamera` đổi thành `Screen Space - Camera` + UI Camera + order 5/10/30.
+**Sửa:** (1) nung bố cục style Normal (cỡ, vị trí, sprite, vùng chữ "Lv n") vào `GameCanvas.prefab` – style Hard/Super Hard vẫn do `Apply` đổi theo độ khó; (2) đặt `UI Camera` sẵn trong `Camera & Lights` (cùng thông số `CreateUiCamera`: ortho 10, x −1000, clear Depth, depth +1) và thêm ô `GameManager.uiCamera` (bỏ trống thì vẫn tự tạo như cũ); (3) đặt `EventSystem` sẵn dưới `Systems/UI`; (4) 6 Canvas trong scene đặt sẵn `Screen Space - Camera` + UI Camera + `sortingOrder` (Overlay 5, HUD 10, popup 30) + `planeDistance` đúng công thức `1.2 − order×0.01` của `UseCamera` → `UseCamera` lúc chạy ghi lại đúng giá trị đã có.
+**Kiểm chứng (toạ độ MÀN HÌNH qua UI Camera, Screen 1080×2280, Lv2 Normal):** badge x 34..206 y 2167..2244; nút Settings x 947..1074 y 2139..2266; hàng booster x 52..1028 y 17..238 – **Edit mode và Play giống hệt từng số**. Khi chạy: đúng 1 `UI Camera`, 1 `EventSystem`, 6 canvas đều `ScreenSpaceCamera / UI Camera` đúng order; console sạch.
+**Còn sinh từ code (không phải UI):** `GameManager.Awake` vẫn `CreateChild<T>()` cho `Board`, `AmmoGrid`, `Conveyor`, `Balls`, `Theme` và nhóm `VFX`; cùng toàn bộ gạch/hộp/bi/khay dựng theo level. Đó là các hệ thống gameplay (xem mục 4 về lý do không đưa hết thành prefab).
+**Lưu ý:** badge ở Edit mode luôn là kiểu Normal; mở level Hard/Super Hard thì `Apply` đổi cỡ/sprite theo độ khó nên lúc chạy sẽ khác Edit mode – đúng thiết kế, không phải lỗi.

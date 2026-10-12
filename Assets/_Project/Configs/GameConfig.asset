@@ -201,13 +201,61 @@ MonoBehaviour:
   ballSpeed: 11
   ballSpawnSpread: 55
   homingStrength: 0.12
+  ballMinVerticalSpeed: 1.6
+  ballDeflectDeg: 8
+  ballAimMinBounces: 3
   laneSpeed: 5.5
   laneBallSpacing: 0.27
   boxFlyDuration: 0.6
+  laneArrowSpacing: 1.25
+  laneArrowSpeed: 1.5
   ammoCellMax: 1.7
   ammoAreaWidth: 11.9
   ammoAreaTop: -7.9
   ammoAreaBottom: -16
+  winFireworksTime: 2.4
   ammoActiveScale: 0.9
   ammoInactiveScale: 0.88
+  frameTopY: 8.43
+  viewHalfWidth: 5.98
+  viewMaxZoomOut: 1.3
+  viewMinHalfHeight: 11.6
+  ammoTargetCell: 1.45
+  ammoBoosterGap: 0.2
+  ammoActivePose:
+    tiltX: -68
+    length: 0.62
+    offset: {x: 0, y: 0.51, z: 0}
+    scale: 1.071
+  ammoInactivePose:
+    tiltX: -80.2
+    length: 0.52
+    offset: {x: 0, y: 0.07, z: 0}
+    scale: 1.071
+  ammoSinkDepth: 1.1
+  dockHeightRatio: 2.6
+  dockBottomRatio: 0.3
+  hoverAngle: 32
+  hoverLength: 2
+  hoverTime: 0.38
+  doorExtraSink: 1.6
+  trayPanelPad: 0.1
+  trayPanelRadius: 0.22
+  traySlotSize: 0.9
+  traySlotRadius: 0.2
+  trayHoleTopInset: 0
+  trayPanelDepth: 0.35
+  trayHoleDepth: 3
+  blockBevel: 0.14
+  blockDepth: 1.1
+  cubeOverlap: 1.1
+  columnWidthRatio: 0.6
+  crusherSpinSpeed: 800
+  crusherShakeMagnitude: 0.06
+  crusherShakeFrequency: 28
+  crusherShakeDamping: 6
+  holeLidBand: 0.09
+  holeLidDripTime: 0.18
+  holeLidDelay: 0.55
+  holeLidTime: 0.22
   fallSpeed: 9

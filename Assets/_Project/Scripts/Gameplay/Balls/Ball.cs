@@ -44,9 +44,10 @@ namespace BounceBlast.Gameplay
         int _safetyTick;
 
         // Thông số va chạm (lấy theo code BouncingBall cũ: đi thẳng, nảy phản xạ, chỉ ngắm khi đường bay thông)
-        const int LosMinBounces = 3;         // nảy tối thiểu trước khi được ngắm thẳng vào khối cùng màu
-        const float MinVerticalSpeed = 1.6f; // chống nảy ngang mãi giữa 2 vách
-        const float DeflectDeg = 8f;         // lệch ngẫu nhiên nhỏ mỗi lần nảy (tránh quỹ đạo lặp)
+        // 3 thông số dưới chỉnh trong GameConfig (ballAimMinBounces / ballMinVerticalSpeed / ballDeflectDeg)
+        int LosMinBounces => _owner.Config.ballAimMinBounces;
+        float MinVerticalSpeed => _owner.Config.ballMinVerticalSpeed;
+        float DeflectDeg => _owner.Config.ballDeflectDeg;
 
         Vector3 _baseScale = Vector3.one;
 

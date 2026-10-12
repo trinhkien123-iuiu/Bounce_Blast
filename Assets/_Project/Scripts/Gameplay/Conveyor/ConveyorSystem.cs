@@ -69,6 +69,7 @@ namespace BounceBlast.Gameplay
             {
                 crusher = crusherGo.GetComponent<CrusherFx>();
                 if (crusher == null) crusher = crusherGo.AddComponent<CrusherFx>();
+                crusher.Config = _config;
                 bottomY = -5.89f + 0.55f; // y gốc của Crusher LEFT/RIGHT (đo theo góc nhìn cũ, trước khi là phẳng)
             }
             var pts = new List<Vector3> { new Vector3(laneX, bottomY, z), new Vector3(laneX, topY - r, z) };

@@ -34098,6 +34098,7 @@ GameObject:
   - component: {fileID: 15154}
   - component: {fileID: 15153}
   - component: {fileID: 14353}
+  - component: {fileID: 117797419525393060}
   m_Layer: 0
   m_Name: SuccessCanvas
   m_TagString: Untagged
@@ -34117,6 +34118,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 4951458277935480521}
   - {fileID: 10681}
   - {fileID: 12817}
   - {fileID: 10813}
@@ -34198,10 +34200,72 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2845}
   m_Enabled: 1
-  m_Alpha: 0
+  m_Alpha: 1
   m_Interactable: 1
-  m_BlocksRaycasts: 0
+  m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &117797419525393060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0cf7dfd57f4c5f459cc8ccab66b9f8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvas: {fileID: 10368}
+  rootGroup: {fileID: 14353}
+  content: {fileID: 0}
+  normalOnly: []
+  hardOnly:
+  - {fileID: 4778}
+  superHardOnly:
+  - {fileID: 3875}
+  container: {fileID: 12869}
+  levelText: {fileID: 14781}
+  prizeText: {fileID: 14937}
+  continueButton: {fileID: 15517}
+  x2Button: {fileID: 18128}
+  alwaysHidden:
+  - {fileID: 12817}
+  - {fileID: 10813}
+  dim: {fileID: 3889373291025666214}
+  logoArea: {fileID: 13774}
+  logo: {fileID: 12412}
+  logoAnimation: {fileID: 12867}
+  logoBadge: {fileID: 10540}
+  logoBlast: {fileID: 10559}
+  logoLetters:
+  - background: {fileID: 10996}
+    glyph: {fileID: 13109}
+  - background: {fileID: 14277}
+    glyph: {fileID: 12774}
+  - background: {fileID: 10744}
+    glyph: {fileID: 13396}
+  - background: {fileID: 11256}
+    glyph: {fileID: 10713}
+  - background: {fileID: 11570}
+    glyph: {fileID: 12272}
+  - background: {fileID: 11234}
+    glyph: {fileID: 13001}
+  confettiBursts: {fileID: 12406}
+  confettiRain: {fileID: 13326}
+  fireworks: {fileID: 11382}
+  areaShine: {fileID: 11425}
+  coinRoot: {fileID: 10497}
+  coinIcon: {fileID: 12387}
+  perfect: {fileID: 13609}
+  burstEffects:
+  - {fileID: 10483}
+  - {fileID: 14147}
+  - {fileID: 11003}
+  confettiTexture: {fileID: 2800000, guid: 1ec0928c29494dd47a3602f86210c657, type: 3}
+  glowTexture: {fileID: 2800000, guid: c3d1b75326f102a41858b879dc9da206, type: 3}
+  raysTexture: {fileID: 2800000, guid: d9bc1e5dfccb2374eba535ea6fcaa2f3, type: 3}
+  sparkleTexture: {fileID: 2800000, guid: 8df8e16377b0ba1449ab6ba42e2a6f77, type: 3}
 --- !u!1 &2861
 GameObject:
   m_ObjectHideFlags: 0
@@ -57602,3 +57666,78 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &9133839570876578952
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4951458277935480521}
+  - component: {fileID: 1290013086657943513}
+  - component: {fileID: 3889373291025666214}
+  m_Layer: 0
+  m_Name: Dim
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &4951458277935480521
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9133839570876578952}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 12736}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1290013086657943513
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9133839570876578952}
+  m_CullTransparentMesh: 1
+--- !u!114 &3889373291025666214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9133839570876578952}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1

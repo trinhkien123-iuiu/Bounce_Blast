@@ -109,12 +109,15 @@ namespace BounceBlast.Gameplay
         // khi nhìn nghiêng nên khay được dựng thành mesh phẳng; vật liệu vẫn lấy từ asset gốc
         // (M-Plane theo theme cho mặt khay, t4-wall của prefab cho nền).
         const string TilePrefabPath = "prefabs/ModularPrimitiveAmmoWall - Wallbase";
-        const float TrayPanelZ = 0.35f;  // sau lưng hộp jelly (hộp ở z = -0.6, nghiêng)
-        const float TrayFloorZ = 3.0f;   // đáy giếng: sau cả hộp có cửa đóng (SinkDepth 1.1 + DoorExtraSink 1.6, cột dài ~1.5 ô)
-        const float PanelPad = 0.10f;    // viền mặt khay chìa ra ngoài ô (theo cell)
-        const float PanelRadius = 0.22f; // bo góc ngoài (theo cell)
-        const float SlotSize = 0.92f, SlotRadius = 0.2f; // đo từ ảnh gốc: gờ giữa 2 hố chỉ ~0.08 ô, hộp rộng ~0.8 ô nằm trong hố
-        const float HoleTopInset = 0f; // theo cell – miệng hố vuông vức như thân hộp
+        // Hình khối khay & miệng hố: chỉnh trong GameConfig
+        float TrayPanelZ => _config.trayPanelDepth;  // sau lưng hộp jelly (hộp ở z = -0.6, nghiêng)
+        float TrayFloorZ => _config.trayHoleDepth;   // đáy giếng: sau cả hộp có cửa đóng (sink 1.1 + doorExtraSink 1.6, cột dài ~1.5 ô)
+        // Hình khối khay: chỉnh trong GameConfig (đo từ ảnh gốc: gờ giữa 2 hố chỉ ~0.08 ô, hộp rộng ~0.8 ô nằm trong hố)
+        float PanelPad => _config.trayPanelPad;
+        float PanelRadius => _config.trayPanelRadius;
+        float SlotSize => _config.traySlotSize;
+        float SlotRadius => _config.traySlotRadius;
+        float HoleTopInset => _config.trayHoleTopInset; // theo cell – 0 = miệng hố vuông vức như thân hộp
 
         float PanelZ => -0.6f + _cell * (TrayPanelZ + 0.6f);
 
@@ -141,7 +144,7 @@ namespace BounceBlast.Gameplay
                 _jellyMats[colorCode ?? ""] = jm;
             }
             var lid = go.AddComponent<AmmoHoleLid>();
-            lid.Init(_cell, s, -s, top, _cell * SlotRadius, _trayWallMat, jm, _trayTileMat);
+            lid.Init(_cell, s, -s, top, _cell * SlotRadius, _trayWallMat, jm, _trayTileMat, _config);
             _lids[cell] = lid;
             _tiles.Add(go);
         }
@@ -241,9 +244,8 @@ namespace BounceBlast.Gameplay
 
             var panel = new MeshBuilder();
             var slots = new MeshBuilder();
-            var lips = new MeshBuilder();
             float h = _cell * 0.5f, pad = _cell * PanelPad, rad = _cell * PanelRadius;
-            float s = _cell * SlotSize * 0.5f, sr = _cell * SlotRadius, lipH = _cell * 0.11f;
+            float s = _cell * SlotSize * 0.5f, sr = _cell * SlotRadius;
             for (int r = 0; r < _rows; r++)
                 for (int c = 0; c < _cols; c++)
                 {
@@ -500,12 +502,35 @@ namespace BounceBlast.Gameplay
         }
 
         // ------------------------------------------------------------------ Bấm / bắn hộp
+        /// <summary>
+        /// Hộp ở chỗ vừa bấm. Một hộp "trúng" khi điểm bấm nằm trong khung hình thật của nó (thân jelly nhô khỏi hố)
+        /// HOẶC trong ô lưới của nó (để hộp đã lún vẫn bấm được, bị từ chối có lắc). Nhiều hộp cùng trúng thì lấy hộp
+        /// có tâm hình gần chỗ bấm nhất. Không suy ra ô từ toạ độ: hộp được VẼ lệch khỏi tâm ô theo
+        /// GameConfig.ammoActivePose nên cách đó trượt; và cũng không dùng gốc xoay của model vì nó lệch khỏi phần nhìn thấy.
+        /// </summary>
         public AmmoBox BoxAtWorld(Vector2 world)
         {
-            int c = Mathf.RoundToInt((world.x - _origin.x) / _cell);
-            int r = Mathf.RoundToInt((_origin.y - world.y) / _cell);
-            var p = new Vector2Int(c, r);
-            return InGrid(p) ? _boxes[c, r] : null;
+            if (_boxes == null) return null;
+            AmmoBox best = null;
+            float bestDist = float.MaxValue;
+            float half = _cell * 0.5f;
+            foreach (AmmoBox b in _boxes)
+            {
+                if (b == null || b.IsLaunched) continue;
+                Vector3 cell = CellWorld(b.Cell);
+                bool inCell = Mathf.Abs(world.x - cell.x) <= half && Mathf.Abs(world.y - cell.y) <= half;
+                Vector2 center = cell;
+                bool inVisible = false;
+                if (b.TryGetVisibleBounds(out Bounds vb))
+                {
+                    inVisible = world.x >= vb.min.x && world.x <= vb.max.x && world.y >= vb.min.y && world.y <= vb.max.y;
+                    center = vb.center;
+                }
+                if (!inCell && !inVisible) continue;
+                float d = Mathf.Max(Mathf.Abs(world.x - center.x), Mathf.Abs(world.y - center.y));
+                if (d < bestDist) { bestDist = d; best = b; }
+            }
+            return best;
         }
 
         /// <summary>Lấy hộp ra khỏi khay (đã kiểm tra capacity ở GameManager). forced = booster Magic Hand.</summary>
@@ -553,7 +578,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        // ------------------------------------------------------------------ Truy vấn cho GameManager / booster
+        // Truy vấn cho GameManager / booster
         public bool AnyClickable()
         {
             if (_boxes == null) return false;

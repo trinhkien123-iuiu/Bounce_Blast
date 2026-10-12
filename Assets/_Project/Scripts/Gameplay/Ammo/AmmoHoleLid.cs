@@ -11,7 +11,11 @@ namespace BounceBlast.Gameplay
     /// </summary>
     public class AmmoHoleLid : MonoBehaviour
     {
-        const float DripIn = 0.18f, LidDelay = 0.55f, LidTime = 0.22f;
+        /// <summary>AmmoGridController gán khi Init – 4 thông số dưới chỉnh trong GameConfig.</summary>
+        GameConfig _config;
+        float DripIn => _config != null ? _config.holeLidDripTime : 0.18f;
+        float LidDelay => _config != null ? _config.holeLidDelay : 0.55f;
+        float LidTime => _config != null ? _config.holeLidTime : 0.22f;
 
         Transform _drips, _lid;
         GameObject _dark;
@@ -22,8 +26,9 @@ namespace BounceBlast.Gameplay
         /// <param name="yBottom">mép dưới miệng hố (so với tâm ô)</param>
         /// <param name="yTop">mép trên miệng hố (so với tâm ô)</param>
         public void Init(float cell, float halfW, float yBottom, float yTop, float radius,
-                         Material dark, Material jelly, Material lid)
+                         Material dark, Material jelly, Material lid, GameConfig config = null)
         {
+            _config = config;
             // lòng hố tối (sau cùng)
             _dark = Part("Dark", RoundedRectMesh(-halfW, yBottom, halfW, yTop, radius, radius, radius, radius), dark, 0.004f).gameObject;
 
@@ -31,7 +36,7 @@ namespace BounceBlast.Gameplay
             _drips = new GameObject("Drips").transform;
             _drips.SetParent(transform, false);
             _drips.localPosition = new Vector3(0f, yTop, -0.002f);
-            float band = cell * 0.09f;
+            float band = cell * (config != null ? config.holeLidBand : 0.09f);
             Part("Band", RoundedRectMesh(-halfW, -band, halfW, 0f, 0f, radius, radius, 0f), jelly, 0f, _drips);
             var rnd = new System.Random(GetInstanceID());
             float w = cell * 0.045f;

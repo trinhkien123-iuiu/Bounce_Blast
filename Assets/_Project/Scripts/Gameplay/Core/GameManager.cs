@@ -22,6 +22,12 @@ namespace BounceBlast.Gameplay
         [Header("Scene")]
         public Transform boardRoot;
         public Camera gameCamera;
+        [Tooltip("Đặt sẵn trong Hierarchy để thấy & sửa UI trong Editor (Systems/UI, bên dưới là OverlayCanvas…). " +
+                 "Bỏ trống thì GameManager tự tạo lúc chạy từ các prefab trong UiSkin.")]
+        public GameUI ui;
+        [Tooltip("Camera vẽ UI (đặt sẵn trong Hierarchy, đứng xa bàn chơi ở x −1000). Bỏ trống thì tự tạo lúc chạy. " +
+                 "Các Canvas UI đã trỏ sẵn tới camera này nên Edit mode nhìn Game view giống hệt lúc Play.")]
+        public Camera uiCamera;
 
         [Header("Level")]
         [Range(1, 550)] public int startLevel = 1;
@@ -61,6 +67,7 @@ namespace BounceBlast.Gameplay
             Application.targetFrameRate = 60;
             if (gameCamera == null) gameCamera = Camera.main;
 
+            AmmoBoxTuning.Config = config; // tư thế hộp đạn đọc từ GameConfig (chỉnh được ngay cả khi đang Play)
             AudioManager.Init(gameObject, config.sounds);
             DynamicGI.UpdateEnvironment(); // cập nhật ambient SH (Trilight như scene gốc) cho shader toon
 
@@ -70,7 +77,7 @@ namespace BounceBlast.Gameplay
             _conveyor = CreateChild<ConveyorSystem>("Conveyor");
             _balls = CreateChild<BallManager>("Balls");
             _theme = CreateChild<ThemeApplier>("Theme");
-            _ui = CreateChild<GameUI>("UI");
+            _ui = ui != null ? ui : CreateChild<GameUI>("UI");
             var vfx = new GameObject("VFX");
             vfx.transform.SetParent(transform, false);
             Vfx.Root = vfx.transform;
@@ -85,7 +92,7 @@ namespace BounceBlast.Gameplay
             Transform tri = boardRoot != null ? boardRoot.Find("Environment Base (1)/Triangle") : null;
             Transform triCol = tri != null ? tri.Find("Model/Triangle") : null;
             if (triCol != null) triCol.gameObject.AddComponent<TriangleFx>().Init(tri);
-            _ui.Build(skin, config, CreateUiCamera(), gameCamera);
+            _ui.Build(skin, config, uiCamera != null ? uiCamera : CreateUiCamera(), gameCamera);
             CreateArenaWalls();
 
             _board.OnBoardCleared += HandleWin;
@@ -96,8 +103,11 @@ namespace BounceBlast.Gameplay
             _boosters.OnChanged += RefreshBoosterUi;
         }
 
-        void Start()
+        IEnumerator Start()
         {
+            // Đợi 1 khung hình cho Canvas của UI có kích thước màn hình thật: FitCamera đo vị trí hàng HUD và hàng booster
+            // trên màn hình để cân bàn chơi, ở khung hình đầu các canvas chưa layout nên đo ra sai và bàn bị nhỏ hơn mức cần.
+            yield return null;
             int level = continueFromSave ? PlayerPrefs.GetInt(SaveKey, startLevel) : startLevel;
             LoadLevel(level);
         }
@@ -212,9 +222,10 @@ namespace BounceBlast.Gameplay
             return c;
         }
 
-        const float FrameTop = 8.43f;      // mép trên NGOÀI của khung máng (đo trên ảnh chụp: viền sáng đầu tiên)
-        const float AmmoBoxShift = -0.218f; // ViewSpace.LegacyShift(-0.6): mặt hộp đạn z = -0.6
-        const float BoosterGap = 0.2f;      // khe giữa đáy khay và nút booster (đv thế giới)
+        const float AmmoBoxZ = -0.6f;                                   // mặt hộp đạn
+        static float AmmoBoxShift => ViewSpace.LegacyShift(AmmoBoxZ);   // độ dời y của mặt đó theo góc nhìn cũ
+        float FrameTop => config.frameTopY;
+        float BoosterGap => config.ammoBoosterGap;
 
         /// <summary>
         /// Mép dưới vùng khay đạn = mép trên hàng nút booster THẬT trên màn hình (+ khe) → không ô nào bị booster đè.
@@ -227,8 +238,6 @@ namespace BounceBlast.Gameplay
             return w.y - AmmoBoxShift + BoosterGap;
         }
 
-        const float AmmoTargetCell = 1.45f; // ô khay mong muốn (gốc Lv44 ≈ 1.45)
-
         void FitCamera()
         {
             if (gameCamera == null) return;
@@ -239,7 +248,7 @@ namespace BounceBlast.Gameplay
             // ngang (nửa bề ngang 5.98). Khay đạn nằm giữa thanh Capacity và hàng booster; nếu màn hình thấp (tai thỏ, máy
             // 19:9…) không đủ chỗ cho ô khay ≥ AmmoTargetCell thì THU NHỎ cả cảnh (đỉnh khung vẫn ở tâm HUD) vừa đủ để khay
             // đạt cỡ đó – tối đa MaxZoomOut; quá nữa thì ô khay mới co lại. Không ô nào bị booster đè.
-            const float BaseHalfW = 5.98f, MaxZoomOut = 1.3f, MinHalfHeight = 11.6f;
+            float BaseHalfW = config.viewHalfWidth, MaxZoomOut = config.viewMaxZoomOut, MinHalfHeight = config.viewMinHalfHeight;
             float aspect = Mathf.Max(0.3f, gameCamera.aspect);
             float W = Mathf.Max(1, Screen.width), H = Mathf.Max(1, Screen.height);
             float hudY = _ui != null ? _ui.HudCenterScreenY : -1f;
@@ -250,7 +259,7 @@ namespace BounceBlast.Gameplay
             if (_level != null && boosterY > 0f && hudY > boosterY)
             {
                 Vector2Int ext = AmmoGridController.VisibleExtent(_level);
-                float target = Mathf.Min(config.ammoCellMax, AmmoTargetCell, config.ammoAreaWidth / ext.x);
+                float target = Mathf.Min(config.ammoCellMax, config.ammoTargetCell, config.ammoAreaWidth / ext.x);
                 // chiều cao khay cần (đv thế giới, theo góc nhìn cũ như ammoAreaTop) – khoảng HUD→booster trên màn hình phải chứa
                 // FrameTop → ammoAreaTop (cố định theo thế giới) + khay + khe
                 float need = (FrameTop - config.ammoAreaTop) + ext.y * target - AmmoBoxShift + BoosterGap;

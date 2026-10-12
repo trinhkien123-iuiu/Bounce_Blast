@@ -24,6 +24,24 @@ namespace BounceBlast.Gameplay
         GameConfig _config;
         ColorLibrary _colors;
         Transform _visual;
+
+        /// <summary>
+        /// Khung (x, y) của phần HÌNH THẬT đang hiện ra của hộp – gộp mọi renderer đang bật (thân jelly, nắp, hộp mù, cửa…).
+        /// Dùng để dò hộp khi người chơi bấm: bấm vào chỗ NHÌN THẤY hộp. Không dùng gốc xoay của model vì gốc đó nằm lệch
+        /// hẳn so với phần nhìn thấy (tilt −68°, cột jelly dài) và đổi theo mọi thông số tư thế trong GameConfig.
+        /// </summary>
+        public bool TryGetVisibleBounds(out Bounds bounds)
+        {
+            bounds = new Bounds(transform.position, Vector3.zero);
+            bool has = false;
+            foreach (Renderer r in GetComponentsInChildren<Renderer>())
+            {
+                if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
+                if (r is ParticleSystemRenderer || r is TrailRenderer || r is LineRenderer) continue;
+                if (!has) { bounds = r.bounds; has = true; } else bounds.Encapsulate(r.bounds);
+            }
+            return has;
+        }
         Renderer _jelly;
         GameObject _qmark;
         GameObject _ice;
@@ -42,13 +60,12 @@ namespace BounceBlast.Gameplay
         float _sink;        // 0 = trồi lên (bấm được), 1 = lún trong lỗ khay
         float _sinkTarget;
 
-        public static float SinkDepth => AmmoBoxTuning.SinkDepth; // chỉnh bằng AmmoLayoutTuner
-        const float SinkDrop = 0.3f;            // theo cell
+        public static float SinkDepth => AmmoBoxTuning.SinkDepth; // chỉnh trong GameConfig.ammoSinkDepth
         MaterialPropertyBlock _mpb;
         Color _baseColor;
         Coroutine _move;
 
-        // Tư thế hộp (nghiêng / chiều dài cột / dịch / cỡ) lấy từ AmmoBoxTuning – chỉnh tay cho TẤT CẢ hộp bằng component AmmoLayoutTuner.
+        // Tư thế hộp (nghiêng / chiều dài cột / dịch / cỡ) dùng chung cho TẤT CẢ hộp – chỉnh trong GameConfig (ammoActivePose/ammoInactivePose).
         static Quaternion GridTilt => Quaternion.Euler(AmmoBoxTuning.Active.tiltX, 0f, 0f);
         int _tuningVersion = -1;
 
@@ -106,7 +123,6 @@ namespace BounceBlast.Gameplay
 
         Material _coverMat;
         float _doorSink;                 // 0..1, nội suy theo trạng thái cửa
-        const float DoorExtraSink = 1.6f; // cửa đóng: mặt nắp hộp phải nằm SAU mặt phẳng cánh cửa (cột dài 1.45 ô → nắp ở dz-0.72)
         Transform _doorL, _doorR, _doorBack;
 
         /// <summary>Tấm lót: hình chữ nhật bo đủ 4 góc (DoorHalf chỉ bo 1 phía).</summary>
@@ -362,7 +378,7 @@ namespace BounceBlast.Gameplay
             if (_visual == null) return;
             float w = 1f + Mathf.Sin(_wobble * Mathf.PI * 3f) * 0.12f * _wobble;
             float kt = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_sink));
-            AmmoBoxTuning.Pose pose = AmmoBoxTuning.Lerp(1f - kt);   // active ↔ chưa active theo độ lún
+            GameConfig.AmmoPose pose = AmmoBoxTuning.Lerp(1f - kt);   // active ↔ chưa active theo độ lún
             float s = _cell * _scaleNow * pose.scale;
             _visual.localRotation = Quaternion.Euler(pose.tiltX, 0f, 0f);
             if (_jelly != null) _jelly.transform.localScale = new Vector3(1f, pose.length, 1f);
@@ -372,7 +388,7 @@ namespace BounceBlast.Gameplay
             {
                 float k = Mathf.SmoothStep(0f, 1f, _sink);
                 // cửa đóng: hộp tụt sâu hẳn sau mặt khay như buồng thang máy, cửa 2 cánh khép trên miệng hố
-                float dz = (SinkDepth + _doorSink * DoorExtraSink) * _cell * k;
+                float dz = (SinkDepth + _doorSink * _config.doorExtraSink) * _cell * k;
                 // xuống tới mặt khay thì bám theo độ lệch y của miệng hố, sâu hơn nữa thì tụt THẲNG theo trục giếng (không trôi sang giếng dưới)
                 float dyz = Mathf.Min(dz, 0.8f * _cell * k); // bù 80% → hộp hơi thấp hơn tâm hố, gờ dưới của hố che mép dưới như ảnh gốc
                 _visual.localPosition += new Vector3(0f, 0f, dz);
@@ -446,8 +462,6 @@ namespace BounceBlast.Gameplay
         /// không kéo giãn mesh hộp → không bị bẹp/que mảnh), trồi khỏi hố rồi ngả chéo sang phải ~28°, dài ~3 bề ngang,
         /// đuôi rời hẳn miệng hố; bật nhẹ kiểu thạch rồi đứng yên chờ Out Of Capacity.
         /// </summary>
-        const float HoverAngle = 28f, HoverLength = 3.0f; // đo lose_coche f534: ngả ~30° so với phương đứng, dài ~3 bề ngang
-
         IEnumerator HoverRoutine()
         {
             if (_jelly == null) yield break;
@@ -461,13 +475,14 @@ namespace BounceBlast.Gameplay
             // nổi ra trước mặt khay & thanh Capacity (camera ortho nhìn thẳng: đổi z không đổi chỗ trên màn hình)
             Vector3 start = transform.position; start.z = -2.5f;
             Vector3 exit = start + Vector3.up * (_cell * 0.45f);
-            Vector3 dir = new Vector3(Mathf.Sin(HoverAngle * Mathf.Deg2Rad), Mathf.Cos(HoverAngle * Mathf.Deg2Rad), 0f);
+            float hoverAngle = _config.hoverAngle;
+            Vector3 dir = new Vector3(Mathf.Sin(hoverAngle * Mathf.Deg2Rad), Mathf.Cos(hoverAngle * Mathf.Deg2Rad), 0f);
             tube.SetPath(new[] { start, exit, exit + dir * (_cell * 5f) }, sBox * 1.3f);
 
-            float h0 = sBox * 0.9f, len = sBox * HoverLength;
+            float h0 = sBox * 0.9f, len = sBox * _config.hoverLength;
             float tailEnd = _cell * 0.45f + _cell * 0.55f;        // đuôi qua khỏi khúc gập, lơ lửng trên miệng hố
             float t = 0f;
-            const float Dur = 0.38f;
+            float Dur = Mathf.Max(0.05f, _config.hoverTime);
             while (_hover)
             {
                 // đầu vọt ra trước, đuôi theo sau; ease-out-back cho cú bật kiểu thạch
@@ -611,8 +626,12 @@ namespace BounceBlast.Gameplay
         /// <summary>Góc xoay / nghiêng của máy xay tại dock.</summary>
         public Quaternion DockRotation { get; set; } = Quaternion.identity;
         float DockWidthResolved => DockWidth > 0f ? DockWidth : BoxWidth;
-        public const float DockHeightRatio = 2.6f; // video tua chậm: thanh đậu cao ~2 lần bề ngang; user: dài thêm cho cảm giác xay lâu, đã hơn (2.0 → 2.6)
-        public const float DockBottomRatio = 0.3f; // đáy thanh = tâm lưỡi cắt − 0.3W: ngồi trong lòng khung, viền đáy khung lộ rõ (user: nâng đáy lên)
+        /// <summary>Chiều cao thanh đậu / bề ngang lòng máy xay (GameConfig.dockHeightRatio).</summary>
+        public float DockHeightRatio => _config != null ? _config.dockHeightRatio : DefaultDockHeightRatio;
+        /// <summary>Đáy thanh đậu nằm dưới tâm 2 lưỡi cắt bao nhiêu lần bề ngang (GameConfig.dockBottomRatio).</summary>
+        public float DockBottomRatio => _config != null ? _config.dockBottomRatio : 0.3f;
+        /// <summary>Mặc định khi chưa có config (ConveyorLane tính chỗ xếp hàng trước khi Init).</summary>
+        public const float DefaultDockHeightRatio = 2.6f;
 
         TextMeshPro _dockLabel;
 

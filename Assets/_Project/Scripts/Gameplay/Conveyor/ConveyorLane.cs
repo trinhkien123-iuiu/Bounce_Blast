@@ -45,7 +45,10 @@ namespace BounceBlast.Gameplay
         float _lastSide = 1f;
 
         // Mũi tên chạy trên mặt máng: nằm chìm dưới đáy máng (sau bi), sortingOrder thấp.
-        const float ArrowSpacing = 1.25f, ArrowSpeed = 1.5f, ArrowZ = -1.05f;
+        const float ArrowZ = -1.05f;
+        // khoảng cách & tốc độ mũi tên: chỉnh trong GameConfig
+        float ArrowSpacing => _config != null ? _config.laneArrowSpacing : 1.25f;
+        float ArrowSpeed => _config != null ? _config.laneArrowSpeed : 1.5f;
         readonly List<SpriteRenderer> _arrows = new List<SpriteRenderer>();
         float _arrowPhase;
 
@@ -56,7 +59,8 @@ namespace BounceBlast.Gameplay
 
         public Vector3 WaitPosition(int index)
         {
-            float step = (DockWidth > 0f ? DockWidth : 0.8f) * (AmmoBox.DockHeightRatio + 0.15f);
+            float ratio = _config != null ? _config.dockHeightRatio : AmmoBox.DefaultDockHeightRatio;
+            float step = (DockWidth > 0f ? DockWidth : 0.8f) * (ratio + 0.15f);
             Vector3 dockUp = DockRotation * Vector3.up;
             return DockPosition + dockUp * (step * (index + 1));
         }

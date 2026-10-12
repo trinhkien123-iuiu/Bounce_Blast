@@ -77,7 +77,7 @@ namespace BounceBlast.Gameplay
                 visual = CreateColumnVisual(go.transform, item);
                 label = CreateColumnBadge(go.transform, item, size);
                 // collider chỉ bằng thân cột (mảnh, ~60% bề ngang ô) – bi không bật vào khoảng trống hai bên
-                float cw = size.x * ColumnWidthRatio;
+                float cw = size.x * _config.columnWidthRatio;
                 colliders = new List<Rect> { new Rect(-cw * 0.5f, -size.y * 0.5f, cw, size.y) };
             }
             else if ((parts == null || parts.Count <= 1) && item.Kind == BoardItemKind.CombinedCube)
@@ -135,7 +135,7 @@ namespace BounceBlast.Gameplay
         readonly Dictionary<Mesh, Mesh> _shearedMeshes = new Dictionary<Mesh, Mesh>();
 
         // ------------------------------------------------------------------ Khối gộp: 1 mesh liền theo viền
-        const float SolidBevel = 0.14f, SolidDepth = 1.1f; // theo ô – dải mặt trên = depth·tan20 ≈ 0.4 ô ≈ gạch 1 ô (sâu 1.07 ô, ngả 20°), vát tròn hơn như góc gạch
+        // Dải vát & độ dày khối gộp: chỉnh trong GameConfig (dải mặt trên = depth·tan20 ≈ 0.4 ô ≈ gạch 1 ô)
         readonly Dictionary<string, Mesh> _solidMeshes = new Dictionary<string, Mesh>();
 
         /// <summary>
@@ -151,10 +151,11 @@ namespace BounceBlast.Gameplay
             var sorted = new List<Vector2Int>(cells);
             sorted.Sort((p, q) => p.y != q.y ? p.y.CompareTo(q.y) : p.x.CompareTo(q.x));
             foreach (Vector2Int c in sorted) keyB.Append(c.x).Append(',').Append(c.y).Append(';');
-            string key = keyB.ToString() + _cell.ToString("F4");
+            float bevel = _config.blockBevel, depth = _config.blockDepth;
+            string key = keyB.ToString() + _cell.ToString("F4") + '|' + bevel.ToString("F3") + '|' + depth.ToString("F3");
             if (!_solidMeshes.TryGetValue(key, out Mesh mesh) || mesh == null)
             {
-                mesh = BuildSolidMesh(cells, r.width, r.height, _cell);
+                mesh = BuildSolidMesh(cells, r.width, r.height, _cell, bevel, depth);
                 _solidMeshes[key] = mesh;
             }
             var go = new GameObject("Solid");
@@ -168,7 +169,7 @@ namespace BounceBlast.Gameplay
             return v;
         }
 
-        static Mesh BuildSolidMesh(HashSet<Vector2Int> cells, int w, int h, float cell)
+        static Mesh BuildSolidMesh(HashSet<Vector2Int> cells, int w, int h, float cell, float bevelRatio, float depthRatio)
         {
             // 1) viền ngoài (cạnh có hướng, CCW, bỏ cạnh chung)
             var edges = new Dictionary<Vector2Int, Vector2Int>();
@@ -201,7 +202,7 @@ namespace BounceBlast.Gameplay
             int n = outer.Count;
             var P = new Vector2[n];
             for (int i = 0; i < n; i++) P[i] = (outer[i] - off) * cell;
-            float b = SolidBevel * cell, depth = SolidDepth * cell;
+            float b = bevelRatio * cell, depth = depthRatio * cell;
             // đỉnh thu vào: P + b·(pháp tuyến trong cạnh trước + cạnh sau) (đa giác vuông góc → góc lồi/lõm đều đúng)
             var Q = new Vector2[n];
             for (int i = 0; i < n; i++)
@@ -430,7 +431,6 @@ namespace BounceBlast.Gameplay
         }
 
         // ------------------------------------------------------------------ Cột nhà (/wl)
-        const float ColumnWidthRatio = 0.6f;
         static readonly Color ColumnDust = new Color(0.96f, 0.9f, 0.8f);
         static GameObject _columnPrefab, _columnBadge;
         static Dictionary<string, Transform> _columnPieces;
@@ -561,7 +561,6 @@ namespace BounceBlast.Gameplay
             Destroy(t.gameObject, UnityEngine.Random.Range(0.9f, 1.4f));
         }
 
-        const float CubeOverlap = 1.10f; // prefab gốc ×1.05; camera thẳng cần 1.10 để góc giao 4 viên bo tròn không lộ nền
         bool _breakTuned;
 
         /// <summary>
@@ -693,7 +692,7 @@ namespace BounceBlast.Gameplay
             // theo bề ngang width = size.x để không bị méo trục Z khi Model xoay -20°, giữ mép 2 đầu chuẩn từng ô.
             if (item.Kind == BoardItemKind.Cube && nx <= 1.01f && ny <= 1.01f)
             {
-                FitVisualUniform(v.transform, size.x * CubeOverlap);
+                FitVisualUniform(v.transform, size.x * _config.cubeOverlap);
                 return v.transform;
             }
             FitVisualUniform(v.transform, size.x);

@@ -19,37 +19,17 @@ namespace BounceBlast.Gameplay
         public TMP_FontAsset font;
         public Material fontOutlineMaterial;
 
-        [Header("HUD")]
-        public Sprite levelBadge;
-        public Sprite settingsButton;
-        [Tooltip("Badge level gốc theo độ khó (_Ripped/Sprite: Level / Hard Level_0 / Super Hard Level)")]
-        public Sprite levelBadgeNormal;
-        public Sprite levelBadgeHard;
-        public Sprite levelBadgeSuperHard;
-        [Tooltip("Nút Settings gốc theo độ khó (Hard Settings / Super Hard Settings)")]
-        public Sprite settingsHard;
-        public Sprite settingsSuperHard;
+        // Sprite badge Level + nút Settings theo độ khó nay nằm trong HudView (GameCanvas.prefab), không còn ở đây.
+        [Header("Thanh sức chứa")]
         public Sprite capacityBg;
         public Sprite capacityFill;
-        public Sprite vignette;
 
-        [Header("Hiệu ứng thắng")]
-        [Tooltip("Texture pháo giấy 3×3 gốc (_Ripped/UI/Texture2D/confetti_0.png)")]
-        public Texture2D confettiTexture;
-        [Tooltip("Quầng sáng tròn mềm (_Ripped/UI/Texture2D/fx_glow.png)")]
-        public Texture2D glowTexture;
-        [Tooltip("Tia sáng toả (_Ripped/Texture2D/glow7.png)")]
-        public Texture2D raysTexture;
-        [Tooltip("Sao lấp lánh 4 cánh (_Ripped/Texture2D/sparkle3.png)")]
-        public Texture2D sparkleTexture;
+        // 4 texture hiệu ứng màn thắng (pháo giấy, quầng sáng, tia, sao) nay nằm trong SuccessPopupView (SuccessCanvas.prefab).
 
-        [Header("Booster")]
-        public Sprite boosterFrame;
-        public Sprite boosterMagicHand;
-        public Sprite boosterHammer;
-        public Sprite boosterShuffle;
-        public Sprite boosterCapacity;
-        public Sprite plusBadge;
+        [Header("Lớp UI phủ lên bàn chơi")]
+        [Tooltip("Assets/_Project/UI/Prefabs/OverlayCanvas.prefab - Canvas + BoosterBar + Vignette + Toast. " +
+                 "Hình ảnh và bố cục sửa trong prefab; code chỉ nối camera rồi tìm con theo tên.")]
+        public GameObject overlayCanvasPrefab;
 
         [Header("Popup")]
         public Sprite popupNormal;
