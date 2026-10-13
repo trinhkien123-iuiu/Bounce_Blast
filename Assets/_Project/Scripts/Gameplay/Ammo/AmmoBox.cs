@@ -57,6 +57,8 @@ namespace BounceBlast.Gameplay
         float _tint = 1f;
         float _tintTarget = 1f;
         float _wobble;
+        JellyDeformer _jellyFx;   // lắc thạch khi nhấn giữ (tạo khi cần)
+        float _press, _pressTarget;   // 0..1: hộp lún nhỏ lại ngay khi bị chạm (phản hồi tức thì)
         float _sink;        // 0 = trồi lên (bấm được), 1 = lún trong lỗ khay
         float _sinkTarget;
 
@@ -114,7 +116,7 @@ namespace BounceBlast.Gameplay
             var root = new GameObject("DoorCover");
             root.transform.SetParent(transform, false);
             _coverT = root.transform;
-            var pf = Resources.Load<GameObject>("prefabs/AmmunationBlockerCover");
+            var pf = _config != null ? _config.ammoCoverPrefab : null; // GameConfig.ammoCoverPrefab
             Transform src = pf != null ? pf.transform.Find("Cover") : null;
             _coverMat = src != null ? src.GetComponent<Renderer>().sharedMaterial : null;
             _coverBlend = _coverBlendTarget = Data.DoorClosed ? 0f : 90f;
@@ -347,9 +349,40 @@ namespace BounceBlast.Gameplay
             if (_iceLabel != null) _iceLabel.SetText("{0}", Data.IceHits);
         }
 
+        /// <summary>
+        /// Nhấn giữ hộp (bấm được) → lắc lư như thạch; thả ra thì lắc tắt dần. Chỉ là hiệu ứng, việc bắn do InputManager quyết định.
+        /// Thông số trong GameConfig → "Hộp đạn – lắc khi nhấn giữ".
+        /// </summary>
+        public void SetHeld(bool held)
+        {
+            if (held && (IsLaunched || _hover || Data == null)) return;
+            if (_jellyFx == null)
+            {
+                if (!held || _jelly == null) return;
+                _jellyFx = _jelly.gameObject.GetComponent<JellyDeformer>();
+                if (_jellyFx == null)
+                {
+                    _jellyFx = _jelly.gameObject.AddComponent<JellyDeformer>();
+                    // nắp = đầu cột hướng về camera (cùng cách ComputeCapPoint chọn): nằm ở y lớn hay y nhỏ của mesh?
+                    Mesh m = _jelly.GetComponent<MeshFilter>() != null ? _jelly.GetComponent<MeshFilter>().sharedMesh : null;
+                    bool capAtMax = !_hasCap || m == null || _capLocal.y >= m.bounds.center.y;
+                    if (!_jellyFx.Init(_config, capAtMax)) { Destroy(_jellyFx); _jellyFx = null; return; }
+                }
+            }
+            _jellyFx.SetHeld(held);
+        }
+
+        /// <summary>Phản hồi tức thì lúc chạm xuống hộp: hộp lún nhỏ lại; thả / huỷ thì bật lại. Không đụng tới logic bắn.</summary>
+        public void SetPressed(bool pressed)
+        {
+            if (pressed && (IsLaunched || _hover || Data == null)) return;
+            _pressTarget = pressed ? 1f : 0f;
+        }
+
         public void PlayDenied()
         {
             _wobble = 1f;
+            if (_jellyFx != null) _jellyFx.Kick(0.6f);
             AudioManager.Play(Sfx.Error);
         }
 
@@ -363,6 +396,11 @@ namespace BounceBlast.Gameplay
             float doorTarget = IsDoorClosed ? 1f : 0f;
             if (_doorSink != doorTarget) { _doorSink = Mathf.MoveTowards(_doorSink, doorTarget, Time.deltaTime * 4f); scaleChanged = true; }
             if (_wobble > 0f) { _wobble = Mathf.Max(0f, _wobble - Time.deltaTime * 3f); scaleChanged = true; }
+            if (_press != _pressTarget)
+            {
+                _press = Mathf.MoveTowards(_press, _pressTarget, Time.unscaledDeltaTime / Mathf.Max(0.01f, _config.pressInTime));
+                scaleChanged = true;
+            }
 
             bool tintChanged = false;
             if (_tint != _tintTarget) { _tint = Mathf.MoveTowards(_tint, _tintTarget, Time.deltaTime * 3f); tintChanged = true; }
@@ -377,6 +415,8 @@ namespace BounceBlast.Gameplay
         {
             if (_visual == null) return;
             float w = 1f + Mathf.Sin(_wobble * Mathf.PI * 3f) * 0.12f * _wobble;
+            if (_press > 0f && _config != null) w *= 1f - _config.pressInScale * Mathf.SmoothStep(0f, 1f, _press);
+
             float kt = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_sink));
             GameConfig.AmmoPose pose = AmmoBoxTuning.Lerp(1f - kt);   // active ↔ chưa active theo độ lún
             float s = _cell * _scaleNow * pose.scale;
@@ -430,6 +470,8 @@ namespace BounceBlast.Gameplay
         public void BeginLaunch()
         {
             IsLaunched = true;
+            if (_jellyFx != null) _jellyFx.ResetNow();
+            _press = _pressTarget = 0f;
             _hover = false;
             StopAllCoroutines(); _move = null;
             if (_coverT != null) Destroy(_coverT.gameObject);
@@ -449,6 +491,8 @@ namespace BounceBlast.Gameplay
         {
             if (_hover || IsLaunched) return;
             _hover = true;
+            _press = _pressTarget = 0f;
+            if (_jellyFx != null) _jellyFx.ResetNow();
             if (_coverT != null) Destroy(_coverT.gameObject);
             _tint = 1f; _sink = _sinkTarget = 0f;
             ApplyTint();

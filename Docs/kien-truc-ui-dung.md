@@ -173,3 +173,12 @@ Mỗi bước xong: compile sạch → vào Play mở panel đó → `Validate()
 - **`FitCamera`**: toán theo kích thước màn hình.
 - **`EventSystem`**: hạ tầng, chỉ tạo khi scene chưa có.
 - **Particle/confetti dựng bằng code** (`UiConfetti`, `UiSparkles`): gốc dựng lại theo thông số game gốc vì prefab gốc đã mất component; nếu tách thì làm sau cùng.
+
+## Cập nhật cuối (sau tái cấu trúc)
+Vignette/Toast đã do `OverlayView` quản lý; `Spawn()` đã bỏ; `GameUI` có 7 ô View kéo sẵn (Overlay, Hud, Capacity, Fail, Success, Settings, OutOfCapacity) và chỉ tự dựng từ prefab khi ô trống. Các bảng trạng thái cũ phía trên coi như **đã hoàn thành**. Runtime còn tự tạo: `ArenaWalls`, `FlattenStaticScene` (cố ý).
+
+### Bẫy đã dính: popup đặt sẵn không bấm được nút
+`GameUI.ShowXxx` trước đây nối sự kiện (`OnClose`, `OnRetry`, `OnContinue`…) trong khối `if (_view == null)`. Khi View được kéo sẵn vào ô `[SerializeField]` thì ô không null → khối không bao giờ chạy → nút bấm không làm gì. Đã đổi sang cờ `_failWired/_outWired/_settingsWired/_successWired` (nối đúng 1 lần). **Quy tắc:** nối sự kiện theo cờ "đã nối", không dựa vào "ô còn trống". Đã kiểm bằng click giả trong Play: Settings (mở/đóng/Restart), Fail Try Again, OutOfCapacity Play On, Success Continue đều chạy.
+
+## MainMenuCanvas (scene MenuGame)
+Tách từ `MainMenuCanvas` của ManagerScene gốc bằng `Tools/UnityYaml/ui_extract.py` (tham số mới `--skip` bỏ nhánh Shop / Leaderboards / Collections; `--assets-out` mặc định `Art/UI/Menu/Extra`). Script KPFramework bị bỏ, logic viết lại trong `MainMenuView` (giữ ô tham chiếu bằng Inspector, `Validate()`, sự kiện `OnPlay/OnComingSoon/OnSoundChanged…`) và `MenuManager` (điều phối). 41 sprite/texture menu lấy từ `_Archive` ra `Art/UI/Menu/{Sprites,Textures}`. Toast sao chép từ OverlayCanvas. Canvas Screen Space - Camera trỏ sẵn Main Camera của scene (order giữ 3 như gốc – các canvas con override order tuyệt đối nên KHÔNG đổi order gốc). Nút bấm của View vẫn nối bằng `AddListener` trong `Awake`.

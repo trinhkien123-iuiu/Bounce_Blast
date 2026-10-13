@@ -70,3 +70,45 @@ Gốc repo: thêm `ARCHITECTURE.md` (bản đồ + "muốn đổi X thì vào đ
 - `GameConfig`/`UiSkin` là điểm kéo-thả asset chính (đã đúng hướng).
 - Mesh sinh theo level, ống thạch, `FitCamera` (xem `kien-truc-ui-dung.md` mục 7).
 - GUID gốc của asset rip (bản đồ shader/UI dựa vào GUID – xem memory `shader-rip-workflow`, `ui-extract-workflow`): mọi di chuyển đều qua Unity để GUID không đổi. Các script trong `Tools/` có đường dẫn cứng tới `Assets/_Ripped/...` sẽ được cập nhật cùng lúc.
+
+---
+
+## 6. Quyết định của user (đã chốt)
+1. **Checkpoint git:** user TỰ commit (GitHub Desktop/Fork) rồi báo; chưa có checkpoint thì KHÔNG di chuyển file nào.
+2. **Art:** sắp xếp **theo tính năng** (Balls, Board, Ammo, Conveyor, Environment, VFX, UI/…, Shared).
+3. **Asset không dùng:** gom vào `Assets/_Archive` (giữ GUID, không xoá).
+
+## 7. Kết quả chạy khô (đã làm, CHỈ ĐỌC – không file nào bị di chuyển)
+Công cụ: `Assets/_Project/Editor/ArtReorganizer.cs` → menu `Tools/Bounce Blast/Art/Phân tích (chạy khô – chỉ đọc)`. Báo cáo: `Docs/art-plan/bao-cao-tom-tat.md`, danh sách từng file `from → to` ở `Docs/art-plan/art_move_plan.csv`.
+
+**1258 asset art đã xét:**
+| Trạng thái | Số file | Đích |
+|---|---:|---|
+| Thuộc đúng 1 tính năng | 418 | `_Project/Art/<Tính năng>/<Loại>` |
+| Dùng chung | 58 | `_Project/Art/Shared/<Loại>` (hoặc `UI/Common` nếu chỉ UI dùng chung; bảng màu → `Shared/Colors`; âm thanh → `_Project/Audio`) |
+| Không dùng – **của tính năng chưa làm** | 272 | `_Archive/TinhNangChuaLam/…` |
+| Không dùng – **mồ côi thật** | 510 | `_Archive/MoCoi/…` |
+
+**Kiểm chứng con số:** duyệt GUID độc lập bằng Python (từ đúng các gốc: scene, GameConfig, UiSkin, ColorLibrary, 4 prefab tải theo chuỗi) cho kết quả **476 dùng / 782 không dùng, khớp tuyệt đối với Unity**, không lệch file nào.
+
+**Lưu ý quan trọng khi đọc con số 782:** "không dùng" ≠ rác.
+- 272 file thuộc prefab của các tính năng game gốc mà bản clone **chưa làm** (khoá `AmmunationBlockerLock` 49, nắp lớn `BlockerAmmoMegaCover` 42, đá `BlockerStone` 25, rèm `CombinedCubicCurtain` 13, bom `CombinedCubicBomb` 12, xích `BlockerAmmoChain`, keo `GlueObject`…). Muốn làm các tính năng này sau thì cần chúng → đó là lý do chọn **gom vào `_Archive` thay vì xoá**; cột `note` trong CSV ghi rõ prefab nào còn trỏ tới.
+- 510 file mồ côi: phần lớn `_Ripped/UI` (206), `Sprite` (96), `Material` (66), `Texture2D` (53), `AudioClip` (37 – âm thanh gốc chưa gắn vào `GameConfig.sounds`), `Shader` (13 – shader giả đã được thay bằng bản dịch từ GLSL ở `_Project/Shaders`).
+- Con số 446 từng nêu trước đây là phép đếm cũ, phạm vi hẹp hơn; số liệu hiện tại thay thế nó.
+
+**Cần user soát trước khi chuyển:** quy tắc gán tính năng cho prefab nằm trong `FeatureForPrefab()` (theo tên prefab). Ví dụ đã sửa: `ModularPrimitiveAmmoWall` thuộc **Ammo** chứ không phải Board. Xem CSV, thấy file nào xếp sai thì báo để chỉnh quy tắc rồi chạy lại.
+
+## 8. Trạng thái các giai đoạn (CUỐI)
+| # | Việc | Trạng thái |
+|---|---|---|
+| 0 | Checkpoint git | **XONG** (commit `adb3575`) |
+| A | `ARCHITECTURE.md` + `CODING_CONVENTION.md` + README thư mục | **XONG** |
+| B | Bỏ `Resources.Load` cứng → `GameConfig` | **XONG** |
+| C | `Resources/prefabs` → `_Project/Prefabs/Gameplay/` | **XONG** |
+| D | `sheets_levels` → `_Project/Data/Levels` + `LevelSet` | **XONG** (550/550 level đọc được) |
+| E | Art theo tính năng | **XONG** (0 GUID mất, 0 tham chiếu hỏng mới; 5 level so hình trước/sau giống hệt) |
+| F | Asset không dùng → `_Archive` | **XONG** (TinhNangChuaLam + MoCoi) |
+| G | `.asmdef` (Runtime + Editor) | **XONG** |
+| + | Hệ thống GameManager + đèn nung sẵn vào scene; `OverlayView` thay Vignette/Toast/Spawn | **XONG** |
+
+Việc còn lại cho user: commit; xoá thư mục rỗng `Assets/_Ripped`, `Assets/Resources`, `_Project/Configs`, `_Project/UI` (mình bị chặn xoá); tuỳ chọn xoá `AmmoLayoutTuner.cs` (stub rỗng) và `_Archive` khi chắc chắn không cần. `Tools/UnityYaml/ui_extract.py` còn đường dẫn `_Ripped` cũ (công cụ rip một lần).

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace BounceBlast.Gameplay
 {
     /// <summary>
-    /// Đọc level từ Resources/sheets_levels/&lt;bộ&gt;/sheets_a_b/{BoardProps_v3, TunnelProps_v3}.
+    /// Đọc level từ <see cref="LevelSet"/> (danh mục tham chiếu tới BoardProps_v3 / TunnelProps_v3 của từng chunk 5 level).
     /// Quy ước đã đối chiếu với video game gốc (level 39, Multiplier = 2):
     ///   - Mỗi ô CSV thành Multiplier x Multiplier ô trên lưới bàn.
     ///   - Khối gộp (màu-hp-group) và hòm gỗ (cr-hp-id): máu = hp * Multiplier^2  (y-30 → 120, cr-50 → 200).
@@ -16,18 +16,20 @@ namespace BounceBlast.Gameplay
         const int CubesStartCol = 5;
         const int AmmoColCount = 8;
 
-        public static LevelModel Load(string levelSet, int levelId)
+        public static LevelModel Load(LevelSet levelSet, int levelId)
         {
-            int chunkStart = ((levelId - 1) / 5) * 5 + 1;
-            string folder = $"sheets_levels/{levelSet}/sheets_{chunkStart}_{chunkStart + 4}";
-            TextAsset board = Resources.Load<TextAsset>($"{folder}/BoardProps_v3");
-            TextAsset tunnels = Resources.Load<TextAsset>($"{folder}/TunnelProps_v3");
-            if (board == null)
+            if (levelSet == null)
             {
-                Debug.LogError($"[LevelParser] Không tìm thấy Resources/{folder}/BoardProps_v3");
+                Debug.LogError("[LevelParser] GameConfig.levels chưa gán LevelSet");
                 return null;
             }
-            return Parse(board.text, tunnels != null ? tunnels.text : null, levelId);
+            LevelSet.Chunk chunk = levelSet.Find(levelId);
+            if (chunk == null || chunk.board == null)
+            {
+                Debug.LogError($"[LevelParser] LevelSet '{levelSet.name}' không có dữ liệu cho level {levelId}");
+                return null;
+            }
+            return Parse(chunk.board.text, chunk.tunnels != null ? chunk.tunnels.text : null, levelId);
         }
 
         public static LevelModel Parse(string boardCsv, string tunnelCsv, int levelId)

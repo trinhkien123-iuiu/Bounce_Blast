@@ -1,0 +1,281 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cb937dd95f0d854ebb12bcc402f177f, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  levels: {fileID: 11400000, guid: 62add0ae2e67aab4ba20b6300ac37c63, type: 2}
+  maxLevel: 550
+  cubePrefab: {fileID: 1709254077376921, guid: f1cc67c1093c6b9478de7d5a3c5be287, type: 3}
+  combinedCubePrefab: {fileID: 1709254077376921, guid: ea672d17c154db845b05d0e9c3530d79, type: 3}
+  cratePrefab: {fileID: 1709254077376921, guid: cb129b00c11615d4e8d8d18ce8f5f2e3, type: 3}
+  ammoPrefab: {fileID: 1709254077376921, guid: 23bfe0e115989644ca2848bb3dc440e0, type: 3}
+  tunnelPrefab: {fileID: 1709254077376921, guid: f49df944846d34947948223e39193f84, type: 3}
+  ballPrefab: {fileID: 1709254077376921, guid: 033b85e3b6596064a824161bbe0945af, type: 3}
+  ammoCoverPrefab: {fileID: 1709254077376921, guid: 87d902157171b1e44a4b54177ebac031, type: 3}
+  ammoTrayWallPrefab: {fileID: 1709254077376921, guid: 8e8a788ef1c3b644a87b914e21a3099a, type: 3}
+  columnPrefab: {fileID: 1709254077376921, guid: 5fb73f0a74d37a84a9efbb8811a2d0fc, type: 3}
+  combinedColumnPrefab: {fileID: 1709254077376921, guid: 5b7dd6031903d754f9e125ca38707ec2, type: 3}
+  cubeBreakVfx: {fileID: 1709254077376921, guid: 8866ebba9d2500442909cba03da45c86, type: 3}
+  crateBreakVfx: {fileID: 1709254077376921, guid: 9f09651691517e648ac8e0019b898ebc, type: 3}
+  ammoLaunchVfx: {fileID: 1709254077376921, guid: b273c0e2addc50b4684002f52b2177b2, type: 3}
+  confettiVfx: {fileID: 1709254077376921, guid: 47740d4c1d327534b99b52fa3d90331a, type: 3}
+  worldFont: {fileID: 11400000, guid: b770228cafbc2c747993ed1c90fa3cec, type: 2}
+  wallMaterial: {fileID: 2100000, guid: bca1005740b71d84092a0652cb556a90, type: 2}
+  crateMaterial: {fileID: 2100000, guid: f84d03a73f5e26d4e9a33ee55d802610, type: 2}
+  ammoCellMaterial: {fileID: 2100000, guid: 2c109152d6c711d45bb7a82967c13b60, type: 2}
+  ammoFrameMaterial: {fileID: 0}
+  trailMaterial: {fileID: 2100000, guid: 1b2aad190cf3ba548a5d6952fdd1795d, type: 2}
+  iceMaterial: {fileID: 2100000, guid: 39373d9e830b63242bef8c0bd4a54742, type: 2}
+  qmarkMaterial: {fileID: 2100000, guid: 0ea6dcfd6144c9a4290064823100e8b2, type: 2}
+  normalTheme:
+    useColors: 1
+    backgroundTop: {r: 0.27, g: 0.29, b: 0.66, a: 1}
+    backgroundBottom: {r: 0.17, g: 0.18, b: 0.42, a: 1}
+    plane: {fileID: 2100000, guid: ad8d8e7b9ae19a04a81cc647ef78e72b, type: 2}
+    conveyorSurface: {fileID: 2100000, guid: cc70514f3bec3524eacbc5d6eb0aebaa, type: 2}
+    conveyorSide: {fileID: 2100000, guid: 54ed8aac70544f248a791af739b40713, type: 2}
+    conveyorGround: {fileID: 0}
+    ammoCell: {fileID: 2100000, guid: 146db588e8865c048b36edc48d1f6d97, type: 2}
+    ammoWall: {fileID: 2100000, guid: c1891f37c87d521429ddd7b065438f7f, type: 2}
+    hudTint: {r: 1, g: 1, b: 1, a: 1}
+    groundColor: {r: 0.28235295, g: 0.3137255, b: 0.68235296, a: 1}
+    arrowColor: {r: 0.227, g: 0.243, b: 0.373, a: 1}
+    pinsColor: {r: 0.282, g: 0.322, b: 0.706, a: 1}
+    wallTint: 1.6
+    backgroundMask: {fileID: 21300000, guid: 41095813a4754c74bb030dd2945a816a, type: 2}
+    trayWall: {fileID: 2100000, guid: a3ebf1dc881ba934a983215a4e4d2bc1, type: 2}
+    trayPanel: {fileID: 2100000, guid: 26b0701ee487f7942a494b598a493c0f, type: 2}
+    trayHole: {fileID: 2100000, guid: 32689b5254728b64f829fabc1ed15ae5, type: 2}
+  hardTheme:
+    useColors: 1
+    backgroundTop: {r: 0.62, g: 0.2, b: 0.17, a: 1}
+    backgroundBottom: {r: 0.35, g: 0.11, b: 0.09, a: 1}
+    plane: {fileID: 2100000, guid: e6d68192268ec264d9247cb00a094e04, type: 2}
+    conveyorSurface: {fileID: 2100000, guid: 389021fa9d4424848ba0ae5b26a45f32, type: 2}
+    conveyorSide: {fileID: 2100000, guid: c0345322090af0443abf90a6fe447e24, type: 2}
+    conveyorGround: {fileID: 0}
+    ammoCell: {fileID: 2100000, guid: 2c778a8f00cbd7d479ebe0cd6d1d8e66, type: 2}
+    ammoWall: {fileID: 2100000, guid: f8db6810bbfdf2541b2fd4da455c623d, type: 2}
+    hudTint: {r: 1, g: 1, b: 1, a: 1}
+    groundColor: {r: 0.62352943, g: 0.2509804, b: 0.22745098, a: 1}
+    arrowColor: {r: 0.553, g: 0.153, b: 0.18, a: 1}
+    pinsColor: {r: 0.514, g: 0.196, b: 0.157, a: 1}
+    wallTint: 1.6
+    backgroundMask: {fileID: 21300000, guid: 56fe60d6bfd4dbb458b084df05cd6f20, type: 2}
+    trayWall: {fileID: 2100000, guid: cdcddf543acbb174f959dfb407f3081e, type: 2}
+    trayPanel: {fileID: 2100000, guid: 8efe363526345904e9e7af0659f6435c, type: 2}
+    trayHole: {fileID: 2100000, guid: f8db6810bbfdf2541b2fd4da455c623d, type: 2}
+  superHardTheme:
+    useColors: 1
+    backgroundTop: {r: 0.2, g: 0.2, b: 0.21, a: 1}
+    backgroundBottom: {r: 0.1, g: 0.1, b: 0.11, a: 1}
+    plane: {fileID: 2100000, guid: 99082fee2a864e7498c18a234842f431, type: 2}
+    conveyorSurface: {fileID: 2100000, guid: 5f4fd854ed8da3e408372bf1e0c7ba63, type: 2}
+    conveyorSide: {fileID: 2100000, guid: 10e9591f9d8d02346a3dc1dc8e9affb5, type: 2}
+    conveyorGround: {fileID: 0}
+    ammoCell: {fileID: 2100000, guid: 6d6a1a78f08f7d545bdd75893dcddb0a, type: 2}
+    ammoWall: {fileID: 2100000, guid: 0156dee634e09eb44aa99644dfffa96f, type: 2}
+    hudTint: {r: 1, g: 1, b: 1, a: 1}
+    groundColor: {r: 0.2901961, g: 0.2901961, b: 0.2901961, a: 1}
+    arrowColor: {r: 0.196, g: 0.192, b: 0.204, a: 1}
+    pinsColor: {r: 0.165, g: 0.165, b: 0.165, a: 1}
+    wallTint: 1.6
+    backgroundMask: {fileID: 21300000, guid: 789986c09894d984b9f98ca3548fe955, type: 2}
+    trayWall: {fileID: 2100000, guid: 5a3dfe0259988d348aed1f0181952892, type: 2}
+    trayPanel: {fileID: 2100000, guid: 761c5f13d515b47409da5b266b7dbfbb, type: 2}
+    trayHole: {fileID: 2100000, guid: 6d6a1a78f08f7d545bdd75893dcddb0a, type: 2}
+  sounds:
+  - id: 0
+    clips:
+    - {fileID: 8300000, guid: a366ee7f5f28dce479ba53397236ab01, type: 3}
+    volume: 0.7
+    minInterval: 0.05
+    pitch: {x: 1, y: 1}
+  - id: 1
+    clips:
+    - {fileID: 8300000, guid: ccbd08cf94a93cc4282812c55ec3b382, type: 3}
+    volume: 0.7
+    minInterval: 0.15
+    pitch: {x: 1, y: 1}
+  - id: 2
+    clips:
+    - {fileID: 8300000, guid: dd51f32bb0ac85b488af9b14ab99faea, type: 3}
+    volume: 0.8
+    minInterval: 0.05
+    pitch: {x: 1, y: 1}
+  - id: 3
+    clips:
+    - {fileID: 8300000, guid: 0917fb2ce40ee964dafa3776e5bbaadc, type: 3}
+    volume: 0.6
+    minInterval: 0.05
+    pitch: {x: 1, y: 1}
+  - id: 4
+    clips:
+    - {fileID: 8300000, guid: efc4221cc2719924594cb02f207935bd, type: 3}
+    volume: 0.3
+    minInterval: 0.045
+    pitch: {x: 0.9, y: 1.15}
+  - id: 5
+    clips:
+    - {fileID: 8300000, guid: 92c8599105da40c40817b497e4586eb5, type: 3}
+    volume: 0.8
+    minInterval: 0.05
+    pitch: {x: 1, y: 1}
+  - id: 6
+    clips:
+    - {fileID: 8300000, guid: 301cab67a833a474b976a9646f9e0f7b, type: 3}
+    volume: 0.9
+    minInterval: 0.05
+    pitch: {x: 1, y: 1}
+  - id: 7
+    clips:
+    - {fileID: 8300000, guid: cac2451ce2452234ea9cdd1db5563ec3, type: 3}
+    volume: 0.6
+    minInterval: 0.05
+    pitch: {x: 1, y: 1}
+  - id: 8
+    clips:
+    - {fileID: 8300000, guid: 9757ef1922f057146bb7d254a5f97368, type: 3}
+    volume: 0.8
+    minInterval: 0.05
+    pitch: {x: 1, y: 1}
+  - id: 9
+    clips:
+    - {fileID: 8300000, guid: ea3dd9c1f71fe6c4dbf26b933a621044, type: 3}
+    volume: 0.7
+    minInterval: 0.05
+    pitch: {x: 1, y: 1}
+  - id: 10
+    clips:
+    - {fileID: 8300000, guid: 3dd19ea658be3aa41a54bb63aed45c61, type: 3}
+    volume: 0.7
+    minInterval: 0.05
+    pitch: {x: 1, y: 1}
+  - id: 12
+    clips:
+    - {fileID: 8300000, guid: 9e8ac60e14c422a4e8615b5156a52676, type: 3}
+    volume: 0.9
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  - id: 13
+    clips:
+    - {fileID: 8300000, guid: 88947e985ae0657458806ada11f966f7, type: 3}
+    volume: 0.9
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  - id: 14
+    clips:
+    - {fileID: 8300000, guid: 0af5f562562a8c743993af189ef5d83a, type: 3}
+    volume: 0.8
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  - id: 15
+    clips:
+    - {fileID: 8300000, guid: a4a88547037eeea44bac3be1a0c6f872, type: 3}
+    volume: 0.9
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  - id: 16
+    clips:
+    - {fileID: 8300000, guid: 80d7a61d382201841aaa8d695043d628, type: 3}
+    volume: 0.8
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  musicMenu: {fileID: 8300000, guid: b0dcdc52ce75d28459a3db1f84ba6b5b, type: 3}
+  musicNormal: {fileID: 8300000, guid: 8e322a3bced0fa64b91b5bfa61482e34, type: 3}
+  musicHard: {fileID: 8300000, guid: 193665d9fde220f4dba7772f8f1250ca, type: 3}
+  musicSuperHard: {fileID: 8300000, guid: ddb8a9d506e412141abc2eaaf64fca19, type: 3}
+  arena:
+    serializedVersion: 2
+    x: 1.07
+    y: -6.35
+    width: 8.46
+    height: 14
+  arenaTopY: 7.45
+  dispenserOutlet: {x: 5.3, y: 6.62}
+  ballRadius: 0.17
+  ballSpeed: 18
+  ballSpawnSpread: 55
+  homingStrength: 0.12
+  ballMinVerticalSpeed: 1.6
+  ballDeflectDeg: 8
+  ballAimMinBounces: 3
+  laneSpeed: 5.5
+  laneBallSpacing: 0.27
+  boxFlyDuration: 0.6
+  laneArrowSpacing: 1.25
+  laneArrowSpeed: 1.5
+  ammoCellMax: 1.7
+  ammoAreaWidth: 11.9
+  ammoAreaTop: -7.9
+  ammoAreaBottom: -16
+  winFireworksTime: 2.4
+  ammoActiveScale: 0.9
+  ammoInactiveScale: 0.88
+  frameTopY: 8.43
+  viewHalfWidth: 5.98
+  viewMaxZoomOut: 1.3
+  viewMinHalfHeight: 11.6
+  ammoTargetCell: 1.45
+  ammoBoosterGap: 0.2
+  ammoActivePose:
+    tiltX: -73
+    length: 0.62
+    offset: {x: 0, y: 0.39, z: 0}
+    scale: 1
+  ammoInactivePose:
+    tiltX: -80.2
+    length: 0.52
+    offset: {x: 0, y: 0.07, z: 0}
+    scale: 1
+  ammoSinkDepth: 1.1
+  dockHeightRatio: 2.6
+  dockBottomRatio: 0.3
+  hoverAngle: 32
+  hoverLength: 2
+  hoverTime: 0.38
+  doorExtraSink: 1.6
+  trayPanelPad: 0.1
+  trayPanelRadius: 0.22
+  traySlotSize: 0.8
+  traySlotRadius: 0.2
+  trayHoleTopInset: 0
+  trayPanelDepth: 0.35
+  trayHoleDepth: 3
+  heldStretch: 0.03
+  heldSway: 0.03
+  heldDriveFrequency: 5
+  jellyFrequency: 6
+  jellyDamping: 0.2
+  pressInScale: 0.06
+  pressInTime: 0.05
+  jellyPressKick: 0.5
+  jellyReleaseKick: 0.9
+  heldBlendIn: 0.12
+  heldBlendOut: 0.15
+  blockBevel: 0.14
+  blockDepth: 0.2
+  blockFrontZ: -0.36
+  boardOffsetY: 0.24
+  blockBottomExtra: 0.12
+  blockTopTrim: 0.13
+  cubeOverlap: 1.1
+  columnWidthRatio: 0.6
+  crusherSpinSpeed: 800
+  crusherShakeMagnitude: 0.06
+  crusherShakeFrequency: 28
+  crusherShakeDamping: 6
+  holeLidBand: 0.09
+  holeLidDripTime: 0.18
+  holeLidDelay: 0.55
+  holeLidTime: 0.22
+  fallSpeed: 9

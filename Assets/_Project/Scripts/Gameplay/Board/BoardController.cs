@@ -37,7 +37,7 @@ namespace BounceBlast.Gameplay
             _colors = colors;
             _level = level;
             _cell = config.arena.width / level.BoardCols;
-            _origin = new Vector2(config.arena.xMin, config.arena.yMin);
+            _origin = new Vector2(config.arena.xMin, config.arena.yMin + config.boardOffsetY); // nâng lên khỏi gờ sàn của khung
             _grid = new BoardBlock[level.BoardCols, Mathf.Max(level.BoardRows, 64)];
             _cleared = false;
 
@@ -147,15 +147,16 @@ namespace BounceBlast.Gameplay
         {
             var v = new GameObject("Visual").transform;
             v.SetParent(parent, false);
-            var keyB = new System.Text.StringBuilder().Append(r.width).Append('x').Append(r.height).Append(':');
+            v.localPosition = new Vector3(0f, 0f, _config.blockFrontZ); // mặt trước ngang gạch 1 ô (mesh dựng với mặt trước ở z = 0)
+            var keyB =new System.Text.StringBuilder().Append(r.width).Append('x').Append(r.height).Append(':');
             var sorted = new List<Vector2Int>(cells);
             sorted.Sort((p, q) => p.y != q.y ? p.y.CompareTo(q.y) : p.x.CompareTo(q.x));
             foreach (Vector2Int c in sorted) keyB.Append(c.x).Append(',').Append(c.y).Append(';');
-            float bevel = _config.blockBevel, depth = _config.blockDepth;
-            string key = keyB.ToString() + _cell.ToString("F4") + '|' + bevel.ToString("F3") + '|' + depth.ToString("F3");
+            float bevel = _config.blockBevel, depth = _config.blockDepth, extra = _config.blockBottomExtra, trim = _config.blockTopTrim;
+            string key = keyB.ToString() + _cell.ToString("F4") + '|' + bevel.ToString("F3") + '|' + depth.ToString("F3") + '|' + extra.ToString("F3") + '|' + trim.ToString("F3");
             if (!_solidMeshes.TryGetValue(key, out Mesh mesh) || mesh == null)
             {
-                mesh = BuildSolidMesh(cells, r.width, r.height, _cell, bevel, depth);
+                mesh = BuildSolidMesh(cells, r.width, r.height, _cell, bevel, depth, extra, trim);
                 _solidMeshes[key] = mesh;
             }
             var go = new GameObject("Solid");
@@ -169,7 +170,7 @@ namespace BounceBlast.Gameplay
             return v;
         }
 
-        static Mesh BuildSolidMesh(HashSet<Vector2Int> cells, int w, int h, float cell, float bevelRatio, float depthRatio)
+        static Mesh BuildSolidMesh(HashSet<Vector2Int> cells, int w, int h, float cell, float bevelRatio, float depthRatio, float bottomExtraRatio, float topTrimRatio)
         {
             // 1) viền ngoài (cạnh có hướng, CCW, bỏ cạnh chung)
             var edges = new Dictionary<Vector2Int, Vector2Int>();
@@ -235,12 +236,33 @@ namespace BounceBlast.Gameplay
                 Quad(new Vector3(P[i].x, P[i].y, b), new Vector3(P[j].x, P[j].y, b),
                      new Vector3(P[j].x, P[j].y, depth), new Vector3(P[i].x, P[i].y, depth), outN);
             }
+            // Kéo đáy ra thêm (gạch 1 ô nhô khỏi ô do cubeOverlap): dời các đỉnh ở đáy (viền ngoài + mép mặt trước) xuống cùng một đoạn
+            float extra = bottomExtraRatio * cell;
+            if (extra > 0f)
+            {
+                float minY = float.MaxValue;
+                for (int i = 0; i < V.Count; i++) minY = Mathf.Min(minY, V[i].y);
+                for (int i = 0; i < V.Count; i++)
+                    if (V[i].y <= minY + b + 1e-4f) { Vector3 q = V[i]; q.y -= extra; V[i] = q; }
+            }
+            // Thụt đỉnh lại (dải mặt trên của khối gộp nhô cao hơn gạch 1 ô): dời các đỉnh ở đỉnh xuống cùng một đoạn
+            float trimY = topTrimRatio * cell;
+            if (trimY != 0f)
+            {
+                float maxY = float.MinValue;
+                for (int i = 0; i < V.Count; i++) maxY = Mathf.Max(maxY, V[i].y);
+                for (int i = 0; i < V.Count; i++)
+                    if (V[i].y >= maxY - b - 1e-4f) { Vector3 q = V[i]; q.y -= trimY; V[i] = q; }
+            }
             // 4) xiên theo góc nhìn (như ShearForView)
             float tan = ViewSpace.LegacyTan;
             Quaternion rot = Quaternion.Euler(-ViewSpace.LegacyPitch, 0f, 0f);
+            // Xiên đẩy mép dưới của dải vát (z = b) lên b·tan → đáy khối co lên khỏi mép ô, lộ khe + dải sẫm so với hàng gạch dưới.
+            // Hạ cả mesh xuống b·tan để mép dưới ngoài cùng đúng mép ô (mép trên chỉ dài thêm đúng bấy nhiêu).
+            float drop = b * tan;
             for (int i = 0; i < V.Count; i++)
             {
-                Vector3 p = V[i]; p.y += p.z * tan; V[i] = p;
+                Vector3 p = V[i]; p.y += p.z * tan - drop; V[i] = p;
                 N[i] = rot * N[i];
             }
             var cols = new List<Color>(V.Count);
@@ -450,7 +472,7 @@ namespace BounceBlast.Gameplay
         {
             var root = new GameObject("Visual").transform;
             root.SetParent(parent, false);
-            if (_columnPrefab == null) _columnPrefab = Resources.Load<GameObject>("prefabs/ModularPrimitiveColumn");
+            if (_columnPrefab == null) _columnPrefab = _config.columnPrefab; // GameConfig.columnPrefab
             if (_columnPrefab == null) return root;
             if (_columnPieces == null)
             {
@@ -508,7 +530,7 @@ namespace BounceBlast.Gameplay
             tmp.fontSize = Mathf.Clamp(d * 7.5f, 2f, 10f); // số to, lấp ~65% huy hiệu
             if (_columnBadge == null)
             {
-                var pf = Resources.Load<GameObject>("prefabs/CombinedCubicColumn");
+                var pf = _config.combinedColumnPrefab; // GameConfig.combinedColumnPrefab
                 Transform cyl = pf != null ? pf.transform.Find("Model/3D Text/Text (TMP)/Cylinder") : null;
                 _columnBadge = cyl != null ? cyl.gameObject : null;
             }

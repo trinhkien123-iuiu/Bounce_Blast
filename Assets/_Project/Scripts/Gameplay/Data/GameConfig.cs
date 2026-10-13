@@ -8,7 +8,8 @@ namespace BounceBlast.Gameplay
     public class GameConfig : ScriptableObject
     {
         [Header("Level")]
-        public string levelSet = "original";
+        [Tooltip("Danh mục dữ liệu level (Data/Levels). Tạo bằng menu Tools/Bounce Blast/Data/Build Level Sets")]
+        public LevelSet levels;
         public int maxLevel = 550;
 
         [Header("Prefab gốc (Resources/prefabs)")]
@@ -18,6 +19,14 @@ namespace BounceBlast.Gameplay
         public GameObject ammoPrefab;
         public GameObject tunnelPrefab;
         public GameObject ballPrefab;
+        [Tooltip("Nắp cửa kính của hộp đạn (AmmunationBlockerCover) – lấy material của node Cover")]
+        public GameObject ammoCoverPrefab;
+        [Tooltip("Mảng tường khay đạn (ModularPrimitiveAmmoWall - Wallbase) – lấy material t4-wall làm nền khay")]
+        public GameObject ammoTrayWallPrefab;
+        [Tooltip("Cột /wl trên bàn (ModularPrimitiveColumn) – các mảnh thân cột")]
+        public GameObject columnPrefab;
+        [Tooltip("Cột gộp (CombinedCubicColumn) – lấy huy hiệu số máu")]
+        public GameObject combinedColumnPrefab;
         public GameObject cubeBreakVfx;
         public GameObject crateBreakVfx;
         public GameObject ammoLaunchVfx;
@@ -42,6 +51,7 @@ namespace BounceBlast.Gameplay
 
         [Header("Âm thanh")]
         public SoundEntry[] sounds;
+        [Tooltip("Nhạc nền màn hình chính (MenuGame)")] public AudioClip musicMenu;
         public AudioClip musicNormal;
         public AudioClip musicHard;
         public AudioClip musicSuperHard;
@@ -83,7 +93,7 @@ namespace BounceBlast.Gameplay
         public float ammoActiveScale = 0.9f;     // Ammunation.scaleOfActive (nhô khỏi hố)
         public float ammoInactiveScale = 0.88f;  // khít miệng hố (SlotSize 0.92, chừa viền mảnh)
 
-        [Header("Bố cục màn hình (camera tự cân theo HUD & hàng booster – xem GameManager.FitCamera)")]
+        [Header("Bố cục màn hình (camera tự cân theo HUD & hàng booster – xem CameraFitter)")]
         [Tooltip("Mép trên NGOÀI của khung máng (y thế giới). Camera đặt mốc này ngang tâm hàng HUD (Lv, Settings) như game gốc")]
         public float frameTopY = 8.43f;
         [Tooltip("Nửa bề ngang vùng nhìn khi KHÔNG thu nhỏ – 5.98 cho khung máng phủ ~90% bề ngang như game gốc")]
@@ -137,11 +147,32 @@ namespace BounceBlast.Gameplay
         [Tooltip("Độ sâu đáy giếng (theo ô) – phải sâu hơn cả hộp đã lún + cửa đóng, nếu không sẽ thấy hộp xuyên đáy")]
         public float trayHoleDepth = 3.0f;
 
+        [Header("Hộp đạn – thạch khi nhấn giữ (JellyDeformer)")]
+        [Tooltip("Biên độ nhún co giãn dọc thân (0.12 = ±12% chiều dài)")] public float heldStretch = 0.03f;
+        [Tooltip("Biên độ đung đưa ngang của đầu nắp (theo bề ngang hộp)")] public float heldSway = 0.03f;
+        [Tooltip("Nhịp lắc (Hz) – lực đẩy vào thạch")] public float heldDriveFrequency = 5f;
+        [Tooltip("Độ cứng của thạch: tần số dao động riêng (Hz). Cao = cứng, rung nhanh")] public float jellyFrequency = 6f;
+        [Tooltip("Độ giảm chấn (0.05 = rung lâu, 0.3 = tắt nhanh). Thấp thì dội lại nhiều")] public float jellyDamping = 0.2f;
+        [Tooltip("Hộp lún nhỏ lại NGAY lúc chạm xuống (phản hồi tức thì, bù độ trễ bắn lúc thả). 0.06 = nhỏ đi 6%")] public float pressInScale = 0.06f;
+        [Tooltip("Thời gian (giây) hộp lún xuống / bật lại khi chạm / thả")] public float pressInTime = 0.05f;
+        [Tooltip("Cú nhún xuống lúc bắt đầu nhấn")] public float jellyPressKick = 0.5f;
+        [Tooltip("Cú bật lên lúc thả tay (và lúc bị từ chối)")] public float jellyReleaseKick = 0.9f;
+        [Tooltip("Thời gian (giây) lực lắc mạnh dần khi bắt đầu giữ")] public float heldBlendIn = 0.12f;
+        [Tooltip("Thời gian (giây) lực lắc tắt khi thả (thạch vẫn dao động tiếp theo độ giảm chấn)")] public float heldBlendOut = 0.15f;
+
         [Header("Gạch trên bàn")]
         [Tooltip("Dải vát quanh mép khối gộp (chữ L, chữ T…), theo ô")]
         public float blockBevel = 0.14f;
         [Tooltip("Độ dày khối gộp theo chiều sâu (theo ô) – quyết định bề rộng dải mặt trên nhìn thấy")]
         public float blockDepth = 1.1f;
+        [Tooltip("Kéo khối gộp (nhiều máu) về phía camera cho mặt trước ngang mặt trước gạch 1 ô. Âm = gần camera hơn, 0 = như cũ (thụt vào). Gạch 1 ô có mặt trước ở z≈-0.40.")]
+        public float blockFrontZ = -0.36f;
+        [Tooltip("Nâng cả bàn gạch lên (đv thế giới) để hàng gạch đáy không bị gờ sàn của khung che. Sàn vật lý của bi cũng nâng theo (ArenaWalls). 0 = hàng đáy bị che một phần.")]
+        public float boardOffsetY = 0.24f;
+        [Tooltip("Kéo đáy khối gộp xuống thêm (theo ô) cho bằng mép gạch 1 ô (gạch 1 ô nhô ra do cubeOverlap). 0 = đáy đúng mép ô.")]
+        public float blockBottomExtra = 0.12f;
+        [Tooltip("Dời đỉnh khối gộp xuống (dương) hoặc lên (âm), theo ô, để mép trên bằng mép gạch 1 ô. 0 = không dời.")]
+        public float blockTopTrim = 0.23f;
         [Tooltip("Phóng gạch 1 ô để 4 góc bo tròn không hở nền (prefab gốc ×1.05)")]
         public float cubeOverlap = 1.10f;
         [Tooltip("Bề ngang cột (/wl) so với ô")]

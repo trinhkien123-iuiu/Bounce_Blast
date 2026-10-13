@@ -116,10 +116,10 @@ Mỗi cơ chế = 1 class trong `_Project/Scripts/Blockers/` + 1 level test + m�
 ## Phase 4 — Game flow & UI (3–4 ngày)
 
 - [ ] Thay `OnGUI` bằng uGUI: HUD (level, tiến độ %), popup Win / Lose
-- [ ] Màn hình Home (nút Play, level hiện tại)
+- [x] Màn hình Home (nút Play, level hiện tại) – scene MenuGame
 - [ ] Lưu tiến độ (`PlayerPrefs` → JSON) — level đã qua
 - [ ] Settings: âm thanh, rung
-- [ ] Scene flow: `Boot → Home → Gameplay`
+- [x] Scene flow: `MenuGame ⇄ Gameplay` (chưa có Boot)
 - [ ] Safe area / tỉ lệ màn hình dọc (9:16 → 9:21)
 
 ---

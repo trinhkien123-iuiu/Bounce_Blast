@@ -8,7 +8,7 @@ Làm gì:
   3. Script .cs của game: nếu project có file cùng GUID (VD MirroredImage.cs) thì giữ, không thì bỏ component đó
      (KPFramework UIText/UIButton, IAP, liveops... – logic sẽ viết lại bằng code của mình).
   4. Tham chiếu tới object nằm ngoài cây → null. Asset (sprite, texture, material, font, animator...) chưa có trong project
-     thì chép từ bản rip sang Assets/_Ripped/UI/Extra/ (giữ GUID), đệ quy theo dependency.
+     thì chép từ bản rip sang Assets/_Project/Art/UI/Menu/Extra/ (đổi bằng --assets-out) (giữ GUID), đệ quy theo dependency.
 
 Cách dùng:
   python ui_extract.py --src <scene.unity|prefab> --name "GameCanvas" --out Assets/_Project/UI/Prefabs/GameCanvas.prefab
@@ -77,12 +77,15 @@ def find_root(info, name, path=None):
     return hits[0]
 
 
-def collect_subtree(info, root_tr):
+def collect_subtree(info, root_tr, skip=()):
+    """Mọi object dưới root_tr; bỏ nguyên nhánh nếu tên object nằm trong `skip` (VD tính năng chưa làm: Shop, Leaderboards)."""
     by_id, go_name, go_comps, tr_of_go, go_of_tr, father, children = info
     ids, stack = [], [root_tr]
     while stack:
         t = stack.pop()
         g = go_of_tr[t]
+        if t != root_tr and go_name[g] in skip:
+            continue
         ids.append(g)
         ids.extend(go_comps[g])
         stack.extend(children.get(t, []))
@@ -169,7 +172,7 @@ def extract(args):
     info = tree(docs)
     by_id, go_name, go_comps, tr_of_go, go_of_tr, father, children = info
     root_tr = find_root(info, args.name, args.path)
-    keep_ids = collect_subtree(info, root_tr)
+    keep_ids = collect_subtree(info, root_tr, set(args.skip))
     keep = set(keep_ids)
 
     pkg_map = package_script_map(args.project)
@@ -242,9 +245,10 @@ def main():
     ap.add_argument("--name", required=True)
     ap.add_argument("--path", default=None, help="đuôi đường dẫn để phân biệt object trùng tên")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--skip", nargs="*", default=[], help="tên các object (cả nhánh) bỏ qua, VD \"Shop Panel\"")
     ap.add_argument("--project", default=r"D:/GitHub/Bounce_Blast")
     ap.add_argument("--rip", default=r"D:/toolGame/game/ExportedProject")
-    ap.add_argument("--assets-out", default=r"D:/GitHub/Bounce_Blast/Assets/_Ripped/UI/Extra")
+    ap.add_argument("--assets-out", default=r"D:/GitHub/Bounce_Blast/Assets/_Project/Art/UI/Menu/Extra")
     args = ap.parse_args()
     extract(args)
     if copied:

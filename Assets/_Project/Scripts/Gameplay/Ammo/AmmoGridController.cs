@@ -35,7 +35,7 @@ namespace BounceBlast.Gameplay
         /// <summary>Mép dưới vùng khay (y thế giới, theo góc nhìn cũ như ammoAreaTop) – GameManager đặt theo nút booster trên màn hình thật; NaN = dùng config.</summary>
         public float AreaBottomOverride = float.NaN;
 
-        /// <summary>Số cột/hàng khay thực sự hiển thị (bỏ ô tường "/awl" ở rìa) – dùng chung cho Build và GameManager.FitCamera.</summary>
+        /// <summary>Số cột/hàng khay thực sự hiển thị (bỏ ô tường "/awl" ở rìa) – dùng chung cho Build và CameraFitter.</summary>
         public static Vector2Int VisibleExtent(LevelModel level)
         {
             int cMin = int.MaxValue, cMax = -1, rMax = 0;
@@ -108,7 +108,6 @@ namespace BounceBlast.Gameplay
         // (đáy sáng nằm sâu phía sau) – hộp chưa thông đường lún trong lỗ, chỉ lộ nắp (AmmoBox.SinkDepth). Bộ autotile 3D gốc (ModularPrimitiveAmmoWall) có gờ/khe nối lộ ra
         // khi nhìn nghiêng nên khay được dựng thành mesh phẳng; vật liệu vẫn lấy từ asset gốc
         // (M-Plane theo theme cho mặt khay, t4-wall của prefab cho nền).
-        const string TilePrefabPath = "prefabs/ModularPrimitiveAmmoWall - Wallbase";
         // Hình khối khay & miệng hố: chỉnh trong GameConfig
         float TrayPanelZ => _config.trayPanelDepth;  // sau lưng hộp jelly (hộp ở z = -0.6, nghiêng)
         float TrayFloorZ => _config.trayHoleDepth;   // đáy giếng: sau cả hộp có cửa đóng (sink 1.1 + doorExtraSink 1.6, cột dài ~1.5 ô)
@@ -174,7 +173,7 @@ namespace BounceBlast.Gameplay
             Material wallMat = _theme != null ? _theme.trayWall : null;
             if (wallMat == null)
             {
-                var prefab = Resources.Load<GameObject>(TilePrefabPath);
+                var prefab = _config.ammoTrayWallPrefab; // GameConfig.ammoTrayWallPrefab
                 if (prefab != null)
                     foreach (Renderer rend in prefab.GetComponentsInChildren<Renderer>(true))
                         if (rend.name == "4xRounded") { wallMat = rend.sharedMaterial; break; } // t4-wall

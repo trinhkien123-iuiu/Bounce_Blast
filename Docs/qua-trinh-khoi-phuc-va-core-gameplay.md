@@ -678,3 +678,72 @@ Kiểm chứng: Edit mode – Nút Settings, Badge Level, Thanh booster đều "
 **Kiểm chứng (toạ độ MÀN HÌNH qua UI Camera, Screen 1080×2280, Lv2 Normal):** badge x 34..206 y 2167..2244; nút Settings x 947..1074 y 2139..2266; hàng booster x 52..1028 y 17..238 – **Edit mode và Play giống hệt từng số**. Khi chạy: đúng 1 `UI Camera`, 1 `EventSystem`, 6 canvas đều `ScreenSpaceCamera / UI Camera` đúng order; console sạch.
 **Còn sinh từ code (không phải UI):** `GameManager.Awake` vẫn `CreateChild<T>()` cho `Board`, `AmmoGrid`, `Conveyor`, `Balls`, `Theme` và nhóm `VFX`; cùng toàn bộ gạch/hộp/bi/khay dựng theo level. Đó là các hệ thống gameplay (xem mục 4 về lý do không đưa hết thành prefab).
 **Lưu ý:** badge ở Edit mode luôn là kiểu Normal; mở level Hard/Super Hard thì `Apply` đổi cỡ/sprite theo độ khó nên lúc chạy sẽ khác Edit mode – đúng thiết kế, không phải lỗi.
+
+## 8. Tái cấu trúc dự án (giai đoạn B–G) và hoàn thiện UI
+- Bỏ mọi `Resources.Load`: prefab gốc nằm ở `GameConfig`; level qua `LevelSet` (110 chunk, 550 level); `Resources/` trống.
+- Art chuyển theo tính năng (`_Project/Art/...`), asset không dùng vào `_Archive`; mọi di chuyển bằng `AssetDatabase.MoveAsset`. Kiểm: 1966 GUID cũ còn đủ, 0 tham chiếu hỏng mới, level 2/41/44/71/79 trước-sau giống hệt.
+- `.asmdef`: `BounceBlast.Runtime`, `BounceBlast.Editor`.
+- UI: thêm `OverlayView` (booster + viền cảnh báo + toast), `GameUI` chỉ còn điều phối với 7 View kéo sẵn; bỏ `Spawn()`.
+- Scene: Board/AmmoGrid/Conveyor/Balls/Theme/VFX và 3 đèn Directional nung sẵn; còn tạo lúc chạy: `ArenaWalls`, mesh khối gộp, mặt khay (phụ thuộc level/màn hình). Chi tiết: `ARCHITECTURE.md`, `Docs/ke-hoach-tai-cau-truc.md`.
+
+## 9. Tách CameraFitter và đặt sẵn ArenaWalls
+- `FitCamera`/`AmmoAreaBottom` tách khỏi `GameManager` thành component `CameraFitter` (đặt sẵn `Systems/GameManager/CameraFitter`, ô `GameManager.cameraFitter`); logic và số giữ nguyên, tự cân lại khi đổi tỉ lệ màn hình.
+- `ArenaWalls` là component riêng + `EdgeCollider2D` đặt sẵn, 11 điểm nung vào scene (Gizmo khi chọn; `EnsureBuilt` chỉ dựng khi collider trống). `GameManager` không còn tạo tường lúc chạy.
+- Kiểm: compile sạch, Play Lv1 bố cục khung–HUD–khay–booster đúng, autoPlay phá gạch 192→158, bi nằm trong tường, console không lỗi.
+- Thư mục rỗng chờ user xoá (tool bị chặn xoá): `_Ripped`, `Resources`, `_Project/Configs`, `_Project/UI`, `Scripts/Gameplay/UI`, `Assets/Screenshots`.
+
+## 10. Scene MenuGame (màn hình chính)
+- Quyết định: **scene riêng** (Menu nhẹ, không nạp bàn chơi 3D; mỗi scene một việc). Build Settings: MenuGame (0), Gameplay (1).
+- Lấy UI gốc `MainMenuCanvas` (831 object, bỏ Shop/Leaderboards/Collections) → `Prefabs/UI/MainMenuCanvas.prefab`; thêm `MainMenuView`, `MenuManager`, `PlayerData`, `SceneFlow`; nhạc menu `GameConfig.musicMenu` (cyberwave, lấy từ `_Archive`).
+- Gameplay: nút Home trong Settings giờ về MenuGame (trước đây = chơi lại); thắng cộng 50 xu và lưu level qua `PlayerData`.
+- Kiểm bằng click giả trong Play: Menu hiện Level + xu + tim đúng; tab Shop báo coming soon; tab Settings mở trang, bật/tắt Sound đổi `AudioManager.SoundOn`; Home quay lại; Play → Gameplay đúng level đã lưu; Settings ▸ Home → MenuGame; console không lỗi.
+- Chưa làm (cố ý): Shop, Journey, Collection, hệ thống tim (đồng hồ hồi tim ẩn, tim luôn 5), Daily Challenge / offer button.
+
+## 11. Tách GameManager thành nhiều manager + sắp lại Hierarchy
+- `GameManager` (~460 dòng) → `GameManager` (điều phối, trạng thái, thắng/thua) + `LevelManager` + `InputManager` + `LaunchManager` + `BoosterManager` + `DebugManager`; `AudioManager` đặt sẵn trong scene (`Init` dùng lại component có sẵn). Chi tiết: `Docs/kien-truc-manager.md`.
+- Hierarchy Gameplay: `Camera & Lights` / `World` / `Managers` / `UI(HUD, Popups)`; MenuGame: `Camera & Lights` / `Managers` / `UI`. Bỏ nhóm `Systems`.
+- Script `GameManager.cs`, `AudioManager.cs` chuyển vào `Scripts/Gameplay/Managers/` (MoveAsset, giữ GUID). Ô `startLevel / continueFromSave` chuyển sang `LevelManager`, `autoPlay` sang `DebugManager` (giá trị cũ vốn là mặc định).
+- Kiểm bằng Play: nạp level, thắng (autoPlay) → Continue → level kế, Out Of Capacity → Give Up → Lose → Retry, booster Hammer/Capacity, Menu → Gameplay. Console sạch.
+
+## 12. Khối gộp (nhiều máu) thụt vào so với gạch 1 ô
+- Đo ở Lv4 (Play): mặt trước gạch 1 ô ở z ≈ −0,404, khối gộp 4×8 ở z ≈ −0,042 → khối thụt ~0,36 so với gạch, bị gạch kề che mép.
+- Sửa: thêm `GameConfig.blockFrontZ` (mặc định −0,36, nhóm "Gạch trên bàn"); `CreateSolidVisual` đặt `Visual.localPosition.z` = giá trị đó. Đo lại: mặt trước khối gộp z ≈ −0,402 (khớp gạch). Muốn đẩy ra thêm / lùi lại → chỉnh số này (0 = như cũ).
+- Chỉ áp cho khối gộp dựng mesh liền (CombinedCube, chữ L/T…). Hòm gỗ (Crate) và cột dùng đường dựng khác, chưa đo.
+- (tiếp mục 12) Đáy khối gộp: phép xiên `y += z·tan20` đẩy mép dưới của dải vát (z = b) lên b·tan → đáy khối co lên khỏi mép ô. Đã hạ cả mesh xuống `b·tan` trong `BuildSolidMesh` → mép dưới ngoài cùng đúng mép ô (đo Lv4: mesh đáy −3,812, collider −3,804). Dải vát sẫm mỏng ở đáy vẫn còn (là mặt vát hướng xuống, vốn có). Gạch 1 ô còn nhô thêm ~0,057 do `cubeOverlap`.
+- (tiếp mục 12) Kéo đáy bằng gạch 1 ô: thêm `GameConfig.blockBottomExtra` (mặc định 0,12 ô, nhóm "Gạch trên bàn") – `BuildSolidMesh` dời các đỉnh ở đáy xuống thêm đoạn này. Đo Lv4: đáy khối nhô khỏi collider 0,059, gạch 1 ô nhô 0,057 (khớp). 0 = đáy đúng mép ô.
+- (tiếp mục 12) Thụt đỉnh: thêm `GameConfig.blockTopTrim` (mặc định 0,23 ô) – `BuildSolidMesh` dời các đỉnh ở đỉnh xuống thêm đoạn này (dải mặt trên giữ nguyên độ dày, chỉ dời xuống). Đo Lv4: khối đỉnh nhô 0,059 / đáy nhô 0,059; gạch 1 ô đỉnh 0,057 / đáy 0,057 (khớp). 0 = như cũ.
+- (tiếp mục 12) Sửa lại mặt trên: lần trước mới khớp vị trí mép mà dải mặt trên vẫn dày gấp đôi gạch 1 ô (đo pixel Lv4: khối 12 px, gạch 6 px; gạch kề phía trên còn che bớt dải của khối nên số đo thế giới không phản ánh hết). Đã chỉnh trong GameConfig: `blockDepth` 1,1 → **0,2** (dải mặt trên ≈ bề rộng dải vát, bằng gạch 1 ô) và `blockTopTrim` → **0,13** (mép trên đúng ranh hàng gạch; cho phép số âm để đẩy lên). Đo pixel sau chỉnh: dải mặt trên ~7 px, mép trên khớp ranh hàng gạch hai bên.
+- Bài học: so mép bằng pixel màn hình (có che khuất), không chỉ bằng bounds thế giới.
+
+## 13. Hàng gạch đáy bị gờ sàn của khung che
+- Lv7 (20 cột × 24 hàng): đo pixel – hàng đáy cao 31 px nhưng gờ sàn xanh của khung (vẽ trước gạch) phủ từ y = 1137, chỉ lộ ~14 px (~nửa hàng; hai hàng đáy cùng màu nhìn như thiếu một hàng). `arena.yMin = −6,35` (đo theo góc nhìn cũ) thấp hơn mép sàn thật ~0,23 khi nhìn thẳng.
+- Sửa: thêm `GameConfig.boardOffsetY` (mặc định 0,24, nhóm "Gạch trên bàn"): `BoardController` nâng gốc lưới lên; `ArenaWalls.Rebuild` nâng sàn vật lý của bi cùng đoạn (đã dựng lại + lưu scene: điểm sàn y = −6,11).
+- Đã kiểm trên cả 550 level: đỉnh gạch cao nhất 5,49 (+0,24 = 5,73) < trần 7,18 → không chạm trần. Đo pixel sau sửa: hai hàng đáy đều lộ đủ (mép đáy gạch ngay trên gờ sàn). Chạy tự chơi Lv7 không lỗi console.
+- Không đổi `arena` (nên băng chuyền, máy xay không đổi).
+
+## 14. Nhấn giữ hộp đạn → lắc như thạch
+- `AmmoBox.SetHeld(bool)`: khi giữ, `ApplyScale` nhún co giãn theo chiều cao (cao ↑ thì ngang ↓, giữ thể tích), lắc nghiêng quanh trục Z và co nhẹ khi bị nhấn; thả thì tắt dần (`_heldBlend`). Không đụng tới logic bắn.
+- Thông số ở `GameConfig → Hộp đạn – lắc khi nhấn giữ`: `heldAmplitude` 0,10 · `heldFrequency` 5 Hz · `heldRoll` 4° · `heldPressIn` 0,04 · `heldBlendIn` 0,12 s · `heldBlendOut` 0,25 s.
+- `InputManager` đổi luật bấm (cờ `fireOnRelease`, mặc định bật): chạm xuống hộp bấm được → bắt đầu giữ (lắc); **thả tay trên đúng hộp đó mới bắn**; kéo ra khỏi hộp rồi thả = huỷ. Tắt cờ để về cách cũ (bắn ngay lúc chạm). Búa (Hammer) vẫn tác dụng ngay lúc chạm. Magic Hand (hộp chưa bấm được) cũng giữ → thả → bắn.
+- Kiểm trong Play: bật `SetHeld(true)` → rotZ ±4°, chiều cao/ngang bounds dao động; `SetHeld(false)` → rotZ 0, bounds bằng hộp khác (tắt sạch). Console sạch. **Chưa** kiểm đường chuột/touch thật qua `InputManager` (chỉ gọi hàm).
+
+## 15. Cách B: thạch thật cho hộp đạn (thay cách A ở mục 14)
+- Cách A (nhân scale / xoay cả khối) bị đánh giá cứng, không có độ trễ giữa các phần. Thay bằng **`JellyDeformer`** (`Scripts/Gameplay/Ammo/JellyDeformer.cs`, tự gắn vào renderer thân thạch khi hộp lần đầu bị giữ).
+- Mesh thân thạch (`Cube`, 208 đỉnh, đọc được, **không có xương / skin**) là cột dài trục Y; đầu nắp hướng camera đung đưa, đáy neo trong hố. Biến dạng từng đỉnh bằng 3 lò xo giảm chấn (nhún dọc thân, đung đưa X, đung đưa Z) bị đẩy bởi sóng sin → thạch chạy trễ pha, vọt quá rồi dội lại; phình ngang giữ thể tích + sóng phình chạy dọc thân.
+- Lúc yên trả mesh gốc dùng chung (gom batch); mesh bản sao giữ `bounds` gốc nên căn / dò hộp không rung theo. Hộp bay đi / lơ lửng thì `ResetNow`. `PlayDenied` cũng hích thạch.
+- Thông số (`GameConfig → Hộp đạn – thạch khi nhấn giữ`): `heldStretch` 0,12 · `heldSway` 0,12 · `heldDriveFrequency` 5 · `jellyFrequency` 6 · `jellyDamping` 0,12 · `jellyPressKick` 1,2 · `jellyReleaseKick` 2,0 · `heldBlendIn` 0,12 · `heldBlendOut` 0,15. Các thông số cũ của cách A (`heldAmplitude`, `heldFrequency`, `heldRoll`, `heldPressIn`) đã bỏ.
+- Kiểm Play: giữ → đỉnh mesh lệch (x −1,29…1,06; chiều dài thu 0,71× lúc nhún mạnh), ảnh chụp thấy hộp nghiêng/phình kiểu thạch; thả → `enabled=false`, mesh về `Cube`, bounds bằng hộp khác; giữ rồi bắn ngay → hộp vẫn bay, tiêu hao capacity bình thường; console sạch. Chưa kiểm bằng chuột/touch thật; chưa kiểm cảm giác chuyển động liên tục (chỉ chụp từng khung).
+- (tiếp mục 15) Giảm lắc cho nhẹ, không lấn hộp kề: `heldStretch` 0,03 · `heldSway` 0,03 · `jellyDamping` 0,2 · `jellyPressKick` 0,5 · `jellyReleaseKick` 0,9; chặn cứng trong code ±5% (nhún) / ±5% (đung đưa). Đo 300 khung khi giữ (Lv4): hộp lệch ra khỏi silhouette tối đa trái 0,076 / phải 0,079 / dưới 0,017 / trên 0,059 (đơn vị thế giới) so với khoảng hở tới hộp kề 0,151 → không chạm hộp bên cạnh. Bản đầu (0,12) lệch 0,125 sát khoảng hở nên lấn.
+
+## 16. Phân biệt click và nhấn giữ
+- `InputManager.holdToWobble` (mặc định 1 s, Inspector): chạm xuống hộp → chỉ ghi nhận (`_pressTime`), **chưa lắc**; giữ ≥ ngưỡng và ngón vẫn trên hộp thì `SetHeld(true)`; ngón trượt ra khỏi hộp thì tắt lắc, trượt lại vào thì lắc tiếp. Thả tay trên đúng hộp (nhanh hay lâu) vẫn bắn; thả ngoài hộp = huỷ.
+- Click nhanh = không bao giờ có cú lắc (trước đây lắc ngay lúc chạm nên click cũng bị hiểu thành giữ).
+- Đã kiểm: biên dịch sạch, game chạy, trường `holdToWobble` = 1 trên scene. Chưa thử được bằng chuột/touch thật (không giả lập được `Input`).
+- (tiếp mục 16) Kéo ngón ra khỏi hộp **vẫn lắc tiếp** (tay người chơi che hộp, muốn dời tay mà vẫn thấy hộp lắc). Thả trên hộp = bắn, thả ngoài hộp = huỷ. Chưa kiểm bằng chuột/touch thật.
+- (tiếp mục 16) Luật nhấn giữ hộp đạn chốt: giữ ≥ `holdToWobble` = **0,5 s** thì lắc; kéo ngón ra vẫn lắc; thả trên hộp = bắn; thả ngoài hộp = huỷ (lắc tắt dần, không bắn). Click nhanh (< 0,5 s) không lắc. Ngưỡng mặc định trong code và trên scene Gameplay đều 0,5.
+- (tiếp mục 16) Click bị trễ: bắn lúc THẢ tay nên chậm hơn bắn lúc chạm đúng bằng thời gian ngón đè (~0,1 s). Không thể vừa bắn ngay lúc chạm vừa cho "giữ để lắc" trên cùng một hộp (hộp đã bay đi). Chọn ưu tiên tốc độ click: scene Gameplay đặt `InputManager.fireOnRelease = false` (bắn ngay lúc chạm). Hiệu ứng giữ-lắc vẫn nằm trong code (`holdToWobble`, `SetHeld`) và chỉ chạy khi bật lại `fireOnRelease`.
+
+## 17. Phản hồi tức thì lúc chạm (bù độ trễ bắn lúc thả)
+- Bật lại `InputManager.fireOnRelease` (scene Gameplay): bắn lúc thả tay, giữ ≥ `holdToWobble` (0,5 s) thì lắc thạch.
+- Để click không bị cảm giác trễ, lúc **chạm xuống** hộp bấm được: (1) hộp lún nhỏ lại ngay (`AmmoBox.SetPressed`, `GameConfig.pressInScale` 0,06 trong `pressInTime` 0,05 s); (2) phát ngay tiếng `TapAmmo`; lúc thả mới bắn và chỉ phát tiếng `BoxLaunch` (`LaunchManager.TryLaunch(..., tapSoundDone: true)`). Huỷ (thả ngoài hộp) thì hộp bật lại.
+- Kiểm Play: nhấn → bounds hộp co 6% (1,530 → 1,438); bắn khi đang nhấn → hộp bay bình thường; console sạch. Chưa kiểm cảm giác trên chuột / điện thoại thật; chưa thêm rung điện thoại (Handheld.Vibrate rung dài ~0,4 s, không hợp cú chạm).
