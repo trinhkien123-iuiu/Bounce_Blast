@@ -1,6 +1,6 @@
 using System;
 
-// Chỉ biên dịch ở Editor, Development Build, hoặc khi có Scripting Define Symbol BB_CHEATS (xem Docs/design/cheat-tool.md).
+// Chỉ biên dịch ở Editor, Development Build, hoặc khi có Scripting Define Symbol BB_CHEATS (xem Docs/thiet-ke/cheat-tool.md).
 #if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS
 namespace BounceBlast.Cheats
 {

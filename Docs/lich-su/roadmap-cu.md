@@ -32,7 +32,7 @@ Mục tiêu: có lịch sử thay đổi để quay lại được, thư mục r
 - [x] Xóa `concentrictheme backup old/` trong Resources
 - [x] Bỏ 14 bộ level không dùng, giữ `original` + `dailychallenge`
 - [x] Scene `SampleScene` → `Gameplay.unity` (13,4 MB → 1,5 MB), thêm vào Build Settings; Spawner không lưu object Edit Mode vào scene nữa (`HideFlags.DontSaveInEditor`)
-- [x] `design_note/` → `Docs/design/` (đánh dấu tài liệu lưu trữ), tạo `Docs/devlog.md`, `Docs/reference/csv-format.md`
+- [x] `design_note/` → `Docs/thiet-ke/` (đánh dấu tài liệu lưu trữ), tạo `Docs/devlog.md`, `Docs/tham-khao/csv-format.md`
 - [x] Đổi tên tool "Bảng Điều Khiển Tuần 1" → "Level Inspector"
 - [ ] ⭐ Mở Unity, Play `Gameplay.unity` kiểm tra level 1 và 21 chơi bình thường (batchmode đã biên dịch OK + nạp được level 21, chưa test bấm chơi)
 
@@ -68,7 +68,7 @@ Mục tiêu: tách "god class" để thêm cơ chế mới không phải sửa f
 | B7 | 🟡 | `Units/BouncingBall.cs:79` | `gravityScale = 0.25` xung đột với ép tốc độ arcade | ✅ Đã sửa | `gravityScale = 0` vận tốc arcade mượt mà |
 | B8 | 🟡 | `Level/BounceBlastLevelSpawner.cs:84` | Dòng màu `"p"` có biểu thức thừa | ✅ Đã sửa | Chuẩn hóa màu |
 | B9 | 🟡 | `Core/GameplayManager.cs` | `Physics2D.IgnoreLayerCollision("Ball")` nhưng prefab chưa gán layer | ✅ Đã sửa | Gán layer "Ball" tự động trong `BouncingBall.Awake` |
-| B10 | 🟡 | `Docs/design/tuan-02-...md` | Tài liệu lệch code | ✅ Đã sửa | Viết `Docs/design/core-loop.md` mô tả luật |
+| B10 | 🟡 | `Docs/thiet-ke/tuan-02-...md` | Tài liệu lệch code | ✅ Đã sửa | Viết `Docs/lich-su/roadmap-cu.md (core-loop.md cũ đã bỏ)` mô tả luật |
 
 **Xong khi:** không file nào > ~300 dòng, B1–B5 đã sửa, level 1–20 chơi thắng được không kẹt.
 
@@ -76,9 +76,9 @@ Mục tiêu: tách "god class" để thêm cơ chế mới không phải sửa f
 
 ## Phase 2 — Hoàn thiện core loop (3–5 ngày)
 
-> Trước khi làm: quay video game gốc vài level, ghi luật vào `Docs/design/core-loop.md`.
+> Trước khi làm: quay video game gốc vài level, ghi luật vào `Docs/lich-su/roadmap-cu.md (core-loop.md cũ đã bỏ)`.
 
-- [ ] ⭐ **Điều kiện thua**: vượt **Capacity** (số bi trên bàn > sức chứa) hoặc deadlock — xem class gốc `Capacity` + panel *Out Of Capacity* ([phân tích §4.1](Docs/reference/ripped-assets-analysis.md))
+- [ ] ⭐ **Điều kiện thua**: vượt **Capacity** (số bi trên bàn > sức chứa) hoặc deadlock — xem class gốc `Capacity` + panel *Out Of Capacity* ([phân tích §4.1](Docs/tham-khao/ripped-assets-analysis.md))
 - [ ] ⭐ State machine màn chơi: `Loading → Playing → Won / Lost`
 - [ ] Hành vi bi khi hết mục tiêu cùng màu: thu về / chờ / quay lại conveyor (đối chiếu game gốc)
 - [ ] **Ammo Tunnel**: hộp đạn tunnel nhả lần lượt các hộp trong `TunnelProps_v3` (hiện chỉ hiện số)
@@ -109,7 +109,7 @@ Dưới khay đạn:
 - [ ] DoubleColor
 - [ ] MegaCover / Cover / Lock
 
-Mỗi cơ chế = 1 class trong `_Project/Scripts/Blockers/` + 1 level test + mô tả trong `Docs/design/`.
+Mỗi cơ chế = 1 class trong `_Project/Scripts/Blockers/` + 1 level test + mô tả trong `Docs/thiet-ke/`.
 
 ---
 

@@ -1,8 +1,8 @@
 # BOUNCE BLAST (bản dựng lại) — BẢN ĐỒ KIẾN TRÚC
 
 > Đọc file này TRƯỚC khi sửa dự án. Mục tiêu: **muốn đổi một thứ thì biết ngay vào đâu**, không phải đoán, không phải làm lại từ đầu.
-> Tài liệu chi tiết từng mảng: `Docs/kien-truc-ui-dung.md` (UI), `Docs/ke-hoach-tai-cau-truc.md` (lịch sử tái cấu trúc),
-> `Docs/qua-trinh-khoi-phuc-va-core-gameplay.md` (nhật ký kỹ thuật), `CODING_CONVENTION.md` (quy ước code).
+> Tài liệu chi tiết từng mảng: `Docs/kien-truc/ui.md` (UI), `Docs/lich-su/tai-cau-truc.md` (lịch sử tái cấu trúc),
+> `Docs/lich-su/qua-trinh-khoi-phuc-va-core-gameplay.md` (nhật ký kỹ thuật), `CODING_CONVENTION.md` (quy ước code).
 
 - **Engine:** Unity 2022.3.62f3, Built-in RP, Gamma color space
 - **Thể loại:** puzzle bắn bi – dựng lại giống game gốc Bounce Blast (asset được tách từ bản gốc, giữ GUID)
@@ -43,13 +43,13 @@ Assets/
 └── TextMesh Pro/                     ← thư viện ngoài (font mặc định LiberationSans SDF đã đổi nguồn sang Mikado)
 ```
 
-Gốc repo: `ARCHITECTURE.md` (file này), `CODING_CONVENTION.md`, `README.md`, `ROADMAP.md`, `Docs/`, `Tools/` (script Python rip asset).
+Gốc repo: `ARCHITECTURE.md` (file này), `CODING_CONVENTION.md`, `README.md`, `Docs/lich-su/roadmap-cu.md`, `Docs/`, `Tools/` (script Python rip asset).
 Không đưa lên git (`.gitignore`): `Captures/` (ảnh/video tạm), `Screenshots/` (ảnh chụp kiểm thử – để NGOÀI `Assets`), `__pycache__`, cấu hình máy riêng (`.claude/settings.local.json`, `.mcp.json`), `*.csproj`/`*.sln` (Unity tự sinh).
 
 **Namespace:** Gameplay ← UI ← Menu (UI và Gameplay tham chiếu lẫn nhau qua `using`); Cheats chỉ phụ thuộc Gameplay/UI, không ai phụ thuộc Cheats ngoài `GameManager.CheatLose` (cũng bọc `#if`).
 **Bàn chơi (`Scripts/Gameplay/Board/`), mỗi lớp một việc:** `BoardController` (điều phối: dựng màn, rơi, bi trúng/khối vỡ, báo thắng) · `BoardGrid` (ô nào có khối nào) · `BoardTargeting` (bi ngắm khối nào) · `BlockVisualFactory` (dựng hình khối) · `BlockBreakFx` (hiệu ứng vỡ) · `BoardBlock` (một khối: máu, rơi, nảy) · `Kinds/` (luật riêng từng loại khối). Tiện ích prefab dùng chung: `Core/ModelUtil`.
 **Khay & hộp đạn (`Scripts/Gameplay/Ammo/`):** `AmmoGridController` (đặt hộp/tunnel, bấm & bắn, truy vấn cho booster) · `AmmoPathRules` (luật thông đường BFS) · `AmmoTrayView` (hình khay, hố, nắp hố) · `AmmoBox` (một hộp trong khay: trạng thái, bấm, lún, băng, hộp "?") · `AmmoBoxFlight` (bay lên máng như ống thạch, dừng khi hết sức chứa, đậu trong máy xay, nhãn số bi; gọi qua `box.Flight`) · `AmmoDoorView` (cửa kính 2 cánh) · `AmmoFlightTube` (mesh ống thạch gắn xương). Dựng dự phòng đèn/camera UI: `Core/SceneRig`. Mũi tên máng: `Conveyor/LaneArrows`.
-**Loại khối trên bàn:** mỗi loại (gạch, khối gộp, hòm gỗ, tường, cột nhà) là một lớp trong `Scripts/Gameplay/Board/Kinds/` giữ luật + cách dựng + cách vỡ; code khác chỉ hỏi `BlockKinds.Of(kind)`. Thêm loại mới: `Docs/them-loai-khoi.md`.
+**Loại khối trên bàn:** mỗi loại (gạch, khối gộp, hòm gỗ, tường, cột nhà) là một lớp trong `Scripts/Gameplay/Board/Kinds/` giữ luật + cách dựng + cách vỡ; code khác chỉ hỏi `BlockKinds.Of(kind)`. Thêm loại mới: `Docs/kien-truc/them-loai-khoi.md`.
 
 ---
 
@@ -78,12 +78,12 @@ Không đưa lên git (`.gitignore`): `Captures/` (ảnh/video tạm), `Screensh
 | Đèn chiếu gạch / thạch | Scene: `Camera & Lights/Directional Light 1 & Cubes…`, `…(Cube, view-aligned)`, `…& Jellies` |
 | Tường vật lý lòng bàn (bi nảy) | Scene: `World/ArenaWalls` – chọn để thấy Gizmo; sửa điểm EdgeCollider2D hoặc chuột phải → Dựng lại từ GameConfig.arena |
 | Nạp level, level bắt đầu (`startLevel`) | `Managers/LevelManager` |
-| Luật / hình / cách vỡ của một loại khối (gạch, khối gộp, hòm, tường, cột); thêm loại khối mới | `Scripts/Gameplay/Board/Kinds/` – hướng dẫn `Docs/them-loai-khoi.md` |
+| Luật / hình / cách vỡ của một loại khối (gạch, khối gộp, hòm, tường, cột); thêm loại khối mới | `Scripts/Gameplay/Board/Kinds/` – hướng dẫn `Docs/kien-truc/them-loai-khoi.md` |
 | Luật bắn hộp, sức chứa, hết nước đi | `Managers/LaunchManager` |
 | Thắng / thua, trạng thái game | `Managers/GameManager` |
 | Logic booster | `Managers/BoosterManager` |
 | Tự chơi để test (autoPlay) | `Managers/DebugManager` |
-| Công cụ cheat khi test trên máy (nhảy level, thắng/thua, tốc độ, FPS) | Prefab `Prefabs/UI/CheatPanel` (đặt sẵn trong Gameplay) + `Scripts/Debug/`; luật cheat ở `CheatRegistry`. Mở: 5 chạm góc trên-trái / 3 ngón / F1. Chỉ có ở Editor, Development Build hoặc khi thêm define `BB_CHEATS`. Thiết kế: `Docs/design/cheat-tool.md` |
+| Công cụ cheat khi test trên máy (nhảy level, thắng/thua, tốc độ, FPS) | Prefab `Prefabs/UI/CheatPanel` (đặt sẵn trong Gameplay) + `Scripts/Debug/`; luật cheat ở `CheatRegistry`. Mở: 5 chạm góc trên-trái / 3 ngón / F1. Chỉ có ở Editor, Development Build hoặc khi thêm define `BB_CHEATS`. Thiết kế: `Docs/thiet-ke/cheat-tool.md` |
 | Khoá fps, tự hạ độ phân giải trên máy yếu | `Scripts/Gameplay/Core/FrameRateBootstrap.cs`, `AdaptiveResolution.cs` (tự chạy, không cần đặt vào scene) |
 | Logic cân camera theo màn hình | `Scripts/Gameplay/Core/CameraFitter.cs` (số chỉnh ở `GameConfig` → Bố cục màn hình) |
 | Màn hình chính: hình, bố cục, nút, tab | Prefab `Prefabs/UI/MainMenuCanvas` + script `Scripts/UI/MainMenuView.cs`; hình ở `Art/UI/Menu/`; logic ở `Scripts/Menu/MenuManager.cs` |
@@ -110,7 +110,7 @@ Camera & Lights   Main Camera, 3 đèn Directional, UI Camera
 World             những thứ NHÌN THẤY / chạm được trong bàn chơi
  ├─ Level/Board - Default   khung bàn 3D gốc (Conveyor_Container, Environment Base, Gradient_Back, Crushers)
  ├─ Board  AmmoGrid  Conveyor  Balls  ArenaWalls  VFX
-Managers          LOGIC điều phối (mỗi cái một việc, xem Docs/kien-truc-manager.md)
+Managers          LOGIC điều phối (mỗi cái một việc, xem mục 4b)
  ├─ GameManager    trạng thái + thắng/thua + nối các manager (composition root)
  ├─ LevelManager   nạp level          ├─ InputManager    bấm / chạm
  ├─ LaunchManager  bắn hộp + sức chứa  ├─ BoosterManager  booster
@@ -123,7 +123,7 @@ UI                [GameUI] điều phối, kéo sẵn 7 View
  └─ EventSystem
 ```
 
-**Quy tắc UI:** mỗi panel = 1 prefab đặt sẵn + 1 script `XxxView` giữ tham chiếu bằng Inspector; `GameUI` chỉ ra lệnh. Chi tiết, khuôn mẫu, các bẫy đã dính: `Docs/kien-truc-ui-dung.md`.
+**Quy tắc UI:** mỗi panel = 1 prefab đặt sẵn + 1 script `XxxView` giữ tham chiếu bằng Inspector; `GameUI` chỉ ra lệnh. Chi tiết, khuôn mẫu, các bẫy đã dính: `Docs/kien-truc/ui.md`.
 
 ---
 
@@ -137,12 +137,52 @@ UI                [GameUI] điều phối, kéo sẵn 7 View
 
 **Thứ cố ý vẫn dựng bằng code (có lý do):** mesh khối gộp (chữ L/T…), mặt khay + miệng hố, ống thạch gắn xương, gạch/hộp/bi theo level, ảnh chớp sáng tạm lúc thắng. Hình dạng của chúng phụ thuộc dữ liệu level hoặc màn hình nên không đặt sẵn được; thông số hình khối đều đã ra `GameConfig`.
 
+
+## 4b. Các manager (scene Gameplay)
+
+Trước đây một `GameManager` ôm hết (~460 dòng); nay **một manager = một việc**, mỗi cái là một object dưới `Managers`.
+
+### 4b.1 Ai làm gì
+
+| Manager | Việc | Không làm |
+|---|---|---|
+| `GameManager` | Dựng + nối các manager (`Awake`), giữ **trạng thái** `Loading → Playing → Won / Lost`, quyết định thắng / thua, thưởng xu, lưu level | Không đọc chuột, không bắn hộp, không dựng bàn |
+| `LevelManager` | `LoadLevel / Restart / LoadNext`, dựng bàn + khay, cân camera, theme + nhạc, báo UI; ô `startLevel`, `continueFromSave` | Không biết luật thắng thua |
+| `InputManager` | Đọc chuột / touch → "bấm hộp" hoặc "bấm khối (búa)" → ra lệnh cho Launch / Booster | Không chứa luật |
+| `LaunchManager` | Bắn hộp, **sức chứa** (`Capacity`), Out Of Capacity, phát hiện hết nước đi | Không quyết định thua (chỉ báo) |
+| `BoosterManager` | Bấm booster, booster lên cò, búa, đẩy số lượng lên UI | |
+| `DebugManager` | `autoPlay` (tự chơi để test) – tắt khi build; công cụ cheat trên máy là prefab `CheatPanel` riêng | |
+| `AudioManager` | Âm thanh / nhạc (đặt sẵn trong scene, dữ liệu clip ở `GameConfig`) | |
+| `CameraFitter`, `ThemeApplier`, `GameUI` | Camera / theme / giao diện | |
+
+### 4b.2 Giao tiếp: lệnh trực tiếp + sự kiện (Observer)
+
+- **Lệnh** (biết rõ ai làm): tham chiếu truyền qua `Init(...)` lúc `GameManager.Awake` – ví dụ `InputManager` gọi `launch.TryLaunch(box)`. Không dùng `FindObjectOfType` hay Singleton để các manager tìm nhau.
+- **Thông báo** (ai quan tâm thì nghe): C# `event`.
+
+| Sự kiện | Phát bởi | Ai nghe |
+|---|---|---|
+| `OnLevelLoading` | LevelManager | GameManager (dừng coroutine, state Loading), LaunchManager (huỷ chờ) |
+| `OnLevelLoaded(level)` | LevelManager | GameManager (state Playing), LaunchManager (reset sức chứa), BoosterManager (reset booster) |
+| `OnGameOver(lý do)` | LaunchManager | GameManager (thua) |
+| `OnBoardCleared` | BoardController | GameManager (thắng) |
+| `OnStateChanged / OnWin / OnLose` | GameManager | (sẵn để mở rộng: thống kê, quảng cáo…) |
+| `OnBoosterPressed` | GameUI | BoosterManager |
+
+`GameManager` báo trạng thái xuống các manager bằng `SetPlaying(bool)` – manager chỉ xử lý input / deadlock / autoPlay khi đang `Playing`.
+
+### 4b.3 Thêm một manager mới
+1. Tạo `Xxx : MonoBehaviour` trong `Scripts/Gameplay/Managers/`, có `Init(...)` nhận phụ thuộc, không `Find`.
+2. Thêm ô `public Xxx xxxManager;` ở `GameManager`, tạo object dưới `Managers`, kéo vào ô; gọi `Init` trong `GameManager.Awake`.
+3. Nếu cần biết trạng thái: thêm `SetPlaying`, gọi trong `GameManager.SetState`.
+4. Ghi vào bảng ở mục 4b.1.
+
 ---
 
 ## 5. `_Archive` — không phải rác
 
 `Assets/_Archive/` chứa 820+ asset game hiện **không dùng**, chuyển vào chứ không xoá (GUID giữ nguyên, kéo ngược ra là dùng được):
-- `TinhNangChuaLam/` — asset của tính năng game gốc mà bản dựng lại **chưa làm**: khoá (`AmmunationBlockerLock`), nắp lớn (`BlockerAmmoMegaCover`), đá (`BlockerStone`), rèm, bom, xích, keo… cùng prefab và cấu hình theme gốc (blue/concentric/wideboard). Khi làm tính năng nào thì lấy từ đây. Danh sách "prefab nào kéo theo asset nào": `Docs/art-plan/unused_split.csv`.
+- `TinhNangChuaLam/` — asset của tính năng game gốc mà bản dựng lại **chưa làm**: khoá (`AmmunationBlockerLock`), nắp lớn (`BlockerAmmoMegaCover`), đá (`BlockerStone`), rèm, bom, xích, keo… cùng prefab và cấu hình theme gốc (blue/concentric/wideboard). Khi làm tính năng nào thì lấy từ đây. Danh sách "prefab nào kéo theo asset nào": `Docs/tham-khao/asset-chua-dung.csv`.
 - `MoCoi/` — không prefab nào trỏ tới (phần lớn sprite UI gốc, âm thanh chưa gắn, shader giả).
 Muốn dọn: xoá cả thư mục `_Archive` trong Unity khi chắc chắn không cần thêm tính năng nào của game gốc.
 
@@ -168,5 +208,5 @@ Công cụ Python rip asset ở `Tools/` (`ShaderRipper`, `UnityYaml`) trỏ t�
 2. **Thêm prefab/asset mới:** đặt đúng thư mục theo bảng mục 1, kéo vào ô của `GameConfig`/`UiSkin`. **Không** dùng `Resources.Load` bằng chuỗi (`Resources/` đã được dọn sạch, giữ như vậy).
 3. **Di chuyển file:** luôn di chuyển **trong Unity** (kéo trong Project window hoặc `AssetDatabase.MoveAsset`) để GUID không đổi.
 4. **Số tinh chỉnh:** đưa ra `GameConfig` hoặc `[SerializeField]`, đừng `const` giấu trong code. Code không được ghi đè giá trị đã chỉnh trong Inspector/scene.
-5. **UI mới:** theo khuôn View (mục 3 + `Docs/kien-truc-ui-dung.md` mục 3, 4).
+5. **UI mới:** theo khuôn View (mục 3 + `Docs/kien-truc/ui.md` mục 3, 4).
 6. **Sau mỗi thay đổi lớn:** compile sạch → chạy thử vài level (2, 41 có cửa, 44 Hard, 71 có cột, 79 SuperHard) → ghi `Docs/`.

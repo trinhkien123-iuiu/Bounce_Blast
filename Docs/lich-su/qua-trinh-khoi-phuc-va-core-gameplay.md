@@ -658,7 +658,7 @@ Kiểm chứng (Lv44): `Validate()` đọc từ asset = đủ; mở → `timeSca
 - Thắng lần 2 liền sau (giữ logo 40 s để chụp): logo BOUNCE BLAST đủ 14/14 phần tử + pháo hoa nổ (Captures/win2_logo_seq.png); `y` xu vẫn 45.00 → KHÔNG cộng dồn. Đã trả `winFireworksTime` về 2.4.
 - Smoke test sau khi xoá mã chết: Settings/Fail/OutOfCapacity mở → `timeScale` 0, đóng → 1; mở Settings rồi mở Fail ngay → chỉ 1 popup bật; trong scene đúng 4 `PopupViewBase`, 1 `HudView`, 1 `BoosterBarView`, 1 `CapacityBarView`; console sạch.
 Lưu ý quy trình: Editor ở nền chỉ dựng ~1 khung hình mỗi lệnh MCP nên các animation "chạy chậm" khi quan sát — không phải lỗi. Và lỡ đổi tên object `GameManager` để ghi nhớ giá trị rồi phải trả lại: đừng dùng tên object làm biến tạm.
-**Còn lại (xem bảng mục 6 của kien-truc-ui-dung.md):** `Vignette` + `Toast` chưa có View riêng; `GameUI.Spawn()` vẫn tìm HUD/CapacityBar/OverlayCanvas theo tên thay vì giữ tham chiếu `[SerializeField]`.
+**Còn lại (xem bảng mục 6 của kien-truc/ui.md):** `Vignette` + `Toast` chưa có View riêng; `GameUI.Spawn()` vẫn tìm HUD/CapacityBar/OverlayCanvas theo tên thay vì giữ tham chiếu `[SerializeField]`.
 
 ### 7.14 Xem trước popup trong Editor (user: "ấn vào các prefab đang unactive thì không thấy panel gì")
 Hai nguyên nhân: (1) `FailCanvas`/`SuccessCanvas` gốc có `CanvasGroup` alpha 0 (SettingsCanvas còn `interactable`/`blocksRaycasts` tắt) → bật trong Editor vẫn trong suốt; (2) Canvas Overlay vẽ trong Scene view thành khung 1273×2688 đơn vị ở gốc toạ độ, bàn chơi chỉ ~10 đơn vị nên chọn xong không thấy gì gần bàn.
@@ -667,7 +667,7 @@ Kiểm chứng (Edit mode): bật từng popup → canvas bật, alpha 1, 0 Canv
 
 ### 7.15 HUD trong suốt ở Edit mode (user: "UI nào hiện lên màn hình cũng phải hiển thị ở chỗ Canvas, sao không thấy nút Settings, panel Settings…")
 Ảnh Scene view chỉ có thanh booster trong khung Canvas. Dò chuỗi từ nút Settings lên gốc: `HUD (GameCanvas)` có `CanvasGroup` **alpha 0, interactable/blocksRaycasts tắt** (prefab gốc để vậy vì script fade-in gốc đã mất; runtime `GameUI.Spawn()` mới ép lên 1) → badge Lv và nút Settings trong suốt. Đã nung `alpha 1 / interactable / blocksRaycasts` vào `GameCanvas.prefab` (đây là CanvasGroup duy nhất còn lệch trong mọi UI hiện có: đã quét cả 7 mục trong `Systems/UI`).
-Thêm bản đồ "mỗi UI nằm ở đâu" vào `kien-truc-ui-dung.md`: Overlay (OverlayCanvas, HUD) nằm trong khung Canvas trắng; `CapacityBar` là canvas **World Space** (đo: renderMode WorldSpace, rect 904×124, lossyScale 0.0074, toạ độ (5.30, −6.77)) nên nằm dưới bàn chơi chứ không trong khung Canvas – cố ý; 4 popup tắt sẵn, dùng nút Xem trước.
+Thêm bản đồ "mỗi UI nằm ở đâu" vào `kien-truc/ui.md`: Overlay (OverlayCanvas, HUD) nằm trong khung Canvas trắng; `CapacityBar` là canvas **World Space** (đo: renderMode WorldSpace, rect 904×124, lossyScale 0.0074, toạ độ (5.30, −6.77)) nên nằm dưới bàn chơi chứ không trong khung Canvas – cố ý; 4 popup tắt sẵn, dùng nút Xem trước.
 Kiểm chứng: Edit mode – Nút Settings, Badge Level, Thanh booster đều "nhìn thấy" (không node nào tắt, không CanvasGroup alpha 0 trên đường lên gốc); Play – bấm Settings → `OnSettingsPressed` bắn, popup mở; `HudCenterScreenY` = 2202.8, `orthoSize` = 13.87 ổn định qua 3 lần `LoadLevel`; console sạch. (Một số đo thoáng qua 1855 ngay khi vừa vào Play không tái hiện – Canvas chưa bố trí xong.) Chưa có ảnh Edit mode vì Editor ở nền không vẽ khung hình.
 
 ### 7.16 Edit mode lệch Play (user: "khi chạy play vị trí các UI bị khác đi, vẫn gọi sinh ra từ code hả")
@@ -684,7 +684,7 @@ Kiểm chứng: Edit mode – Nút Settings, Badge Level, Thanh booster đều "
 - Art chuyển theo tính năng (`_Project/Art/...`), asset không dùng vào `_Archive`; mọi di chuyển bằng `AssetDatabase.MoveAsset`. Kiểm: 1966 GUID cũ còn đủ, 0 tham chiếu hỏng mới, level 2/41/44/71/79 trước-sau giống hệt.
 - `.asmdef`: `BounceBlast.Runtime`, `BounceBlast.Editor`.
 - UI: thêm `OverlayView` (booster + viền cảnh báo + toast), `GameUI` chỉ còn điều phối với 7 View kéo sẵn; bỏ `Spawn()`.
-- Scene: Board/AmmoGrid/Conveyor/Balls/Theme/VFX và 3 đèn Directional nung sẵn; còn tạo lúc chạy: `ArenaWalls`, mesh khối gộp, mặt khay (phụ thuộc level/màn hình). Chi tiết: `ARCHITECTURE.md`, `Docs/ke-hoach-tai-cau-truc.md`.
+- Scene: Board/AmmoGrid/Conveyor/Balls/Theme/VFX và 3 đèn Directional nung sẵn; còn tạo lúc chạy: `ArenaWalls`, mesh khối gộp, mặt khay (phụ thuộc level/màn hình). Chi tiết: `ARCHITECTURE.md`, `Docs/lich-su/tai-cau-truc.md`.
 
 ## 9. Tách CameraFitter và đặt sẵn ArenaWalls
 - `FitCamera`/`AmmoAreaBottom` tách khỏi `GameManager` thành component `CameraFitter` (đặt sẵn `Systems/GameManager/CameraFitter`, ô `GameManager.cameraFitter`); logic và số giữ nguyên, tự cân lại khi đổi tỉ lệ màn hình.
@@ -700,7 +700,7 @@ Kiểm chứng: Edit mode – Nút Settings, Badge Level, Thanh booster đều "
 - Chưa làm (cố ý): Shop, Journey, Collection, hệ thống tim (đồng hồ hồi tim ẩn, tim luôn 5), Daily Challenge / offer button.
 
 ## 11. Tách GameManager thành nhiều manager + sắp lại Hierarchy
-- `GameManager` (~460 dòng) → `GameManager` (điều phối, trạng thái, thắng/thua) + `LevelManager` + `InputManager` + `LaunchManager` + `BoosterManager` + `DebugManager`; `AudioManager` đặt sẵn trong scene (`Init` dùng lại component có sẵn). Chi tiết: `Docs/kien-truc-manager.md`.
+- `GameManager` (~460 dòng) → `GameManager` (điều phối, trạng thái, thắng/thua) + `LevelManager` + `InputManager` + `LaunchManager` + `BoosterManager` + `DebugManager`; `AudioManager` đặt sẵn trong scene (`Init` dùng lại component có sẵn). Chi tiết: `ARCHITECTURE.md (mục 4b)`.
 - Hierarchy Gameplay: `Camera & Lights` / `World` / `Managers` / `UI(HUD, Popups)`; MenuGame: `Camera & Lights` / `Managers` / `UI`. Bỏ nhóm `Systems`.
 - Script `GameManager.cs`, `AudioManager.cs` chuyển vào `Scripts/Gameplay/Managers/` (MoveAsset, giữ GUID). Ô `startLevel / continueFromSave` chuyển sang `LevelManager`, `autoPlay` sang `DebugManager` (giá trị cũ vốn là mặc định).
 - Kiểm bằng Play: nạp level, thắng (autoPlay) → Continue → level kế, Out Of Capacity → Give Up → Lose → Retry, booster Hammer/Capacity, Menu → Gameplay. Console sạch.

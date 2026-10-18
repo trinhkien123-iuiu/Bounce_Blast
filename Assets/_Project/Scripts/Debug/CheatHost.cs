@@ -8,7 +8,7 @@ namespace BounceBlast.Cheats
     /// - Code cheat chỉ được biên dịch ở Editor, Development Build, hoặc khi thêm Scripting Define Symbol <c>BB_CHEATS</c>
     ///   (Project Settings ▸ Player). Bản phát hành không có code cheat; object này tự huỷ ngay khi vào game.
     /// - Mở panel: chạm 5 lần liên tiếp vào góc trên-trái màn hình, hoặc chạm 3 ngón cùng lúc (Editor: phím F1).
-    /// Thiết kế đầy đủ: Docs/design/cheat-tool.md.
+    /// Thiết kế đầy đủ: Docs/thiet-ke/cheat-tool.md.
     /// </summary>
     public class CheatHost : MonoBehaviour
     {

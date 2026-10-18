@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>Sự kiện âm thanh – map sang clip gốc theo enum KPAudioName của game (xem Docs/reference/ripped-assets-analysis.md §4.5).</summary>
+    /// <summary>Sự kiện âm thanh – map sang clip gốc theo enum KPAudioName của game (xem Docs/tham-khao/ripped-assets-analysis.md §4.5).</summary>
     public enum Sfx
     {
         Button, Error, TapAmmo, BoxLaunch, BallHit, BigBlockBreak, CrateBreak,

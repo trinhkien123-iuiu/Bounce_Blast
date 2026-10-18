@@ -12,7 +12,7 @@ namespace BounceBlast.Gameplay
     /// (Loading → Playing → Won / Lost) và quyết định thắng / thua. Việc cụ thể do manager riêng lo:
     ///   LevelManager (nạp level) · InputManager (bấm) · LaunchManager (bắn hộp + sức chứa) · BoosterManager (booster)
     ///   · DebugManager (test) · AudioManager (âm thanh) · CameraFitter (camera) · GameUI (giao diện).
-    /// Các manager nói chuyện bằng sự kiện (Observer), xem Docs/kien-truc-manager.md.
+    /// Các manager nói chuyện bằng sự kiện (Observer), xem ARCHITECTURE.md (mục 4b).
     /// </summary>
     public class GameManager : MonoBehaviour
     {

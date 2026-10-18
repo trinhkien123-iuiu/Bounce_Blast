@@ -1,4 +1,4 @@
-// ĐÃ CHẠY XONG (tái cấu trúc Art, Docs/ke-hoach-tai-cau-truc.md): 1324 asset đã được chuyển, 0 lỗi, 0 GUID mất.
+// ĐÃ CHẠY XONG (tái cấu trúc Art, Docs/lich-su/tai-cau-truc.md): 1324 asset đã được chuyển, 0 lỗi, 0 GUID mất.
 // Giữ lại làm tài liệu cách phân loại (quy tắc FeatureForPrefab / ConfigFieldFeature) và để chạy lại phần PHÂN TÍCH nếu cần,
 // nhưng các đường dẫn nguồn (_Ripped, Resources, _Project/Configs…) không còn tồn tại nên chạy lại sẽ cho kết quả sai.
 // Tắt mặc định để không ai lỡ bấm "THỰC HIỆN". Muốn bật: thêm BB_ART_REORG vào Scripting Define Symbols.
@@ -16,17 +16,17 @@ using BounceBlast.UI;
 namespace BounceBlast.EditorTools
 {
     /// <summary>
-    /// CHẠY KHÔ phân tích tái cấu trúc Art (Docs/ke-hoach-tai-cau-truc.md, giai đoạn E).
+    /// CHẠY KHÔ phân tích tái cấu trúc Art (Docs/lich-su/tai-cau-truc.md, giai đoạn E).
     /// Menu: Tools/Bounce Blast/Art/Phân tích (chạy khô – chỉ đọc).
     ///
     /// Với mỗi asset "art" (mesh, material, texture, sprite, âm thanh, font, animation…) đang được game dùng, xác định TÍNH NĂNG
     /// sở hữu nó (Balls, Board, Ammo, Conveyor, Environment, VFX, UI/…): tính phụ thuộc đệ quy từ các "gốc" của từng tính năng.
     /// Asset thuộc đúng 1 tính năng → Art/&lt;Tính năng&gt;/&lt;Loại&gt;; dùng chung ≥ 2 tính năng → Art/Shared/&lt;Loại&gt;;
-    /// không ai tham chiếu → _Archive. KHÔNG di chuyển, KHÔNG sửa file nào: chỉ ghi báo cáo vào Docs/art-plan/.
+    /// không ai tham chiếu → _Archive. KHÔNG di chuyển, KHÔNG sửa file nào: chỉ ghi báo cáo vào Docs/lich-su/tai-cau-truc-art/.
     /// </summary>
     public static class ArtReorganizer
     {
-        const string ReportDir = "Docs/art-plan";
+        const string ReportDir = "Docs/lich-su/tai-cau-truc-art";
 
         // ---- các thư mục nguồn có thể chứa art cần sắp xếp ----
         static readonly string[] SourceRoots = { "Assets/_Ripped", "Assets/Resources/configs", "Assets/Resources/materials", "Assets/_Project/Configs", "Assets/_Project/UI/Sprites" };
@@ -167,7 +167,7 @@ namespace BounceBlast.EditorTools
         /// <summary>
         /// Di chuyển THẬT theo kế hoạch (prefab, cấu hình, art). Dùng AssetDatabase.MoveAsset nên GUID giữ nguyên, mọi tham chiếu không vỡ.
         /// KHÔNG có hộp thoại xác nhận (để chạy được không cần người): chỉ gọi khi đã có checkpoint git.
-        /// Ghi nhật ký từng file vào Docs/art-plan/apply-log.txt.
+        /// Ghi nhật ký từng file vào Docs/lich-su/tai-cau-truc-art/apply-log.txt.
         /// </summary>
         [MenuItem("Tools/Bounce Blast/Art/THỰC HIỆN chuyển (cần checkpoint git)")]
         public static void Apply()

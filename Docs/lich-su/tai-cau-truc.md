@@ -68,7 +68,7 @@ Gốc repo: thêm `ARCHITECTURE.md` (bản đồ + "muốn đổi X thì vào đ
 
 ## 5. Những điều KHÔNG đổi
 - `GameConfig`/`UiSkin` là điểm kéo-thả asset chính (đã đúng hướng).
-- Mesh sinh theo level, ống thạch, `FitCamera` (xem `kien-truc-ui-dung.md` mục 7).
+- Mesh sinh theo level, ống thạch, `FitCamera` (xem `kien-truc/ui.md` mục 7).
 - GUID gốc của asset rip (bản đồ shader/UI dựa vào GUID – xem memory `shader-rip-workflow`, `ui-extract-workflow`): mọi di chuyển đều qua Unity để GUID không đổi. Các script trong `Tools/` có đường dẫn cứng tới `Assets/_Ripped/...` sẽ được cập nhật cùng lúc.
 
 ---
@@ -79,7 +79,7 @@ Gốc repo: thêm `ARCHITECTURE.md` (bản đồ + "muốn đổi X thì vào đ
 3. **Asset không dùng:** gom vào `Assets/_Archive` (giữ GUID, không xoá).
 
 ## 7. Kết quả chạy khô (đã làm, CHỈ ĐỌC – không file nào bị di chuyển)
-Công cụ: `Assets/_Project/Editor/ArtReorganizer.cs` → menu `Tools/Bounce Blast/Art/Phân tích (chạy khô – chỉ đọc)`. Báo cáo: `Docs/art-plan/bao-cao-tom-tat.md`, danh sách từng file `from → to` ở `Docs/art-plan/art_move_plan.csv`.
+Công cụ: `Assets/_Project/Editor/ArtReorganizer.cs` → menu `Tools/Bounce Blast/Art/Phân tích (chạy khô – chỉ đọc)`. Báo cáo: `Docs/lich-su/tai-cau-truc-art/bao-cao-tom-tat.md`, danh sách từng file `from → to` ở `Docs/lich-su/tai-cau-truc-art/art_move_plan.csv`.
 
 **1258 asset art đã xét:**
 | Trạng thái | Số file | Đích |

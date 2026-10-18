@@ -1,4 +1,4 @@
-# Thiết kế Cheat Tool (test trên mobile) – BẢN THIẾT KẾ, CHƯA LÀM
+# Thiết kế Cheat Tool (test trên mobile) – ĐÃ LÀM MVP (nhóm A Level, B Resources, C Speed + FPS overlay)
 
 ## 1. Hiện trạng
 - `DebugManager` (gắn GameManager): `autoPlay` + ContextMenu "Win now" – chỉ dùng được trong Editor (chuột phải Inspector), không có đường vào trên điện thoại.

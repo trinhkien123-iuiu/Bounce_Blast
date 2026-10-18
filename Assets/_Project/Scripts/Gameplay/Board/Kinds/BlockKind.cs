@@ -18,7 +18,7 @@ namespace BounceBlast.Gameplay
     /// cách dựng hình và cách vỡ. <see cref="BoardBlock"/>, <see cref="BoardController"/>, <see cref="LevelParser"/> chỉ hỏi
     /// lớp này, không tự rẽ nhánh theo <see cref="BoardItemKind"/>.
     ///
-    /// Thêm loại khối mới (ví dụ khối bom): xem hướng dẫn trong <c>Docs/them-loai-khoi.md</c> –
+    /// Thêm loại khối mới (ví dụ khối bom): xem hướng dẫn trong <c>Docs/kien-truc/them-loai-khoi.md</c> –
     /// thêm giá trị enum, một lớp con của BlockKind, một dòng trong <see cref="BlockKinds"/>, và token trong LevelParser.
     /// Mặc định của lớp gốc = gạch thường (theo màu, có số khi nhiều máu, vỡ ra giọt thạch cùng màu).
     /// </summary>

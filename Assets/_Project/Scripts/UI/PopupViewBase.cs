@@ -12,7 +12,7 @@ namespace BounceBlast.UI
     ///  - bật popup, mở lại các CanvasGroup (prefab gốc để alpha 0 + script gốc tự fade-in, ta không có script đó);
     ///  - bật đúng khung theo độ khó (<see cref="normalOnly"/> / <see cref="hardOnly"/> / <see cref="superHardOnly"/>);
     ///  - hiệu ứng nảy vào (fade nền + EaseOutBack khung) thay cho tween DOTween của bản gốc;
-    ///  - tắt popup (KHÔNG huỷ – popup đặt sẵn trong Hierarchy, xem Docs/kien-truc-ui-dung.md).
+    ///  - tắt popup (KHÔNG huỷ – popup đặt sẵn trong Hierarchy, xem Docs/kien-truc/ui.md).
     /// Lớp con thêm tham chiếu riêng bằng [SerializeField], sự kiện riêng và hàm Show(...) riêng.
     /// </summary>
     public abstract class PopupViewBase : MonoBehaviour

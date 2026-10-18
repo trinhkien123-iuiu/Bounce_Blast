@@ -15,7 +15,7 @@ Ghi ngắn mỗi buổi làm: **làm gì – gặp vấn đề gì – quyết �
 - Trước: 18 chỗ rẽ nhánh theo `BoardItemKind` rải ở `BoardBlock`, `BoardController` (dựng/vỡ/ngắm/hình), `LevelParser` → thêm một loại khối phải sửa 5 file.
 - Giờ: `Board/Kinds/` – `BlockKind` (lớp gốc, mặc định = gạch thường) + `CubeKind`, `CombinedCubeKind`, `CrateKind`, `WallKind`, `ColumnKind`, bảng tra `BlockKinds`. Mỗi lớp giữ luật (`CountsForWin`, `HitByAnyColor`, `IsStatic`, `IsColorTarget`, `Accepts`, `ShowsHpLabel`, `HitPunch`), cách dựng (`Build`, `ShearMesh`, `CubeLook`, `Material`) và cách vỡ (`OnBroken`). `BoardBlock.Rules` trỏ tới lớp luật; code cột nhà chuyển hẳn sang `ColumnKind`, hòm vỡ sang `CrateKind`. Ngoài `Kinds/` và chỗ `LevelParser` đọc token, không còn chỗ nào so sánh `BoardItemKind`.
 - Không đổi luật: đối chiếu từng nhánh với code cũ; chạy thử L12/L44/L49/L73/L79: số khối theo loại, số khối cần phá (cột không tính), nhãn số, phá 4 hòm L79 lộ đúng 96 khối, cột trừ máu không tiêu hao bi, gạch chỉ nhận bi cùng màu, phá hết L12 báo thắng; console sạch.
-- Hướng dẫn thêm loại mới (ví dụ khối bom): `Docs/them-loai-khoi.md`.
+- Hướng dẫn thêm loại mới (ví dụ khối bom): `Docs/kien-truc/them-loai-khoi.md`.
 
 ## 2026-10-18 – Dọn cấu trúc dự án (sau checkpoint `f39a500`)
 - **Git:** `.gitignore` thêm `Captures/`, `Screenshots/` (đưa ra ngoài `Assets`), `__pycache__`, cấu hình máy riêng; gỡ khỏi git nhưng giữ file trên máy (bạn tự commit + push).
@@ -74,7 +74,7 @@ Ghi ngắn mỗi buổi làm: **làm gì – gặp vấn đề gì – quyết �
 
 ## 2026-10-16 — [ĐÃ HOÀN TÁC theo user: về màu nền gốc; `maskAlpha`/`cameraBackground` vẫn còn trong Theme, đặt 1 / alpha 0] Nền sau bàn sáng hơn (bản D · xanh tím sáng, theme Normal)
 
-- Nền sau bàn = 5 lớp: màu camera, lớp gradient `Mask NORMAL` (sprite xanh đậm đục), `Plane` (t4-surface), `Backdrop` (t4-wall, nền khay), `TrayWallLip` (tính từ t4-wall + t4-bg). Bản đã chọn: so sánh 4 bản ở `Docs/palette-previews/nen-sau-ban.png|md`.
+- Nền sau bàn = 5 lớp: màu camera, lớp gradient `Mask NORMAL` (sprite xanh đậm đục), `Plane` (t4-surface), `Backdrop` (t4-wall, nền khay), `TrayWallLip` (tính từ t4-wall + t4-bg). Bản đã chọn: so sánh 4 bản ở `Docs/lich-su/mau-sac/`.
 - Áp: `t4-wall._BaseColor` → (0.30, 0.28, 0.64) (gờ khay tự sáng theo); `Theme` thêm 2 trường `maskAlpha` (1 = như gốc; Normal = 0.25) và `cameraBackground` (alpha 0 = dùng groundColor; Normal = (0.40, 0.38, 0.82)) – tách khỏi `groundColor` vì groundColor còn quyết định màu khung/máy xay/mũi tên. Hard / Super Hard không đổi.
 - **Sửa lại theo user:** chỉ đổi nền NGOÀI; nền TRONG lòng bàn gạch (`Plane` / `t4-surface`) trả về màu gốc (0.169, 0.180, 0.357). Kiểm: pixel lòng bàn trước/sau giống hệt (40, 43, 92). Nền ngoài (màu camera, `maskAlpha`, `t4-wall` nền khay) giữ bản D.
 - Hoàn tác nền ngoài: `git checkout -- Assets/_Project/Art/Shared/Materials/t4-wall.mat` và đặt `maskAlpha` 1, `cameraBackground` alpha 0 trong GameConfig › normalTheme.
@@ -115,13 +115,13 @@ Video `20261016-0430` (30 fps, thu từ máy): hộp bay lên tới máy xay th�
 
 ## 2026-10-15 — Đổi bảng màu sang bộ C · Neon Fresh
 
-- Màu cũ bị chê "nhem nhuốc": bóng (SColor) tối/đục, `_IndirectIntensity` thấp, độ lệch sáng-tối ngẫu nhiên mỗi gạch rộng (±0.1) → loang bẩn. Đã dựng 4 bộ A–D, render thật trong game để chọn (`Docs/palette-previews/`), user chọn **C**.
+- Màu cũ bị chê "nhem nhuốc": bóng (SColor) tối/đục, `_IndirectIntensity` thấp, độ lệch sáng-tối ngẫu nhiên mỗi gạch rộng (±0.1) → loang bẩn. Đã dựng 4 bộ A–D, render thật trong game để chọn (`Docs/lich-su/mau-sac/`), user chọn **C**.
 - Áp vào 32 material màu (cube + hộp đạn + bi, mỗi mã 3 file) qua `_BaseColor/_HColor/_SColor`, `_IndirectIntensity` 0.70; `ColorLibrary.shadeOffset` ±0.015 (trước ±0.05–0.15), đen = xanh than đậm thay vì xám. Chỉ đổi giá trị, không đổi shader/GUID.
 - Hoàn tác: `git checkout -- Assets/_Project/Art/Shared/Colors Assets/_Project/Data/ColorLibrary.asset` (hộp đạn/bi dùng material cùng thư mục màu).
 
 ## 2026-10-15 — Cơ chế khay/bàn dùng asset gốc (băng, cửa, tunnel, hộp gỗ)
 
-- Đối chiếu 6 ảnh `Mechanics/` với game. Bản đồ cơ chế ↔ asset ↔ script: `Docs/co-che-asset-map.md`.
+- Đối chiếu 6 ảnh `Mechanics/` với game. Bản đồ cơ chế ↔ asset ↔ script: `Docs/kien-truc/co-che-asset-map.md`.
 - **Băng:** bỏ bản sao jelly + số đếm tự dựng; dùng `Ice Model` gốc (4 mức + mảnh vỡ + tuyết) – `IceBlockerView`. Gốc không có số trên băng.
 - **Cửa:** bỏ 2 tấm phẳng + tấm lót dựng bằng code (~100 dòng); dùng mesh `Cover` gốc + blend shape (có vạch sáng chéo và khe giữa như ảnh).
 - **Tunnel:** màu hộp kế tiếp đổ nhầm vào thân (slot 1) → đúng là **vành (slot 0)**; thân giữ thép xanh như gốc.
@@ -130,7 +130,7 @@ Video `20261016-0430` (30 fps, thu từ máy): hộp bay lên tới máy xay th�
 
 ## 2026-10-05 — Chép asset UI/font/vật lý từ bản rip
 
-- Phân tích lại `ExportedProject`, truy vết dependency từ các canvas cốt lõi trong `ManagerScene` → chép 385 file (~35 MB) vào `_Ripped/UI`, `_Ripped/Font/TMP`, `_Ripped/PhysicsMaterial`, `_Ripped/AudioMixer` (giữ GUID). Chi tiết: `Docs/reference/ripped-assets-analysis.md`.
+- Phân tích lại `ExportedProject`, truy vết dependency từ các canvas cốt lõi trong `ManagerScene` → chép 385 file (~35 MB) vào `_Ripped/UI`, `_Ripped/Font/TMP`, `_Ripped/PhysicsMaterial`, `_Ripped/AudioMixer` (giữ GUID). Chi tiết: `Docs/tham-khao/ripped-assets-analysis.md`.
 - Remap font/material TMP và `Image` từ DLL gốc sang package; shader dummy của UI → `UI/Default`.
 - Phát hiện: điều kiện thua gốc là **Capacity** (giới hạn bi trên bàn / deadlock); bi dùng vật liệu friction 0 – bounciness 1; có map đầy đủ sự kiện → clip âm thanh.
 
@@ -142,7 +142,7 @@ Video `20261016-0430` (30 fps, thu từ máy): hộp bay lên tới máy xay th�
 - Thêm `ColorPalette.cs` và `BoardLayoutConfig.cs` (ScriptableObject) cùng tool tạo config mặc định `ConfigsAssetCreator.cs`.
 - Xóa bỏ alias `BounceBlastGameplayManager`, chuyển toàn bộ tham chiếu sang `GameplayManager.Instance`.
 - Tách `GameplayManager.cs` thành các module độc lập: `BallPool.cs` (quản lý pool bi), `AmmoGrid.cs` (quản lý mở khóa ô đạn), `BoardState.cs` (quản lý trạng thái bàn & homing target), `ColumnCollapse.cs` (quản lý dồn cột), `InputController.cs` (xử lý touch/mouse).
-- Viết tài liệu thiết kế chuẩn `Docs/design/core-loop.md` mô tả luồng gameplay cốt lõi (sửa B10).
+- Viết tài liệu thiết kế chuẩn `Docs/lich-su/roadmap-cu.md (core-loop.md cũ đã bỏ)` mô tả luồng gameplay cốt lõi (sửa B10).
 
 
 ## 2026-10-02 — Phase 0: dọn dẹp & sắp xếp lại
@@ -155,7 +155,7 @@ Video `20261016-0430` (30 fps, thu từ máy): hộp bay lên tới máy xay th�
   - **Nguyên nhân:** Spawner sinh level trong Edit Mode (`OnValidate/OnEnable`) và cả level bị lưu vào scene.
   - **Sửa:** container `_SpawnedLevelObjects` dùng `HideFlags.DontSaveInEditor` khi không ở Play Mode.
 - Đổi tên tool "Bảng Điều Khiển Tuần 1" → "Level Inspector".
-- `design_note/` → `Docs/design/`. Thêm `Docs/reference/csv-format.md`.
+- `design_note/` → `Docs/thiet-ke/`. Thêm `Docs/tham-khao/csv-format.md`.
 - Assets: 361 MB → 134 MB.
 
 ## 2026-09-30 — Tuần 2: core gameplay

@@ -11,7 +11,7 @@ namespace BounceBlast.EditorTools
     /// <summary>
     /// Dựng prefab CheatPanel (UI công cụ cheat) bằng code Editor – một lần – rồi lưu thành prefab để chỉnh bằng tay trong Unity.
     /// Menu: Tools ▸ Bounce Blast ▸ Cheat ▸ Build panel prefab  /  Place panel in open scene.
-    /// Cấu trúc & ý nghĩa: Docs/design/cheat-tool.md.
+    /// Cấu trúc & ý nghĩa: Docs/thiet-ke/cheat-tool.md.
     /// </summary>
     public static class CheatPanelBuilder
     {

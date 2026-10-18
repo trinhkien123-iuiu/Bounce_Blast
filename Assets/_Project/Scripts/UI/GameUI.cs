@@ -11,7 +11,7 @@ namespace BounceBlast.UI
 {
     /// <summary>
     /// Bộ điều phối UI màn chơi – KHÔNG chứa chi tiết bên trong từng panel. Mỗi panel là một prefab đặt sẵn trong Hierarchy
-    /// (Systems/UI/...) và có script View riêng giữ tham chiếu bằng Inspector (xem Docs/kien-truc-ui-dung.md):
+    /// (Systems/UI/...) và có script View riêng giữ tham chiếu bằng Inspector (xem Docs/kien-truc/ui.md):
     ///   OverlayView (booster + viền cảnh báo + thông báo), HudView, CapacityBarView,
     ///   FailPopupView, SuccessPopupView, SettingsPopupView, OutOfCapacityPopupView.
     /// Các ô [SerializeField] dưới đây kéo thả sẵn trong scene; ô nào để trống thì GameUI tự dựng từ prefab trong UiSkin

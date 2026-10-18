@@ -1,7 +1,7 @@
 # Cấu trúc UI ĐÚNG của dự án (đích của refactor) – ĐỌC TRƯỚC KHI ĐỤNG VÀO UI
 
 > File này là **đích đến**, không phải hiện trạng. Phần 6 ghi rõ hiện trạng đang lệch đích ở đâu.
-> Nhật ký từng bước đã làm nằm ở `Docs/qua-trinh-khoi-phuc-va-core-gameplay.md` (mục 4–7).
+> Nhật ký từng bước đã làm nằm ở `Docs/lich-su/qua-trinh-khoi-phuc-va-core-gameplay.md` (mục 4–7).
 
 ---
 

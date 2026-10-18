@@ -1,6 +1,6 @@
 # Định dạng level CSV
 
-Vị trí: `Assets/Resources/sheets_levels/<bộ level>/sheets_<a>_<b>/` — mỗi thư mục chứa 5 level (`a`..`b`).
+Vị trí: `Assets/_Project/Data/Levels/<bộ level>/sheets_<a>_<b>/` — mỗi thư mục chứa 5 level (`a`..`b`). Thêm/đổi level xong chạy menu `Tools/Bounce Blast/Data/Build Level Sets`.
 Bộ level đang giữ trong project: `original` (mặc định), `dailychallenge`. Các bộ khác (`wideboard`, `openboard`, `levelfunnelv*`...) lấy lại từ `D:\toolGame\game\ExportedProject\Assets\Resources\sheets_levels\` khi cần.
 
 | File | Nội dung |
@@ -20,7 +20,7 @@ Bộ level đang giữ trong project: `original` (mặc định), `dailychalleng
 | --- | --- |
 | `Id` | Số level |
 | `HardLevel` | `-` = Normal / Hard / SuperHard |
-| `Capacity` | Sức chứa bi (đã parse, **chưa dùng**) |
+| `Capacity` | Sức chứa bi tối đa trên bàn (vượt = Out Of Capacity) |
 | `BoardSize` | `cột x hàng`, VD `20x32` |
 | `IsFigurative` | Level vẽ hình |
 | `CUBES` 0..31 | Ô bàn chơi (xem bên dưới) |
@@ -34,8 +34,8 @@ Bộ level đang giữ trong project: `original` (mặc định), `dailychalleng
 | --- | --- |
 | `-` | Trống |
 | `màu-hp` | Cube, VD `r-20` |
-| `màu-hp-groupId` | Cube thuộc nhóm (share HP?) |
-| `/wl-...` | Tường |
+| `màu-hp-groupId` | Khối gộp nhiều ô dùng chung máu (có thể hình chữ L/T) |
+| `/wl-hp-id` | Cột nhà: bi màu nào cũng trừ máu, không tính vào thắng |
 | `/bomb-...` | Bom |
 | `/lck-...` | Khóa |
 | `/btu-...` | Board tunnel |
@@ -59,4 +59,4 @@ Bộ level đang giữ trong project: `original` (mặc định), `dailychalleng
 
 Mã vật cản (không tính là màu): `cr` crate · `wl` wall · `st` stone · `cur` curtain · `lck` lock · `bomb` · `btu` board tunnel.
 
-Màu RGB hiện nằm trong `ColorMap` của [BounceBlastLevelSpawner.cs](../../Assets/_Project/Scripts/Level/BounceBlastLevelSpawner.cs). Bảng màu gốc: `Assets/Resources/sheets_constants/Colors_v3.txt`.
+Màu hiển thị: `Assets/_Project/Data/ColorLibrary.asset` (material ở `Art/Shared/Colors/`). Bảng màu gốc tham khảo: `Data/Sheets/constants/Colors_v3.txt`.

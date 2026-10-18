@@ -13,7 +13,7 @@ namespace BounceBlast.UI
     /// Giữ tham chiếu bằng Inspector, và giữ luôn "kiểu dáng theo độ khó" (sprite badge, sprite nút Settings, cỡ/vị trí badge,
     /// bố cục chữ, đối tượng chỉ hiện ở độ khó đó) – trước đây rải ở UiSkin + hằng số trong GameUI.
     /// GameUI chỉ gọi <see cref="Apply"/> và nghe <see cref="OnSettingsPressed"/>.
-    /// Tài liệu kiến trúc: Docs/kien-truc-ui-dung.md
+    /// Tài liệu kiến trúc: Docs/kien-truc/ui.md
     /// </summary>
     [DisallowMultipleComponent]
     public class HudView : MonoBehaviour

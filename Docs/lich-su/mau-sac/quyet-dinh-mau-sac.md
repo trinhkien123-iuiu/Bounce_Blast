@@ -1,8 +1,14 @@
-# Bộ màu đề xuất (chưa áp vào game)
+# Quyết định màu sắc (lịch sử)
+
+> Gộp từ `palette-previews/bo-mau-de-xuat.md` và `palette-previews/nen-sau-ban.md`. Ảnh so sánh nằm cùng thư mục.
+> **Kết quả:** bảng màu gạch/hộp/bi dùng **bộ C · Neon Fresh** (2026-10-15, đã áp vào `Art/Shared/Colors` + `ColorLibrary`).
+> Nền sau bàn: đã thử bản D rồi **hoàn tác về màu gốc** theo yêu cầu (2026-10-16). Chi tiết trong `../../devlog.md`.
+
+## 1. Bảng màu gạch / hộp / bi (4 bộ A–D, chọn C)
 
 Ảnh so sánh render thật trong game: `so-sanh-bo-mau.png` (hàng trên Lv 44, hàng dưới Lv 49; cột đầu = màu hiện tại).
 
-Mỗi màu có 3 giá trị: **Base** (mặt trên) / **Highlight** (phía sáng) / **Shadow** (phía tối). File `A.txt`…`D.txt` là đúng dữ liệu đã dùng để render.
+Mỗi màu có 3 giá trị: **Base** (mặt trên) / **Highlight** (phía sáng) / **Shadow** (phía tối). Giá trị trong bảng là đúng dữ liệu đã dùng để render.
 
 
 ## A · Candy Bright  (độ lệch sáng/tối ngẫu nhiên mỗi gạch: ±0.02)
@@ -88,3 +94,22 @@ Mỗi màu có 3 giá trị: **Base** (mặt trên) / **Highlight** (phía sáng
 | Bạc | `si` | `#C9CEDA` | `#D6DAE3` | `#989FAE` |
 | Xanh lá đậm | `gr` | `#2FA84A` | `#61BD75` | `#1F8636` |
 | Xám | `gra` | `#BCC2CF` | `#CCD1DB` | `#8E96A6` |
+
+## 2. Nền sau bàn (4 bản sáng hơn – đã hoàn tác về gốc)
+
+Ảnh: `nen-sau-ban.png` (render thật trong game). Nền sau bàn gồm 5 lớp (theme Normal):
+
+| Lớp | Object | Hiện tại |
+|---|---|---|
+| Màu camera | `Main Camera.backgroundColor` (= `groundColor` của theme) | (0.28, 0.31, 0.68) |
+| Lớp phủ gradient | `Mask NORMAL` (SpriteRenderer, sprite `Mask`, xanh đậm 28,34,113 đục) | alpha 1.0 |
+| Mặt nền sau bàn | `Plane` – material `t4-surface` (`_BaseColor`) | (0.169, 0.180, 0.357) |
+| Nền khay đạn | `Backdrop` – material `t4-wall` (`_BaseColor`) | (0.128, 0.139, 0.274) |
+| Viền khay | `TrayWallLip` – `_BaseColor` | (0.225, 0.248, 0.538) |
+
+| Bản | Camera bg | Mask alpha | Plane | Backdrop | TrayWallLip |
+|---|---|---|---|---|---|
+| A · Sáng nhẹ | (giữ) | 0.55 | .22 .235 .46 | .19 .21 .41 | .30 .33 .66 |
+| B · Sáng vừa | .34 .38 .78 | 0.30 | .30 .34 .66 | .26 .30 .58 | .38 .43 .80 |
+| C · Xanh trời | .30 .55 .95 | 0.22 | .22 .42 .78 | .18 .36 .68 | .28 .52 .92 |
+| D · Xanh tím sáng | .40 .38 .82 | 0.25 | .36 .33 .72 | .30 .28 .64 | .45 .42 .86 |

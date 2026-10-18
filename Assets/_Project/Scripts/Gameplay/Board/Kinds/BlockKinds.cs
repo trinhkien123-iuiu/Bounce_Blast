@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>Bảng tra loại khối → luật của nó. Thêm loại khối mới = thêm MỘT dòng ở đây (xem Docs/them-loai-khoi.md).</summary>
+    /// <summary>Bảng tra loại khối → luật của nó. Thêm loại khối mới = thêm MỘT dòng ở đây (xem Docs/kien-truc/them-loai-khoi.md).</summary>
     public static class BlockKinds
     {
         static readonly Dictionary<BoardItemKind, BlockKind> All = new Dictionary<BoardItemKind, BlockKind>();

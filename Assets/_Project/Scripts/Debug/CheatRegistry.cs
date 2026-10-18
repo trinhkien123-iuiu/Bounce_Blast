@@ -4,13 +4,13 @@ using UnityEngine;
 using BounceBlast.Gameplay;
 using BounceBlast.UI;
 
-// Chỉ biên dịch ở Editor, Development Build, hoặc khi có Scripting Define Symbol BB_CHEATS (xem Docs/design/cheat-tool.md).
+// Chỉ biên dịch ở Editor, Development Build, hoặc khi có Scripting Define Symbol BB_CHEATS (xem Docs/thiet-ke/cheat-tool.md).
 #if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS
 namespace BounceBlast.Cheats
 {
     /// <summary>
     /// Danh sách cheat (MVP: nhóm A Level · B Resources · C Speed). Mỗi cheat gọi các API công khai SẴN CÓ của manager,
-    /// không sửa trường private nên không đổi luật chơi thật. Xem Docs/design/cheat-tool.md.
+    /// không sửa trường private nên không đổi luật chơi thật. Xem Docs/thiet-ke/cheat-tool.md.
     /// </summary>
     public static class CheatRegistry
     {

@@ -1,7 +1,7 @@
 # Phân tích bản rip `ExportedProject` & những gì đã chép sang
 
 > Ngày: 2026-10-05 · Nguồn: `D:\toolGame\game\ExportedProject` (AssetRipper, ~10.300 asset)
-> Danh sách file chi tiết: [ripped-import-manifest.txt](ripped-import-manifest.txt)
+> (Danh sách từng file đã chép trước đây ở `ripped-import-manifest.txt` – đã bỏ vì đường dẫn `_Ripped/` không còn sau đợt tái cấu trúc; xem lịch sử git nếu cần.)
 
 ## 1. Bản rip gồm những gì
 

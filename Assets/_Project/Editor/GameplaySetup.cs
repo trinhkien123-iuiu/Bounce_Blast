@@ -1,4 +1,4 @@
-// ĐÃ NGỪNG DÙNG (tái cấu trúc, Docs/ke-hoach-tai-cau-truc.md).
+// ĐÃ NGỪNG DÙNG (tái cấu trúc, Docs/lich-su/tai-cau-truc.md).
 // Đây là script khởi tạo MỘT LẦN: dựng GameConfig / UiSkin / ColorLibrary bằng đường dẫn cứng tới Assets/_Ripped/... và
 // Assets/_Project/Configs. Nay các asset cấu hình là NGUỒN SỰ THẬT (đã chỉnh tay, đã nối prefab) và file đã được chuyển chỗ,
 // nên chạy lại script này sẽ vừa hỏng đường dẫn vừa GHI ĐÈ các giá trị đã chỉnh. Muốn dùng lại: thêm BB_LEGACY_SETUP vào
