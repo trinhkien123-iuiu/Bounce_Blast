@@ -21,11 +21,13 @@ namespace BounceBlast.Gameplay
         public List<BoardItemData> Contents { get; private set; }
         public bool IsDestroyed { get; private set; }
 
-        // Cột nhà không tính vào điều kiện thắng (như tường): máu cột không nằm trong ngân sách bi của level
-        public bool IsDestructible => Kind != BoardItemKind.Wall && Kind != BoardItemKind.Column;
+        /// <summary>Luật của loại khối này (Board/Kinds) – mọi khác biệt giữa gạch / khối gộp / hòm / tường / cột nằm ở đó.</summary>
+        public BlockKind Rules { get; private set; }
+        /// <summary>Tính vào điều kiện thắng (tường, cột nhà thì không).</summary>
+        public bool IsDestructible => Rules.CountsForWin;
         /// <summary>Hòm gỗ / cột nhà: bi màu nào cũng trừ máu nhưng KHÔNG bị tiêu hao (nảy tiếp), không phải mục tiêu ngắm.</summary>
-        public bool IsFreeHit => Kind == BoardItemKind.Crate || Kind == BoardItemKind.Column;
-        public bool IsStatic => Kind == BoardItemKind.Wall;
+        public bool IsFreeHit => Rules.HitByAnyColor;
+        public bool IsStatic => Rules.IsStatic;
 
         Transform _visual;
         TextMeshPro _label;
@@ -54,6 +56,7 @@ namespace BounceBlast.Gameplay
         {
             Mask = data.Mask;
             Kind = data.Kind;
+            Rules = BlockKinds.Of(data.Kind);
             ColorCode = data.ColorCode;
             Hp = MaxHp = Mathf.Max(1, data.Hp);
             Cells = OriginCells = data.Cells;
@@ -127,11 +130,7 @@ namespace BounceBlast.Gameplay
         /// <summary>Bi màu <paramref name="ballColor"/> có trừ máu được khối này không.</summary>
         public bool Accepts(string ballColor)
         {
-            if (IsDestroyed) return false;
-            if (IsFreeHit) return true;
-            if (Kind == BoardItemKind.Cube || Kind == BoardItemKind.CombinedCube)
-                return string.Equals(ballColor, ColorCode, System.StringComparison.OrdinalIgnoreCase);
-            return false;
+            return !IsDestroyed && Rules.Accepts(this, ballColor);
         }
 
         /// <summary>Trừ 1 máu. Trả về true nếu khối vừa bị phá.</summary>
@@ -163,7 +162,7 @@ namespace BounceBlast.Gameplay
         void RefreshLabel()
         {
             if (_label == null) return;
-            bool show = IsFreeHit || Kind == BoardItemKind.CombinedCube || MaxHp > 1;
+            bool show = Rules.ShowsHpLabel(this);
             _label.gameObject.SetActive(show && Hp > 0);
             if (show) _label.SetText("{0}", Hp);
         }
@@ -194,7 +193,7 @@ namespace BounceBlast.Gameplay
             if (_visual != null && _punch > 0f)
             {
                 _punch = Mathf.Max(0f, _punch - Time.deltaTime * 6f);
-                float s = 1f + Mathf.Sin(_punch * Mathf.PI) * (Kind == BoardItemKind.Cube ? 0.18f : 0.04f);
+                float s = 1f + Mathf.Sin(_punch * Mathf.PI) * Rules.HitPunch;
                 _visual.localScale = _visualBaseScale * s;
             }
             // xong việc (đã tới ô đích, hết nảy) → ngủ

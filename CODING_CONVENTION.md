@@ -4,7 +4,9 @@ Ngắn gọn, áp dụng cho mọi script trong `Assets/_Project/Scripts` và `A
 
 ## 1. Định dạng
 - Thụt lề 4 dấu cách, ngoặc nhọn xuống dòng (Allman). Mỗi file một lớp chính, tên file = tên lớp.
-- Namespace `BounceBlast` (UI/Gameplay có thể con). Lớp, hàm, thuộc tính: `PascalCase`; biến private: `_camelCase`; biến cục bộ/tham số: `camelCase`; hằng: `PascalCase`.
+- Namespace theo thư mục: `BounceBlast.Gameplay` (Scripts/Gameplay), `BounceBlast.UI` (Scripts/UI), `BounceBlast.Menu`, `BounceBlast.Cheats` (Scripts/Debug – KHÔNG đặt tên `…Debug` vì che mất `UnityEngine.Debug`), `BounceBlast.EditorTools` (Editor).
+- Mỗi `MonoBehaviour`/`ScriptableObject` một file, tên file = tên lớp (hai lớp chung file thì Unity không gắn được script vào prefab). File quá ~600 dòng thì chia `partial` theo mảng việc (`Lop.MangViec.cs`).
+- Code chỉ dùng khi test (cheat) bọc `#if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS`. Lớp, hàm, thuộc tính: `PascalCase`; biến private: `_camelCase`; biến cục bộ/tham số: `camelCase`; hằng: `PascalCase`.
 - Trường public/Inspector của ScriptableObject cấu hình (`GameConfig`) có thể là `camelCase` công khai (đã dùng sẵn).
 
 ## 2. Chú thích

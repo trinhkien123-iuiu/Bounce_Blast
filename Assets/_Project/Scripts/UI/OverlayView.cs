@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.UI
 {
     /// <summary>
     /// Script quản lý của prefab OverlayCanvas – lớp UI phủ lên bàn chơi (gắn trên gốc prefab).

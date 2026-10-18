@@ -2,6 +2,7 @@ using BounceBlast.Gameplay;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using BounceBlast.UI;
 
 namespace BounceBlast.EditorTools
 {

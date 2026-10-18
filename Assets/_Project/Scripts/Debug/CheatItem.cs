@@ -1,6 +1,8 @@
 using System;
 
-namespace BounceBlast.Gameplay
+// Chỉ biên dịch ở Editor, Development Build, hoặc khi có Scripting Define Symbol BB_CHEATS (xem Docs/design/cheat-tool.md).
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS
+namespace BounceBlast.Cheats
 {
     public enum CheatKind { Button, Toggle, Stepper }
 
@@ -33,3 +35,4 @@ namespace BounceBlast.Gameplay
         public string Label => dynamicLabel != null ? dynamicLabel() : label;
     }
 }
+#endif

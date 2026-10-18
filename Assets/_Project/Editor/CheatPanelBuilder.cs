@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using BounceBlast.Cheats;
 
 namespace BounceBlast.EditorTools
 {

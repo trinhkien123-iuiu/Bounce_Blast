@@ -1,4 +1,5 @@
 using UnityEngine;
+using BounceBlast.UI;
 
 namespace BounceBlast.Gameplay
 {

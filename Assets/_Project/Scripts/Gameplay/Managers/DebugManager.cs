@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using BounceBlast.UI;
 
 namespace BounceBlast.Gameplay
 {

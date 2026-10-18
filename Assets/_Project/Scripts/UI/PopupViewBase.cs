@@ -2,8 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using BounceBlast.Gameplay;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.UI
 {
     /// <summary>
     /// Lớp nền cho script quản lý của MỌI popup (Fail, Success, Settings, OutOfCapacity).

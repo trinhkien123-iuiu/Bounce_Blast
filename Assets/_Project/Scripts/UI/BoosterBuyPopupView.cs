@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using BounceBlast.Gameplay;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.UI
 {
     /// <summary>
     /// Script quản lý của popup MUA BOOSTER – hiện khi bấm nút booster đã hết lượt (gắn trên gốc BoosterBuyPopup.prefab).

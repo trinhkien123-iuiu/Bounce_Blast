@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.UI
 {
     /// <summary>
     /// Xoay liên tục một ảnh UI (quầng tia sáng sau icon ở popup mua booster). Dùng thời gian không bị co giãn

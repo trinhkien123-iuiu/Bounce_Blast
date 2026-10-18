@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using BounceBlast.Gameplay;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.UI
 {
     /// <summary>
     /// Script quản lý của prefab MainMenuCanvas (màn hình chính MenuGame) – gắn trên gốc prefab.

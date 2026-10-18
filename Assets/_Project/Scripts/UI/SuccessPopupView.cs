@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using BounceBlast.Gameplay;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.UI
 {
     /// <summary>
     /// Script quản lý của popup THẮNG – gắn trên gốc SuccessCanvas.prefab. Nó SỞ HỮU toàn bộ chuỗi màn thắng:

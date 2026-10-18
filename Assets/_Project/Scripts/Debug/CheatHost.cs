@@ -1,10 +1,12 @@
 using UnityEngine;
+using BounceBlast.Gameplay;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.Cheats
 {
     /// <summary>
     /// Cổng vào của công cụ cheat (gắn trên gốc prefab CheatPanel, đặt sẵn trong scene Gameplay).
-    /// - Chỉ hoạt động ở bản DEV (Editor / Development Build) hoặc khi bật <see cref="allowInReleaseBuild"/>; bản phát hành tự huỷ object.
+    /// - Code cheat chỉ được biên dịch ở Editor, Development Build, hoặc khi thêm Scripting Define Symbol <c>BB_CHEATS</c>
+    ///   (Project Settings ▸ Player). Bản phát hành không có code cheat; object này tự huỷ ngay khi vào game.
     /// - Mở panel: chạm 5 lần liên tiếp vào góc trên-trái màn hình, hoặc chạm 3 ngón cùng lúc (Editor: phím F1).
     /// Thiết kế đầy đủ: Docs/design/cheat-tool.md.
     /// </summary>
@@ -12,21 +14,16 @@ namespace BounceBlast.Gameplay
     {
         [SerializeField] CheatPanelView panel;
         [SerializeField] CheatPerfOverlay overlay;
-        [Tooltip("Cho phép cả ở bản Release (chỉ bật khi muốn thử cheat trên bản không Development)")] [SerializeField] bool allowInReleaseBuild;
         [Tooltip("Vùng chạm 5 lần: phần ngang từ mép trái và phần dọc từ mép trên (0..1 của màn hình)")]
         [SerializeField, Range(0.1f, 0.6f)] float cornerWidth = 0.35f;
         [SerializeField, Range(0.04f, 0.3f)] float cornerHeight = 0.1f;
         [SerializeField] int tapsToOpen = 5;
         [SerializeField] float tapWindow = 3f;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS
         int _taps;
         float _firstTapTime, _lastToggle;
         bool _ready;
-
-        void Awake()
-        {
-            if (!Debug.isDebugBuild && !Application.isEditor && !allowInReleaseBuild) { Destroy(gameObject); return; }
-        }
 
         void Start()
         {
@@ -63,5 +60,8 @@ namespace BounceBlast.Gameplay
             _lastToggle = Time.unscaledTime;
             panel.Toggle();
         }
+#else
+        void Awake() => Destroy(gameObject);   // bản phát hành: không có cheat
+#endif
     }
 }

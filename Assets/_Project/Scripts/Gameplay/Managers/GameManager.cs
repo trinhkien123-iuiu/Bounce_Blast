@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using BounceBlast.UI;
 
 namespace BounceBlast.Gameplay
 {
@@ -172,8 +173,10 @@ namespace BounceBlast.Gameplay
             yield return _ui.PlayWinSequence(levelManager.CurrentLevel, CurrentDifficulty, WinCoins, levelManager.LoadNext);
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS
         /// <summary>Chỉ cho công cụ cheat (Scripts/Debug/CheatRegistry): ép thua ngay để thử màn thua.</summary>
         public void CheatLose() => Lose("Cheat");
+#endif
 
         void Lose(string reason)
         {

@@ -1,8 +1,9 @@
 using System.Text;
 using TMPro;
 using UnityEngine;
+using BounceBlast.Gameplay;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.Cheats
 {
     /// <summary>
     /// Số liệu hiệu năng góc màn hình: fps hiện tại (0.5 s), khung chậm nhất 3 s gần nhất, số khung &gt; 33 ms, bộ nhớ, số khối/bi.
@@ -12,6 +13,7 @@ namespace BounceBlast.Gameplay
     {
         [SerializeField] TMP_Text label;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS
         public bool Visible
         {
             get => label != null && label.gameObject.activeSelf;
@@ -45,5 +47,6 @@ namespace BounceBlast.Gameplay
             if (gm != null && gm.levelManager != null) _sb.Append("   Lv ").Append(gm.levelManager.currentLevel);
             label.text = _sb.ToString();
         }
+#endif
     }
 }

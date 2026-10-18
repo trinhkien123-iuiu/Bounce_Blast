@@ -5,11 +5,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using BounceBlast.Gameplay;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.UI
 {
-    public enum BoosterType { MagicHand, Hammer, Shuffle, Capacity }
-
     /// <summary>
     /// Bộ điều phối UI màn chơi – KHÔNG chứa chi tiết bên trong từng panel. Mỗi panel là một prefab đặt sẵn trong Hierarchy
     /// (Systems/UI/...) và có script View riêng giữ tham chiếu bằng Inspector (xem Docs/kien-truc-ui-dung.md):

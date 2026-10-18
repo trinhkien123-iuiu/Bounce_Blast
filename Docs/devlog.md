@@ -2,6 +2,21 @@
 
 Ghi ngắn mỗi buổi làm: **làm gì – gặp vấn đề gì – quyết định gì**. Mới nhất ở trên.
 
+## 2026-10-18 – Loại khối thành lớp riêng (SOLID: mở rộng không sửa code cũ)
+- Trước: 18 chỗ rẽ nhánh theo `BoardItemKind` rải ở `BoardBlock`, `BoardController` (dựng/vỡ/ngắm/hình), `LevelParser` → thêm một loại khối phải sửa 5 file.
+- Giờ: `Board/Kinds/` – `BlockKind` (lớp gốc, mặc định = gạch thường) + `CubeKind`, `CombinedCubeKind`, `CrateKind`, `WallKind`, `ColumnKind`, bảng tra `BlockKinds`. Mỗi lớp giữ luật (`CountsForWin`, `HitByAnyColor`, `IsStatic`, `IsColorTarget`, `Accepts`, `ShowsHpLabel`, `HitPunch`), cách dựng (`Build`, `ShearMesh`, `CubeLook`, `Material`) và cách vỡ (`OnBroken`). `BoardBlock.Rules` trỏ tới lớp luật; code cột nhà chuyển hẳn sang `ColumnKind`, hòm vỡ sang `CrateKind`. Ngoài `Kinds/` và chỗ `LevelParser` đọc token, không còn chỗ nào so sánh `BoardItemKind`.
+- Không đổi luật: đối chiếu từng nhánh với code cũ; chạy thử L12/L44/L49/L73/L79: số khối theo loại, số khối cần phá (cột không tính), nhãn số, phá 4 hòm L79 lộ đúng 96 khối, cột trừ máu không tiêu hao bi, gạch chỉ nhận bi cùng màu, phá hết L12 báo thắng; console sạch.
+- Hướng dẫn thêm loại mới (ví dụ khối bom): `Docs/them-loai-khoi.md`.
+
+## 2026-10-18 – Dọn cấu trúc dự án (sau checkpoint `f39a500`)
+- **Git:** `.gitignore` thêm `Captures/`, `Screenshots/` (đưa ra ngoài `Assets`), `__pycache__`, cấu hình máy riêng; gỡ khỏi git nhưng giữ file trên máy (bạn tự commit + push).
+- **Cheat chỉ có ở bản test:** code `Scripts/Debug` bọc `#if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS` (các component giữ khai báo field để prefab không mất dữ liệu; `CheatHost` ở bản phát hành tự huỷ object). Bỏ cờ `allowInReleaseBuild` – thay bằng define `BB_CHEATS`. Kiểm: biên dịch cả cấu hình Editor và cấu hình giả lập Release (bỏ UNITY_EDITOR/DEVELOPMENT_BUILD) đều 0 lỗi.
+- **Namespace theo thư mục:** `BounceBlast.UI`, `BounceBlast.Menu`, `BounceBlast.Cheats` (không dùng `…Debug` để khỏi che `UnityEngine.Debug`); `BoosterType` chuyển về `Gameplay/Core/BoosterType.cs`. Đổi namespace không làm mất tham chiếu (Unity nối script theo GUID): 0 script mất trong 2 scene + mọi prefab.
+- **`BoardController` (1.095 dòng) chia `partial`:** `.cs` (dựng khối + lưới, 194 dòng), `.CombinedMesh.cs`, `.Visuals.cs`, `.Hits.cs`, `.Queries.cs`. Không đổi logic: so từng dòng với bản cũ chỉ khác phần đầu file.
+- **Font:** `royal_kingdom_font.ttf` đang dùng chuyển từ `TextMesh Pro/Fonts` sang `Art/UI/Common/Fonts` (giữ GUID); bản trùng ở gốc `_Project` (không ai dùng) đưa vào `_Archive/MoCoi`.
+- Cập nhật `ARCHITECTURE.md`, `CODING_CONVENTION.md` (quy ước namespace, mỗi MonoBehaviour một file, chia partial, bọc cheat).
+- Chạy thử: màn 60 nạp đủ 1344 khối, cheat mở được, auto-play 25 s phá 294 khối, console sạch.
+
 ## 2026-10-16 – Tối ưu hiệu năng cho mobile (đo bằng ProfilerRecorder, Editor, quality Medium, auto-play)
 - Điểm nóng thật ở màn dày (≈250 bi): `Ball.OnCollisionEnter2D` → `TryGetLineOfSightTarget` → 5 × `Physics2D.CircleCast` mỗi lần nảy ≈ 17 ms/khung. Thay bằng duyệt thẳng trên lưới ô (`FirstBlockOnPath`, 3 tia, tối đa 3 ứng viên): PlayerLoop 28 → ~7 ms, khung tệ nhất 88 → ~33 ms (màn 150).
 - `BoardBlock`: khối đứng yên là Rigidbody2D **Static** (trước: 1284 vật thể Kinematic); chỉ Kinematic khi rơi. Physics2D.Simulate màn 60: ~10 → ~3.4 ms.

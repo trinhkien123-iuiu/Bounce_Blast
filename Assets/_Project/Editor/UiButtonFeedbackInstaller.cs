@@ -3,6 +3,7 @@ using BounceBlast.Gameplay;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using BounceBlast.UI;
 
 namespace BounceBlast.EditorTools
 {

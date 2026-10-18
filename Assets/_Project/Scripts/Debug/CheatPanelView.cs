@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.Cheats
 {
     /// <summary>
     /// View của prefab CheatPanel: tab theo nhóm + danh sách dòng cuộn được. Không chứa luật cheat – chỉ vẽ các
@@ -22,6 +22,7 @@ namespace BounceBlast.Gameplay
         [SerializeField] CheatButtonRow buttonTemplate;
         [SerializeField] CheatStepperRow stepperTemplate;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS
         static readonly Color TabOn = new Color(0.98f, 0.74f, 0.1f), TabOff = new Color(0.25f, 0.27f, 0.45f);
         static readonly Color RowOn = new Color(0.2f, 0.7f, 0.3f), RowOff = new Color(0.3f, 0.32f, 0.5f);
 
@@ -133,5 +134,6 @@ namespace BounceBlast.Gameplay
             });
             show();
         }
+#endif
     }
 }

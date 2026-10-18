@@ -19,9 +19,11 @@ Assets/
 │   ├── Scenes/MenuGame.unity         ← màn hình chính (index 0 trong Build Settings)
 │   ├── Scenes/Gameplay.unity         ← màn chơi (index 1)
 │   ├── Scripts/                      ← assembly BounceBlast.Runtime (BounceBlast.Runtime.asmdef)
-│   │   ├── Gameplay/{Ammo,Balls,Board,Conveyor,Core,Data}
-│   │   └── UI/                       ← GameUI (điều phối) + các View + hiệu ứng UI
-│   ├── Editor/                       ← công cụ chỉ chạy trong Editor (BounceBlast.Editor.asmdef)
+│   │   ├── Gameplay/{Ammo,Balls,Board,Conveyor,Core,Data,Managers}   ← namespace BounceBlast.Gameplay
+│   │   ├── UI/                       ← namespace BounceBlast.UI: GameUI (điều phối) + các View + hiệu ứng UI
+│   │   ├── Menu/                     ← namespace BounceBlast.Menu: MenuManager (scene MenuGame)
+│   │   └── Debug/                    ← namespace BounceBlast.Cheats: công cụ cheat (chỉ Editor / Development Build / BB_CHEATS)
+│   ├── Editor/                       ← công cụ chỉ chạy trong Editor (BounceBlast.Editor.asmdef, namespace BounceBlast.EditorTools)
 │   ├── Data/                         ← CẤU HÌNH & DỮ LIỆU (ScriptableObject, level)
 │   │   ├── GameConfig.asset          ← ĐIỂM CHỈNH CHÍNH: thông số gameplay, prefab, theme, âm thanh
 │   │   ├── UiSkin.asset              ← prefab UI + font + sprite thanh sức chứa
@@ -33,16 +35,20 @@ Assets/
 │   │   └── UI/                       ← OverlayCanvas, GameCanvas (HUD), CapacityBar, 4 popup, BoosterBar
 │   ├── Art/                          ← THEO TÍNH NĂNG; mỗi nơi gom đủ mesh + material + texture
 │   │   ├── Ammo/ Balls/ Board/ Conveyor/ Environment/ VFX/
-│   │   ├── UI/{Booster,Capacity,Common,Hud,Menu,Popup,Win}/
+│   │   ├── UI/{Booster,Capacity,Common,Hud,Menu,Popup,Win}/   ← font Mikado (royal_kingdom_font.ttf) + font TMP ở UI/Common/Fonts
 │   │   └── Shared/{Colors,Materials,Physics,Textures}/   ← dùng chung nhiều tính năng
 │   ├── Audio/                        ← âm thanh đang dùng
 │   └── Shaders/                      ← shader dịch từ GLSL gốc (giữ GUID)
 ├── _Archive/                         ← KHÔNG dùng nhưng không xoá (xem mục 5)
-├── TextMesh Pro/                     ← thư viện ngoài
-└── _Ripped/, Resources/              ← đã trống (chỉ còn thư mục rỗng, xoá được trong Unity)
+└── TextMesh Pro/                     ← thư viện ngoài (font mặc định LiberationSans SDF đã đổi nguồn sang Mikado)
 ```
 
 Gốc repo: `ARCHITECTURE.md` (file này), `CODING_CONVENTION.md`, `README.md`, `ROADMAP.md`, `Docs/`, `Tools/` (script Python rip asset).
+Không đưa lên git (`.gitignore`): `Captures/` (ảnh/video tạm), `Screenshots/` (ảnh chụp kiểm thử – để NGOÀI `Assets`), `__pycache__`, cấu hình máy riêng (`.claude/settings.local.json`, `.mcp.json`), `*.csproj`/`*.sln` (Unity tự sinh).
+
+**Namespace:** Gameplay ← UI ← Menu (UI và Gameplay tham chiếu lẫn nhau qua `using`); Cheats chỉ phụ thuộc Gameplay/UI, không ai phụ thuộc Cheats ngoài `GameManager.CheatLose` (cũng bọc `#if`).
+**File lớn chia `partial`:** `BoardController` = `.cs` (dựng khối + lưới) · `.CombinedMesh.cs` · `.Visuals.cs` · `.Hits.cs` · `.Queries.cs`.
+**Loại khối trên bàn:** mỗi loại (gạch, khối gộp, hòm gỗ, tường, cột nhà) là một lớp trong `Scripts/Gameplay/Board/Kinds/` giữ luật + cách dựng + cách vỡ; code khác chỉ hỏi `BlockKinds.Of(kind)`. Thêm loại mới: `Docs/them-loai-khoi.md`.
 
 ---
 
@@ -71,10 +77,13 @@ Gốc repo: `ARCHITECTURE.md` (file này), `CODING_CONVENTION.md`, `README.md`, 
 | Đèn chiếu gạch / thạch | Scene: `Camera & Lights/Directional Light 1 & Cubes…`, `…(Cube, view-aligned)`, `…& Jellies` |
 | Tường vật lý lòng bàn (bi nảy) | Scene: `World/ArenaWalls` – chọn để thấy Gizmo; sửa điểm EdgeCollider2D hoặc chuột phải → Dựng lại từ GameConfig.arena |
 | Nạp level, level bắt đầu (`startLevel`) | `Managers/LevelManager` |
+| Luật / hình / cách vỡ của một loại khối (gạch, khối gộp, hòm, tường, cột); thêm loại khối mới | `Scripts/Gameplay/Board/Kinds/` – hướng dẫn `Docs/them-loai-khoi.md` |
 | Luật bắn hộp, sức chứa, hết nước đi | `Managers/LaunchManager` |
 | Thắng / thua, trạng thái game | `Managers/GameManager` |
 | Logic booster | `Managers/BoosterManager` |
 | Tự chơi để test (autoPlay) | `Managers/DebugManager` |
+| Công cụ cheat khi test trên máy (nhảy level, thắng/thua, tốc độ, FPS) | Prefab `Prefabs/UI/CheatPanel` (đặt sẵn trong Gameplay) + `Scripts/Debug/`; luật cheat ở `CheatRegistry`. Mở: 5 chạm góc trên-trái / 3 ngón / F1. Chỉ có ở Editor, Development Build hoặc khi thêm define `BB_CHEATS`. Thiết kế: `Docs/design/cheat-tool.md` |
+| Khoá fps, tự hạ độ phân giải trên máy yếu | `Scripts/Gameplay/Core/FrameRateBootstrap.cs`, `AdaptiveResolution.cs` (tự chạy, không cần đặt vào scene) |
 | Logic cân camera theo màn hình | `Scripts/Gameplay/Core/CameraFitter.cs` (số chỉnh ở `GameConfig` → Bố cục màn hình) |
 | Màn hình chính: hình, bố cục, nút, tab | Prefab `Prefabs/UI/MainMenuCanvas` + script `Scripts/UI/MainMenuView.cs`; hình ở `Art/UI/Menu/`; logic ở `Scripts/Menu/MenuManager.cs` |
 | Level / xu đang lưu, chuyển scene | `Scripts/Gameplay/Core/PlayerData.cs`, `SceneFlow.cs` |
@@ -104,8 +113,9 @@ Managers          LOGIC điều phối (mỗi cái một việc, xem Docs/kien-t
  ├─ GameManager    trạng thái + thắng/thua + nối các manager (composition root)
  ├─ LevelManager   nạp level          ├─ InputManager    bấm / chạm
  ├─ LaunchManager  bắn hộp + sức chứa  ├─ BoosterManager  booster
- ├─ DebugManager   autoPlay, cheat     ├─ AudioManager    âm thanh
+ ├─ DebugManager   autoPlay            ├─ AudioManager    âm thanh
  └─ CameraFitter   cân camera          └─ Theme           áp theme theo độ khó
+CheatPanel        [CheatHost + CheatPanelView + CheatPerfOverlay] – tự huỷ ở bản phát hành
 UI                [GameUI] điều phối, kéo sẵn 7 View
  ├─ HUD       OverlayCanvas [OverlayView] · HUD (GameCanvas) [HudView] · CapacityBar [CapacityBarView]
  ├─ Popups    FailPopup · SuccessPopup · Settings · OutOfCapacityPopup · BoosterBuyPopup   (tắt sẵn)
@@ -143,6 +153,8 @@ Muốn dọn: xoá cả thư mục `_Archive` trong Unity khi chắc chắn khô
 |---|---|
 | `Data/Build Level Sets` | Dựng lại `LevelSet_*.asset` từ `Data/Levels/` (khi thêm / đổi level) |
 | Inspector của mọi popup: **Xem trước / Tắt xem trước** | Bật popup tắt sẵn để xem và sửa trong Editor; lưu scene sẽ tự tắt (`PopupSaveGuard`) |
+| `Cheat/Build panel prefab`, `Cheat/Place panel in open scene` | Dựng lại prefab CheatPanel / đặt vào scene đang mở |
+| `UI/Thêm phản hồi cho mọi nút` | Gắn `UiButtonFeedback` (lún/nảy) cho mọi nút trong prefab UI |
 | (đã tắt) `Art/…`, `Setup Gameplay Scene` | Công cụ dùng một lần, đã chạy xong — xem đầu file nguồn để bật lại |
 
 Công cụ Python rip asset ở `Tools/` (`ShaderRipper`, `UnityYaml`) trỏ tới đường dẫn **cũ** (`Assets/_Ripped/...`); chỉ dùng được khi rip lại từ đầu, không dùng để sửa dự án hiện tại.

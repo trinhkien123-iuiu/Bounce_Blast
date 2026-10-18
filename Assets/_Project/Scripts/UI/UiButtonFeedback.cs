@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.UI
 {
     /// <summary>
     /// Phản hồi chung cho MỌI nút UI: lún nhỏ khi nhấn, nảy bật lên khi thả/bấm, nở nhẹ khi rê chuột (chỉ có tác dụng trên máy tính).

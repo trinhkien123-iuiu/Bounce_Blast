@@ -316,7 +316,7 @@ namespace BounceBlast.Gameplay
 
         static void AddHp(LevelModel level, BoardItemData item)
         {
-            if (item.Kind == BoardItemKind.Cube || item.Kind == BoardItemKind.CombinedCube)
+            if (BlockKinds.Of(item.Kind).IsColorTarget)   // máu khối theo màu = ngân sách bi màu đó
             {
                 level.HpByColor.TryGetValue(item.ColorCode, out int v);
                 level.HpByColor[item.ColorCode] = v + item.Hp;

@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.UI
 {
     /// <summary>Sprite/font UI gốc (Assets/_Ripped/UI) – được điền tự động bởi menu Setup.</summary>
     [CreateAssetMenu(menuName = "Bounce Blast/UI Skin")]

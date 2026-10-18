@@ -1,6 +1,8 @@
 using UnityEngine;
+using BounceBlast.Gameplay;
+using BounceBlast.UI;
 
-namespace BounceBlast.Gameplay
+namespace BounceBlast.Menu
 {
     /// <summary>
     /// Điều phối scene MenuGame (màn hình chính): hiển thị level kế tiếp / xu / tim, nghe sự kiện của <see cref="MainMenuView"/>
