@@ -20,7 +20,7 @@ namespace BounceBlast.Gameplay
             return new BlockView
             {
                 visual = CrateView.Build(parent, item, board.CellSize, cfg.crateModularPrefab, cfg.cratePrefab, parent.gameObject.layer).transform,
-                label = board.CreateLabel(parent, item, size),
+                label = board.Visuals.CreateLabel(parent, item, size),
             };
         }
 

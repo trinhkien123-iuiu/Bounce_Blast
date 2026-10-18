@@ -37,7 +37,7 @@ namespace BounceBlast.Gameplay
 
             GameObject v = Instantiate(config.tunnelPrefab, transform);
             v.name = "Visual";
-            BoardController.StripPhysics(v);
+            ModelUtil.StripPhysics(v);
             _visual = v.transform;
             Transform decoy = _visual.Find("Model/Decoy Ammo Start");
             if (decoy != null) decoy.gameObject.SetActive(false);
@@ -45,7 +45,7 @@ namespace BounceBlast.Gameplay
             if (_puff != null) _puff.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             foreach (TextMeshPro t in v.GetComponentsInChildren<TextMeshPro>(true)) t.gameObject.SetActive(false);
-            BoardController.RemoveStrayText(v.transform);
+            ModelUtil.RemoveStrayText(v.transform);
             Transform tube = _visual.Find("Model/Tunnel");
             if (tube != null) { _tube = tube.GetComponent<Renderer>(); _tubeMat = _tube.sharedMaterials.Length > RimSlot ? _tube.sharedMaterials[RimSlot] : null; }
 

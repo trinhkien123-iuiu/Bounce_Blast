@@ -1,17 +1,27 @@
-using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    // Một phần của BoardController (partial) – xem BoardController.cs.
-    /// <summary>Truy vấn cho bi và booster: khối mục tiêu, ngắm thẳng (duyệt lưới), khối lộ ra, khối tại điểm chạm.</summary>
-    public partial class BoardController
+    /// <summary>
+    /// Bi nên ngắm khối nào: khối nhận màu bi gần nhất mà đường bay thẳng không vướng khối khác (duyệt lưới),
+    /// kèm bộ nhớ đệm "khối lộ ra theo màu" chỉ dựng lại khi lưới đổi. Không sửa gì trên bàn – chỉ trả lời câu hỏi.
+    /// </summary>
+    public class BoardTargeting
     {
-        // ------------------------------------------------------------------ Truy vấn
+        readonly BoardGrid _grid;
+        readonly IReadOnlyList<BoardBlock> _blocks;
+        int _losCacheVersion = -1;
+
+        public BoardTargeting(BoardGrid grid, IReadOnlyList<BoardBlock> blocks)
+        {
+            _grid = grid;
+            _blocks = blocks;
+        }
+
         /// <summary>Khối mà bi màu này nên nhắm tới (cube cùng màu). Hòm/cột nhận bi mọi màu nhưng không phải mục tiêu.</summary>
-        static bool IsTarget(BoardBlock b, string color) => b.Accepts(color) && !b.IsFreeHit;
+        public static bool IsTarget(BoardBlock b, string color) => b.Accepts(color) && !b.IsFreeHit;
 
         public bool HasTargetFor(string color)
         {
@@ -30,8 +40,8 @@ namespace BounceBlast.Gameplay
                 if (!IsTarget(b, color)) continue;
                 RectInt r = b.Cells;
                 // chỉ nhắm khối có ít nhất 1 cạnh lộ ra ngoài
-                if (!IsExposed(b)) continue;
-                Vector2 c = CellToWorld(r);
+                if (!_grid.IsExposed(b)) continue;
+                Vector2 c = _grid.CellToWorld(r);
                 float d = (c - from).sqrMagnitude;
                 if (d < best) { best = d; point = c; }
             }
@@ -40,23 +50,20 @@ namespace BounceBlast.Gameplay
 
         readonly List<BoardBlock> _losCandidates = new List<BoardBlock>();
 
-        // Bộ nhớ đệm các khối LỘ RA theo màu. Trước đây mỗi lần một viên bi cần ngắm đều duyệt TOÀN BỘ khối (màn dày 1344 khối) và
-        // gọi IsExposed (cấp phát iterator mỗi khối) → với ~140 bi cùng nảy là điểm nóng CPU + GC. Giờ chỉ dựng lại khi lưới đổi
-        // (khối vỡ / rơi) và chỉ khi có bi hỏi.
-        int _gridVersion, _losCacheVersion = -1;
         readonly Dictionary<string, List<BoardBlock>> _losByColor = new Dictionary<string, List<BoardBlock>>();
+
         readonly List<BoardBlock> _losCrates = new List<BoardBlock>();
 
         void RefreshLosCache()
         {
-            if (_losCacheVersion == _gridVersion) return;
-            _losCacheVersion = _gridVersion;
+            if (_losCacheVersion == _grid.Version) return;
+            _losCacheVersion = _grid.Version;
             foreach (List<BoardBlock> l in _losByColor.Values) l.Clear();
             _losCrates.Clear();
             for (int i = 0; i < _blocks.Count; i++)
             {
                 BoardBlock b = _blocks[i];
-                if (b == null || b.IsDestroyed || !IsExposed(b)) continue;
+                if (b == null || b.IsDestroyed || !_grid.IsExposed(b)) continue;
                 if (b.IsFreeHit) { if (b.IsDestructible) _losCrates.Add(b); continue; }
                 if (!b.Rules.IsColorTarget) continue;
                 string key = b.ColorCode != null ? b.ColorCode.ToLowerInvariant() : "";
@@ -64,6 +71,7 @@ namespace BounceBlast.Gameplay
                 list.Add(b);
             }
         }
+
         /// <summary>
         /// Khối nhận màu này mà bi bay thẳng tới được (đường bay không vướng khối khác màu) – ngắm khi đường thông, không bẻ cong xuyên vật cản.
         /// Duyệt THẲNG trên lưới ô (3 tia song song cách nhau ~bán kính bi) thay cho Physics2D.CircleCast: đo ở màn dày (≈240 bi),
@@ -122,57 +130,20 @@ namespace BounceBlast.Gameplay
             float dist = d.magnitude;
             if (dist < 0.001f) return null;
             Vector2 dir = d / dist, perp = new Vector2(-dir.y, dir.x) * halfWidth;
-            int cols = _grid.GetLength(0), rows = _grid.GetLength(1);
-            float step = _cell * 0.4f;
-            for (float t = halfWidth * 2f; t <= dist + _cell * 0.5f; t += step)   // bỏ đoạn sát bi (khối vừa va chạm)
+            float cell = _grid.Cell;
+            float step = cell * 0.4f;
+            for (float t = halfWidth * 2f; t <= dist + cell * 0.5f; t += step)   // bỏ đoạn sát bi (khối vừa va chạm)
             {
                 Vector2 c = from + dir * t;
                 for (int ray = 0; ray < 3; ray++)
                 {
                     Vector2 p = ray == 0 ? c : (ray == 1 ? c + perp : c - perp);
-                    int x = Mathf.FloorToInt((p.x - _origin.x) / _cell), y = Mathf.FloorToInt((p.y - _origin.y) / _cell);
-                    if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
-                    BoardBlock b = _grid[x, y];
+                    BoardBlock b = _grid.BlockAtWorld(p);
                     if (b == null || b.IsDestroyed) continue;
                     return b;
                 }
             }
             return null;
-        }
-
-        bool IsExposed(BoardBlock b)
-        {
-            int cols = _grid.GetLength(0), rows = _level.BoardRows;
-            RectInt r = b.Cells;
-            if (b.Mask == null)
-            {
-                for (int x = r.xMin; x < r.xMax; x++)
-                    for (int y = r.yMin; y < r.yMax; y++)
-                        if (CellExposed(x, y, cols, rows, b)) return true;
-                return false;
-            }
-            for (int i = 0; i < b.Mask.Count; i++)
-                if (CellExposed(r.x + b.Mask[i].x, r.y + b.Mask[i].y, cols, rows, b)) return true;
-            return false;
-        }
-
-        bool CellExposed(int x, int y, int cols, int rows, BoardBlock b) =>
-            y + 1 >= rows || Free(x, y + 1, b) || x == 0 || Free(x - 1, y, b) || x + 1 >= cols || Free(x + 1, y, b);
-
-        bool Free(int x, int y, BoardBlock self) => _grid[x, y] == null || _grid[x, y] == self;
-
-        public void ClearAll()
-        {
-            // tắt ngay (Destroy chỉ chạy cuối frame) → nạp lại màn trong cùng frame không bị chồng 2 bàn
-            foreach (BoardBlock b in _blocks) if (b != null) { b.gameObject.SetActive(false); Destroy(b.gameObject); }
-            _blocks.Clear();
-        }
-
-        /// <summary>Booster búa: phá ngay khối tại điểm chạm.</summary>
-        public BoardBlock BlockAt(Vector2 world)
-        {
-            Collider2D hit = Physics2D.OverlapPoint(world);
-            return hit != null ? hit.GetComponent<BoardBlock>() : null;
         }
     }
 }

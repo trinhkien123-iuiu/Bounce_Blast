@@ -60,7 +60,7 @@ namespace BounceBlast.Gameplay
             var anchor = new GameObject("Planks").transform;
             anchor.SetParent(transform, false);
             GameObject bar = Instantiate(mid.gameObject, anchor, false);
-            BoardController.StripPhysics(bar);
+            ModelUtil.StripPhysics(bar);
             bar.transform.localPosition = Vector3.zero;
             bar.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);   // thanh dựng đứng trong mặt XY
             bar.transform.localScale = Vector3.one;

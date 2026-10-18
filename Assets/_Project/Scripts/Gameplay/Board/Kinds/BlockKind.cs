@@ -55,10 +55,10 @@ namespace BounceBlast.Gameplay
 
         /// <param name="parts">các hình chữ nhật con khi khối có hình dạng (chữ L…); null/1 phần = khối chữ nhật</param>
         public virtual BlockView Build(BoardController board, BoardItemData item, Transform parent, Vector2 size, List<RectInt> parts) =>
-            board.BuildDefaultView(item, parent, size, parts, HasLabel);
+            board.Visuals.BuildDefaultView(item, parent, size, parts, HasLabel);
 
         // ------------------------------------------------------------------ Vỡ
         /// <summary>Hiệu ứng / hệ quả khi khối vỡ (khối đã được gỡ khỏi lưới, GameObject sắp bị huỷ).</summary>
-        public virtual void OnBroken(BoardController board, BoardBlock block) => board.SpawnJellyBreak(block, perCell: false);
+        public virtual void OnBroken(BoardController board, BoardBlock block) => board.BreakFx.SpawnJellyBreak(block, perCell: false);
     }
 }

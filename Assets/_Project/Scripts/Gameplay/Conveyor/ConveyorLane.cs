@@ -53,13 +53,7 @@ namespace BounceBlast.Gameplay
         /// <summary>Còn chừng này bi thì kéo hộp kế xuống máy xay (≈ 0.2 s trước khi hộp hiện tại cạn).</summary>
         const int PreloadBalls = 4;
 
-        // Mũi tên chạy trên mặt máng: nằm chìm dưới đáy máng (sau bi), sortingOrder thấp.
-        const float ArrowZ = -1.05f;
-        // khoảng cách & tốc độ mũi tên: chỉnh trong GameConfig
-        float ArrowSpacing => _config != null ? _config.laneArrowSpacing : 1.25f;
-        float ArrowSpeed => _config != null ? _config.laneArrowSpeed : 1.5f;
-        readonly List<SpriteRenderer> _arrows = new List<SpriteRenderer>();
-        float _arrowPhase;
+        LaneArrows _arrows;   // mũi tên trôi trên mặt máng (chỉ là hình) – xem LaneArrows.cs
 
         public Vector3 DockPosition { get; private set; }
         public Quaternion DockRotation { get; set; } = Quaternion.identity;
@@ -144,62 +138,18 @@ namespace BounceBlast.Gameplay
             for (int i = 0; i < _pipe.Count; i++) if (_pipe[i] != null) _pipe[i].MoveTo(SlotPosition(i), 0.15f);
         }
 
+        /// <summary>Chiều dài đường máng (đv thế giới).</summary>
+        public float Length => _length;
+        /// <summary>Quãng đường tới góc cua đầu tiên của máng.</summary>
+        public float CornerDistance => _cum != null && _cum.Length > 1 ? _cum[1] : _length;
+
         public void CreateArrows(Sprite sprite, Color color, Vector3 scale, int sortingOrder)
         {
-            if (sprite == null || _length <= 0f) return;
-            int n = Mathf.FloorToInt(_length / ArrowSpacing);
-            for (int i = 0; i < n; i++)
-            {
-                var go = new GameObject("Arrow");
-                go.transform.SetParent(transform, false);
-                go.transform.localScale = scale;
-                var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = sprite;
-                sr.color = color;
-                _arrowColor = color;
-                sr.sortingOrder = 2; // Mũi tên nằm dưới bi (bi có sortingOrder = 100)
-                _arrows.Add(sr);
-            }
-            UpdateArrows(0f);
+            _arrows = new LaneArrows(this, _config);
+            _arrows.Create(sprite, color, scale, sortingOrder);
         }
 
-        Color _arrowColor = Color.white;
-
-        public void SetArrowColor(Color color)
-        {
-            _arrowColor = color;
-            UpdateArrows(0f);
-        }
-
-        float ArrowAlpha(float s)
-        {
-            float a = Mathf.Clamp01(s / 0.8f);
-            float corner = _cum != null && _cum.Length > 1 ? _cum[1] : _length;
-            if (s > corner)
-                a *= Mathf.Lerp(1f, 0.2f, Mathf.Clamp01((s - corner) / Mathf.Max(0.01f, _length - corner)));
-            return a;
-        }
-
-        void UpdateArrows(float dt)
-        {
-            if (_arrows.Count == 0) return;
-            _arrowPhase = Mathf.Repeat(_arrowPhase + ArrowSpeed * dt, ArrowSpacing);
-            for (int i = 0; i < _arrows.Count; i++)
-            {
-                float s = _arrowPhase + i * ArrowSpacing;
-                Transform t = _arrows[i].transform;
-                bool show = s > 0.2f && s < _length - 0.6f;
-                _arrows[i].enabled = show;
-                if (!show) continue;
-                Color c = _arrowColor;
-                c.a *= ArrowAlpha(s);
-                _arrows[i].color = c;
-                Vector3 p = EvalCenter(s);
-                Vector3 d = EvalTangent(s);
-                t.position = new Vector3(p.x, p.y, ArrowZ);
-                if (d.sqrMagnitude > 1e-6f) t.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - 90f);
-            }
-        }
+        public void SetArrowColor(Color color) => _arrows?.SetColor(color);
 
         public Vector3 EvalCenter(float s)
         {
@@ -328,7 +278,7 @@ namespace BounceBlast.Gameplay
         void Update()
         {
             float dt = Time.deltaTime;
-            UpdateArrows(dt);
+            _arrows?.Tick(dt);
 
             // 0) Máy xay trống mà hộp đầu hàng đã tới → xay luôn
             if (_docked == null && _pipe.Count > 0 && _pipe[0] != null && _ready.Contains(_pipe[0]))

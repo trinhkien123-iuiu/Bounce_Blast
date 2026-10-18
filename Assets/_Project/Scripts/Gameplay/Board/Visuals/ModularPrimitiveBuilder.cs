@@ -73,7 +73,7 @@ namespace BounceBlast.Gameplay
             inst.transform.localPosition = piece.localPosition;
             inst.transform.localRotation = piece.localRotation;
             inst.transform.localScale = piece.localScale;
-            BoardController.StripPhysics(inst);
+            ModelUtil.StripPhysics(inst);
             foreach (Transform t in inst.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = layer;
             return cellT;
         }

@@ -40,11 +40,11 @@ BoardController.Spawn ──BlockKinds.Of(Kind)──▶ BlockKind (luật của
 | `ShowsHpLabel(block)` | khi nhiều máu hoặc `HitByAnyColor` | Có hiện số máu không |
 | `HitPunch` | `0.04` | Độ nảy hình khi bị trúng |
 | `HasLabel`, `ShearMesh`, `CubeLook`, `Material(...)` | | Chi tiết hình khi dùng đường dựng mặc định (prefab cube) |
-| `Build(...)` | `board.BuildDefaultView` | Dựng hình riêng (xem `CrateKind`, `ColumnKind`) |
+| `Build(...)` | `board.Visuals.BuildDefaultView` | Dựng hình riêng (xem `CrateKind`, `ColumnKind`) |
 | `OnBroken(...)` | giọt thạch cùng màu | Hiệu ứng / hệ quả khi vỡ (hòm lộ vật bên trong, cột văng mảnh…) |
 
-`BoardController` mở sẵn cho lớp loại khối dùng: `Config`, `Colors`, `CellSize`, `CellToWorld`, `Spawn`, `DestroyBlock`,
-`CreateVisual`, `CreateLabel`, `CreateSolidVisual`, `BuildDefaultView`, `SpawnJellyBreak`, `Blocks`.
+`BoardController` mở sẵn cho lớp loại khối dùng: `Config`, `Colors`, `CellSize`, `CellToWorld`, `Spawn`, `DestroyBlock`, `Blocks`,
+`Visuals` (`BlockVisualFactory`: `CreateVisual`, `CreateLabel`, `CreateSolidVisual`, `BuildDefaultView`) và `BreakFx` (`SpawnJellyBreak`).
 
 ## 3. Các bước thêm loại mới (ví dụ: khối bom)
 
@@ -58,7 +58,7 @@ BoardController.Spawn ──BlockKinds.Of(Kind)──▶ BlockKind (luật của
        public override bool HitByAnyColor => true;          // bi nào cũng kích nổ
        public override void OnBroken(BoardController board, BoardBlock block)
        {
-           board.SpawnJellyBreak(block, perCell: false);
+           board.BreakFx.SpawnJellyBreak(block, perCell: false);
            // trừ 1 máu mọi khối kề bên (ví dụ – chưa làm trong game)
            RectInt area = block.Cells; area.xMin -= 1; area.yMin -= 1; area.xMax += 1; area.yMax += 1;
            foreach (BoardBlock n in new List<BoardBlock>(board.Blocks))

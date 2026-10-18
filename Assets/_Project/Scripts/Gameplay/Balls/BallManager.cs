@@ -83,7 +83,7 @@ namespace BounceBlast.Gameplay
 
             GameObject visual = Instantiate(Config.ballPrefab, go.transform);
             visual.name = "Visual";
-            BoardController.StripPhysics(visual);
+            ModelUtil.StripPhysics(visual);
             // Scale đều theo đường kính mesh bán cầu "Sphere" (≈1.03) – không FitVisual theo bounds
             // vì bounds gồm cả đuôi tam giác và bán cầu chỉ sâu 0.5 → bi bị kéo dẹt/méo.
             float d = Config.ballRadius * 2f;

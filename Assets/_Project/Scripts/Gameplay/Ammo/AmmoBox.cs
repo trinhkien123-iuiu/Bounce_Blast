@@ -81,9 +81,9 @@ namespace BounceBlast.Gameplay
 
             GameObject v = Instantiate(config.ammoPrefab, transform);
             v.name = "Visual";
-            BoardController.StripPhysics(v);
+            ModelUtil.StripPhysics(v);
             foreach (TextMeshPro t in v.GetComponentsInChildren<TextMeshPro>(true)) t.gameObject.SetActive(false);
-            BoardController.RemoveStrayText(v.transform);
+            ModelUtil.RemoveStrayText(v.transform);
             _visual = v.transform;
             _visual.localRotation = GridTilt;
 
@@ -350,7 +350,7 @@ namespace BounceBlast.Gameplay
             _visual.localRotation = Quaternion.Euler(pose.tiltX, 0f, 0f);
             if (_jelly != null) _jelly.transform.localScale = new Vector3(1f, pose.length, 1f);
             if (_qRenderer != null) _qRenderer.transform.localScale = new Vector3(1f, pose.length, 1f); // hộp mù theo cùng chiều dài
-            BoardController.FitVisualUniform(_visual, s * w);
+            ModelUtil.FitVisualUniform(_visual, s * w);
             if (_sink > 0f)
             {
                 float k = Mathf.SmoothStep(0f, 1f, _sink);

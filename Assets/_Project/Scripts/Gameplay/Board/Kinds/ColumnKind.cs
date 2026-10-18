@@ -60,7 +60,7 @@ namespace BounceBlast.Gameplay
         TextMeshPro CreateBadge(BoardController board, Transform parent, BoardItemData item, Vector2 size)
         {
             float d = Mathf.Min(size.x * 0.85f, size.y);  // video gốc: huy hiệu rộng hơn hẳn thân cột (~1.4 lần)
-            TextMeshPro tmp = board.CreateLabel(parent, item, new Vector2(d, d));
+            TextMeshPro tmp = board.Visuals.CreateLabel(parent, item, new Vector2(d, d));
             if (tmp == null) return null;
             tmp.transform.localPosition = new Vector3(0f, 0f, -board.CellSize * 1.1f);
             tmp.fontSize = Mathf.Clamp(d * 7.5f, 2f, 10f); // số to, lấp ~65% huy hiệu
@@ -77,7 +77,7 @@ namespace BounceBlast.Gameplay
                 disc.transform.localPosition = new Vector3(0f, 0f, 0.03f);
                 disc.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
                 disc.transform.localScale = new Vector3(d, 0.02f, d);   // mesh Cylinder: đường kính 1, cao 2
-                BoardController.StripPhysics(disc);
+                ModelUtil.StripPhysics(disc);
             }
             return tmp;
         }

@@ -20,7 +20,6 @@ namespace BounceBlast.Menu
 
         void Awake()
         {
-            Application.targetFrameRate = 60;
             Time.timeScale = 1f;
             AudioManager.Init(audioManager != null ? audioManager.gameObject : gameObject, config.sounds);
 

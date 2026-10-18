@@ -21,11 +21,11 @@ namespace BounceBlast.Gameplay
             for (int x = 0; x < r.width; x++) for (int y = 0; y < r.height; y++) full.Add(new Vector2Int(x, y));
             return new BlockView
             {
-                visual = board.CreateSolidVisual(parent, item, r, full),
-                label = board.CreateLabel(parent, item, size),
+                visual = board.Visuals.CreateSolidVisual(parent, item, r, full),
+                label = board.Visuals.CreateLabel(parent, item, size),
             };
         }
 
-        public override void OnBroken(BoardController board, BoardBlock block) => board.SpawnJellyBreak(block, perCell: true);
+        public override void OnBroken(BoardController board, BoardBlock block) => board.BreakFx.SpawnJellyBreak(block, perCell: true);
     }
 }

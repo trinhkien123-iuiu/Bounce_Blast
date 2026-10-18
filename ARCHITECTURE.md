@@ -47,7 +47,7 @@ Gốc repo: `ARCHITECTURE.md` (file này), `CODING_CONVENTION.md`, `README.md`, 
 Không đưa lên git (`.gitignore`): `Captures/` (ảnh/video tạm), `Screenshots/` (ảnh chụp kiểm thử – để NGOÀI `Assets`), `__pycache__`, cấu hình máy riêng (`.claude/settings.local.json`, `.mcp.json`), `*.csproj`/`*.sln` (Unity tự sinh).
 
 **Namespace:** Gameplay ← UI ← Menu (UI và Gameplay tham chiếu lẫn nhau qua `using`); Cheats chỉ phụ thuộc Gameplay/UI, không ai phụ thuộc Cheats ngoài `GameManager.CheatLose` (cũng bọc `#if`).
-**File lớn chia `partial`:** `BoardController` = `.cs` (dựng khối + lưới) · `.CombinedMesh.cs` · `.Visuals.cs` · `.Hits.cs` · `.Queries.cs`.
+**Bàn chơi (`Scripts/Gameplay/Board/`), mỗi lớp một việc:** `BoardController` (điều phối: dựng màn, rơi, bi trúng/khối vỡ, báo thắng) · `BoardGrid` (ô nào có khối nào) · `BoardTargeting` (bi ngắm khối nào) · `BlockVisualFactory` (dựng hình khối) · `BlockBreakFx` (hiệu ứng vỡ) · `BoardBlock` (một khối: máu, rơi, nảy) · `Kinds/` (luật riêng từng loại khối). Tiện ích prefab dùng chung: `Core/ModelUtil`. Dựng dự phòng đèn/camera UI: `Core/SceneRig`. Mũi tên máng: `Conveyor/LaneArrows`.
 **Loại khối trên bàn:** mỗi loại (gạch, khối gộp, hòm gỗ, tường, cột nhà) là một lớp trong `Scripts/Gameplay/Board/Kinds/` giữ luật + cách dựng + cách vỡ; code khác chỉ hỏi `BlockKinds.Of(kind)`. Thêm loại mới: `Docs/them-loai-khoi.md`.
 
 ---

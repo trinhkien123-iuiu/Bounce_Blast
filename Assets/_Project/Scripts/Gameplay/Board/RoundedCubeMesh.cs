@@ -6,7 +6,7 @@ namespace BounceBlast.Gameplay
     /// <summary>
     /// Mesh viên gạch 1 ô bo tròn kiểu "gối": mặt trước (-Z) phẳng, mép bo tròn mềm, 4 góc bo, thân đi vào +Z.
     /// Cùng hệ toạ độ & kích thước mặt trước với mesh gốc pCube35 (rộng X = 1, cao Y = 0.873 quanh y = 0.559, mặt trước z = -0.484)
-    /// nên thay thẳng vào CubeNew: Model vẫn xoay như cũ, <see cref="BoardController.FitVisualUniform"/> vẫn co giãn như cũ.
+    /// nên thay thẳng vào CubeNew: Model vẫn xoay như cũ, <see cref="ModelUtil.FitVisualUniform"/> vẫn co giãn như cũ.
     /// Mesh gốc chỉ 30 đỉnh (vát phẳng, góc nhọn) nên game làm lại trông vuông hơn bản gốc (4 góc trong game gốc bo tròn rõ).
     /// </summary>
     public static class RoundedCubeMesh
