@@ -35,7 +35,13 @@ namespace BounceBlast.Gameplay
         GameConfig _config;
         BallManager _balls;
         readonly List<LaneBall> _onLane = new List<LaneBall>();
-        readonly Queue<AmmoBox> _waiting = new Queue<AmmoBox>();
+        /// <summary>
+        /// ĐƯỜNG ỐNG hộp của máng, theo thứ tự bấm: [0] = hộp đang xay (hoặc sắp xay), [1..] = hàng chờ phía trên máy xay.
+        /// Hộp vào đường ống NGAY khi bấm (<see cref="Reserve"/>) và bay thẳng tới chỗ của nó → không bay chồng lên hộp đang xay.
+        /// </summary>
+        readonly List<AmmoBox> _pipe = new List<AmmoBox>();
+        readonly HashSet<AmmoBox> _ready = new HashSet<AmmoBox>();   // đầu ống đã chạm chỗ của mình
+        bool _preloaded;                                             // hộp kế đã được kéo xuống sát máy xay
         AmmoBox _docked;
         int _dockedTotal;
         int _dockedRemaining;
@@ -43,6 +49,9 @@ namespace BounceBlast.Gameplay
         int _emitSeq;
 
         float _lastSide = 1f;
+
+        /// <summary>Còn chừng này bi thì kéo hộp kế xuống máy xay (≈ 0.2 s trước khi hộp hiện tại cạn).</summary>
+        const int PreloadBalls = 4;
 
         // Mũi tên chạy trên mặt máng: nằm chìm dưới đáy máng (sau bi), sortingOrder thấp.
         const float ArrowZ = -1.05f;
@@ -65,17 +74,20 @@ namespace BounceBlast.Gameplay
             return DockPosition + dockUp * (step * (index + 1));
         }
 
+        /// <summary>Chỗ của hộp thứ <paramref name="slot"/> trong đường ống: 0 = trong máy xay, 1.. = hàng chờ.</summary>
+        Vector3 SlotPosition(int slot) => slot <= 0 ? DockPosition : WaitPosition(slot - 1);
+
         public int PendingBalls
         {
             get
             {
                 int n = _onLane.Count + _dockedRemaining;
-                foreach (AmmoBox b in _waiting) n += b.Data.Balls;
+                foreach (AmmoBox b in _pipe) if (b != null && b != _docked) n += b.Data.Balls;
                 return n;
             }
         }
 
-        public bool IsBusy => _docked != null || _waiting.Count > 0 || _onLane.Count > 0;
+        public bool IsBusy => _pipe.Count > 0 || _onLane.Count > 0;
 
         public void Init(GameConfig config, BallManager balls, Vector3[] path, Vector3 dock)
         {
@@ -88,26 +100,48 @@ namespace BounceBlast.Gameplay
             _length = _cum[path.Length - 1];
         }
 
-        public void Receive(AmmoBox box)
+        /// <summary>Hộp vừa được bấm: xếp vào cuối đường ống, trả về chỗ nó phải bay tới (máy xay nếu đang trống, không thì chỗ chờ).</summary>
+        public Vector3 Reserve(AmmoBox box)
         {
             box.DockRotation = DockRotation;
-            if (_docked == null && _waiting.Count == 0) Dock(box);
-            else
-            {
-                _waiting.Enqueue(box);
-                box.MoveTo(WaitPosition(_waiting.Count - 1), 0.15f);
-                box.ShowDocked(1f, box.Data.Balls);
-            }
+            _pipe.Add(box);
+            return SlotPosition(_pipe.Count - 1);
         }
 
-        void Dock(AmmoBox box)
+        /// <summary>Đầu ống đã tới chỗ của mình (gọi sớm, trước khi đuôi lắng): hộp ở đầu hàng thì máy xay chạy ngay.</summary>
+        public void HeadArrived(AmmoBox box) { if (box != null) _ready.Add(box); }
+
+        /// <summary>Ống đã yên vị hẳn. Hộp đang chờ thì hiện số bi còn lại.</summary>
+        public void Arrived(AmmoBox box)
+        {
+            if (box == null) return;
+            _ready.Add(box);
+            if (box != _docked) box.ShowDocked(1f, box.Data.Balls);
+        }
+
+        float BaseInterval => _config.laneBallSpacing / _config.laneSpeed;
+
+        /// <summary>Hộp vào máy xay. <paramref name="keepCadence"/>: nối tiếp hộp trước → giữ nhịp nhả bi, không nhả dồn cũng không hụt nhịp.</summary>
+        void Dock(AmmoBox box, bool keepCadence)
         {
             _docked = box;
+            _preloaded = false;
             _dockedTotal = _dockedRemaining = box.Data.Balls;
-            _sinceEmit = 999f;
+            if (!keepCadence) _sinceEmit = BaseInterval;   // viên đầu nhả ngay, viên sau theo nhịp
             box.MoveTo(DockPosition, 0.12f);
             box.ShowDocked(1f, _dockedRemaining);
             if (Crusher != null) Crusher.OnBoxEnter(_balls != null ? _balls.ColorOf(box.Data.ColorCode) : Color.white);
+        }
+
+        /// <summary>Hộp xay xong: bỏ khỏi đường ống, dồn hàng chờ xuống một chỗ.</summary>
+        void Retire()
+        {
+            AmmoBox done = _docked;
+            _docked = null;
+            _pipe.Remove(done);
+            _ready.Remove(done);
+            done.Finish();
+            for (int i = 0; i < _pipe.Count; i++) if (_pipe[i] != null) _pipe[i].MoveTo(SlotPosition(i), 0.15f);
         }
 
         public void CreateArrows(Sprite sprite, Color color, Vector3 scale, int sortingOrder)
@@ -296,12 +330,15 @@ namespace BounceBlast.Gameplay
             float dt = Time.deltaTime;
             UpdateArrows(dt);
 
-            // 1) Hộp đang đậu nhả bi tự nhiên, có phương sai nhịp nhàng (organic cadence)
+            // 0) Máy xay trống mà hộp đầu hàng đã tới → xay luôn
+            if (_docked == null && _pipe.Count > 0 && _pipe[0] != null && _ready.Contains(_pipe[0]))
+                Dock(_pipe[0], false);
+
+            // 1) Hộp đang xay nhả bi tự nhiên, có phương sai nhịp nhàng (organic cadence)
             if (_docked != null)
             {
                 _sinceEmit += dt;
-                float baseInterval = _config.laneBallSpacing / _config.laneSpeed;
-                float interval = baseInterval * (0.92f + Mathf.PerlinNoise(_emitSeq * 0.35f, Time.time * 2f) * 0.16f);
+                float interval = BaseInterval * (0.92f + Mathf.PerlinNoise(_emitSeq * 0.35f, Time.time * 2f) * 0.16f);
                 while (_dockedRemaining > 0 && _sinceEmit >= interval)
                 {
                     _sinceEmit -= interval;
@@ -309,16 +346,18 @@ namespace BounceBlast.Gameplay
                     _emitSeq++;
                     EmitBall();
                 }
+
+                // sắp hết bi → kéo hộp kế xuống sát máy xay đúng lúc hộp này cạn, để nối tiếp liền mạch
+                if (!_preloaded && _dockedRemaining > 0 && _dockedRemaining <= PreloadBalls && _pipe.Count > 1 && _pipe[1] != null)
+                {
+                    _preloaded = true;
+                    _pipe[1].MoveTo(DockPosition, Mathf.Max(0.08f, _dockedRemaining * BaseInterval));
+                }
+
                 if (_dockedRemaining <= 0)
                 {
-                    _docked.Finish();
-                    _docked = null;
-                    if (_waiting.Count > 0)
-                    {
-                        Dock(_waiting.Dequeue());
-                        int i = 0;
-                        foreach (AmmoBox w in _waiting) w.MoveTo(WaitPosition(i++), 0.15f);
-                    }
+                    Retire();
+                    if (_pipe.Count > 0 && _pipe[0] != null && _ready.Contains(_pipe[0])) Dock(_pipe[0], true);
                 }
             }
 
@@ -345,11 +384,12 @@ namespace BounceBlast.Gameplay
         public void ClearAll()
         {
             _onLane.Clear();
-            _waiting.Clear();
-            if (_docked != null) _docked.Finish();
+            foreach (AmmoBox b in _pipe) if (b != null) b.Finish();
+            _pipe.Clear();
+            _ready.Clear();
             _docked = null;
             _dockedRemaining = 0;
+            _preloaded = false;
         }
     }
 }
-

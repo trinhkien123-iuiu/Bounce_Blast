@@ -34,6 +34,9 @@ namespace BounceBlast.Gameplay
             public Vector2 levelTextMax = new Vector2(0.85f, 0.8f);
             [Tooltip("Chữ độ khó ở tab dưới badge; để trống = ẩn (Normal)")]
             public string difficultyLabel = "";
+            [Tooltip("Vùng chữ độ khó (anchor min/max): nằm gọn trong tab dưới badge")]
+            public Vector2 difficultyTextMin = new Vector2(0.22f, 0.05f);
+            public Vector2 difficultyTextMax = new Vector2(0.78f, 0.30f);
             [Tooltip("Các đối tượng CHỈ hiện ở độ khó này (vd dải nền tiền tệ theo độ khó)")]
             public GameObject[] onlyHere = new GameObject[0];
         }
@@ -92,7 +95,14 @@ namespace BounceBlast.Gameplay
             {
                 bool show = !string.IsNullOrEmpty(s.difficultyLabel);
                 difficultyText.gameObject.SetActive(show);
-                if (show) difficultyText.text = s.difficultyLabel;
+                if (show)
+                {
+                    difficultyText.text = s.difficultyLabel;
+                    RectTransform dt = difficultyText.rectTransform;
+                    dt.anchorMin = s.difficultyTextMin;
+                    dt.anchorMax = s.difficultyTextMax;
+                    dt.offsetMin = dt.offsetMax = Vector2.zero;
+                }
             }
             if (settingsIcon != null && s.settingsIcon != null) settingsIcon.sprite = s.settingsIcon;
 

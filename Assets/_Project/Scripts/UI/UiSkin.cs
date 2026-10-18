@@ -13,6 +13,7 @@ namespace BounceBlast.Gameplay
         public GameObject failPrefab;
         public GameObject settingsPrefab;
         public GameObject outOfCapacityPrefab;
+        public GameObject boosterBuyPrefab;
         public GameObject capacityBarPrefab;
 
         [Header("Font")]

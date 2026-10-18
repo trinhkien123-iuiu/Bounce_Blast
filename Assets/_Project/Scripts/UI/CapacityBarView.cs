@@ -35,10 +35,27 @@ namespace BounceBlast.Gameplay
             }
             if (label != null)
             {
+                UnsquashLabel();
                 label.color = Color.white;
                 if (fontMaterial != null && font != null) { label.font = font; label.fontSharedMaterial = fontMaterial; }
             }
             if (infiniteIcon != null) infiniteIcon.SetActive(false);
+        }
+
+        /// <summary>
+        /// Canvas của prefab ép dọc (scale y = 0.8 × x để thanh có độ dày đúng như gốc) và camera game lại ép dọc thêm
+        /// cos20 (xem CameraFitter) → chữ bị bẹp ~25%. Bù riêng cho chữ: scale y của nó = scale x / cos20 trong hệ thế giới,
+        /// để lên màn hình chữ có tỉ lệ 1:1. Đặt giá trị tuyệt đối (không nhân dồn) nên gọi nhiều lần vẫn đúng.
+        /// </summary>
+        void UnsquashLabel()
+        {
+            Transform t = label.transform, parent = t.parent;
+            if (parent == null) return;
+            Vector3 ps = parent.lossyScale;
+            if (ps.y <= 1e-6f) return;
+            Vector3 ls = t.localScale;
+            ls.y = ls.x * (ps.x / ps.y) / ViewSpace.LegacyCos;
+            t.localScale = ls;
         }
 
         /// <param name="fill01">0..1 phần sức chứa đã dùng</param>

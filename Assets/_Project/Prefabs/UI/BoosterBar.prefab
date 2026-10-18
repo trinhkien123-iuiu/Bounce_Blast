@@ -221,6 +221,7 @@ GameObject:
   - component: {fileID: 7213409873981062170}
   - component: {fileID: 7539278749108740395}
   - component: {fileID: 7642897303040587950}
+  - component: {fileID: 8381028144744451424}
   m_Layer: 0
   m_Name: Hammer
   m_TagString: Untagged
@@ -332,6 +333,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8381028144744451424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 739522966633190381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &1094410304368187571
 GameObject:
   m_ObjectHideFlags: 0
@@ -420,6 +438,7 @@ GameObject:
   - component: {fileID: 951252156913031096}
   - component: {fileID: 8282377261948319538}
   - component: {fileID: 8333753199722935418}
+  - component: {fileID: 1511369058269743508}
   m_Layer: 0
   m_Name: Capacity
   m_TagString: Untagged
@@ -531,6 +550,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1511369058269743508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1369180492252311075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &1898907263808830016
 GameObject:
   m_ObjectHideFlags: 0
@@ -1062,6 +1098,7 @@ GameObject:
   - component: {fileID: 7658907177535804280}
   - component: {fileID: 6885895648310101118}
   - component: {fileID: 5240488625240544031}
+  - component: {fileID: 1438465764352056913}
   m_Layer: 0
   m_Name: MagicHand
   m_TagString: Untagged
@@ -1172,6 +1209,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1438465764352056913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4581738394971146486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &4707190904499775601
 GameObject:
   m_ObjectHideFlags: 0
@@ -1368,6 +1422,24 @@ MonoBehaviour:
     count: {fileID: 5378192449578999301}
     badgeAdd: {fileID: 7910721867393564773}
     warnArrow: {fileID: 8942795509425844370}
+  normal:
+    magicHand: {fileID: 0}
+    hammer: {fileID: 0}
+    shuffle: {fileID: 0}
+    capacity: {fileID: 0}
+    number: {fileID: 0}
+  hard:
+    magicHand: {fileID: 0}
+    hammer: {fileID: 0}
+    shuffle: {fileID: 0}
+    capacity: {fileID: 0}
+    number: {fileID: 0}
+  superHard:
+    magicHand: {fileID: 0}
+    hammer: {fileID: 0}
+    shuffle: {fileID: 0}
+    capacity: {fileID: 0}
+    number: {fileID: 0}
 --- !u!1 &5883008701904162366
 GameObject:
   m_ObjectHideFlags: 0
@@ -1589,6 +1661,7 @@ GameObject:
   - component: {fileID: 5151592035623799302}
   - component: {fileID: 4008551051805028132}
   - component: {fileID: 3791579809437683600}
+  - component: {fileID: 5546901472410399512}
   m_Layer: 0
   m_Name: Shuffle
   m_TagString: Untagged
@@ -1699,6 +1772,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5546901472410399512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7174328373341682467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &7567001560777628432
 GameObject:
   m_ObjectHideFlags: 0

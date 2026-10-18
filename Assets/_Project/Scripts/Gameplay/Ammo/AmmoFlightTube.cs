@@ -61,6 +61,13 @@ namespace BounceBlast.Gameplay
             return tube;
         }
 
+        /// <summary>Dựng sẵn mesh gắn xương (cache dùng chung) lúc nạp level để lần bấm hộp đầu tiên không bị khựng trên máy yếu.</summary>
+        public static void Prewarm(Renderer source)
+        {
+            var mf = source != null ? source.GetComponent<MeshFilter>() : null;
+            if (mf != null && mf.sharedMesh != null) GetSkinned(mf.sharedMesh);
+        }
+
         static Mesh GetSkinned(Mesh src)
         {
             if (SkinnedCache.TryGetValue(src, out Mesh m) && m != null) return m;
@@ -198,7 +205,8 @@ namespace BounceBlast.Gameplay
         readonly Vector3[] _pos = new Vector3[Bones];
 
         /// <summary>Uốn thân theo quỹ đạo từ tail tới head; bề ngang = width (đơn vị world), nội suy góc xoay startRot -> endRot.</summary>
-        public void Build(float tail, float head, float width, Quaternion startRot, Quaternion endRot)
+        /// <param name="toEnd">0..1: kéo góc xoay của MỌI xương về endRot (cuối chuyến bay = 1 → khớp đúng dáng thanh đậu <see cref="PoseStraight"/>, không còn bước nhảy lúc chuyển dáng)</param>
+        public void Build(float tail, float head, float width, Quaternion startRot, Quaternion endRot, float toEnd = 0f)
         {
             if (_bones == null) return;
             if (head - tail < 1e-3f) head = tail + 1e-3f;
@@ -217,6 +225,7 @@ namespace BounceBlast.Gameplay
                 t.Normalize();
                 float u = Mathf.Clamp01((Mathf.Lerp(tail, head, i / (float)(Bones - 1))) / totalLen);
                 Quaternion rot = Quaternion.Slerp(startRot, endRot, u);
+                if (toEnd > 0f) rot = Quaternion.Slerp(rot, endRot, toEnd);
                 Vector3 targetFwd = rot * Vector3.forward;
                 Vector3 fwd = targetFwd - t * Vector3.Dot(targetFwd, t);
                 if (fwd.sqrMagnitude < 1e-6f) fwd = rot * Vector3.forward;
@@ -231,17 +240,45 @@ namespace BounceBlast.Gameplay
         }
 
         /// <summary>Thân đậu ở máy xay: đáy ở bottom, cao height, xoay khớp theo góc nghiêng của máy xay.</summary>
+        /// <summary>
+        /// Chuyến bay (Build) đi ĐẦU TRƯỚC: xương 11 dẫn đầu nên cuối chuyến bay xương 11 nằm ở ĐÁY máy xay, xương 0 ở trên.
+        /// Thanh đậu phải đặt cùng chiều đó, nếu không lúc chuyển từ bay sang đậu thân hộp bị lật đầu-đuôi (chỗ "giật" khi chui vào máy xay).
+        /// </summary>
+        public static bool HeadAtBottom = true;
+
         public void PoseStraight(Vector3 bottom, float height, float width, Quaternion rotation)
         {
             if (_bones == null) return;
             Vector3 up = rotation * Vector3.up;
             Vector3 fwd = rotation * Vector3.forward;
             float s = width / Mathf.Max(1e-4f, _cross);
+            // bone i ở vị trí i/(Bones-1) tính từ ĐUÔI (trên) xuống ĐẦU (đáy), xương hướng từ đuôi tới đầu như lúc bay
+            Quaternion rot = HeadAtBottom ? Quaternion.LookRotation(fwd, -up) : Quaternion.LookRotation(fwd, up);
             for (int i = 0; i < Bones; i++)
             {
-                _pos[i] = bottom + up * (height * i / (Bones - 1));
-                _bones[i].SetPositionAndRotation(_pos[i], Quaternion.LookRotation(fwd, up));
+                float f = HeadAtBottom ? (Bones - 1 - i) : i;
+                _pos[i] = bottom + up * (height * f / (Bones - 1));
+                _bones[i].SetPositionAndRotation(_pos[i], rot);
                 _bones[i].localScale = new Vector3(s, s, s);
+            }
+        }
+
+        /// <summary>
+        /// Pha lắng cuối chuyến bay: kéo từng xương (vị trí + góc xoay) từ dáng uốn theo quỹ đạo về ĐÚNG dáng thanh đậu của
+        /// <see cref="PoseStraight"/> theo hệ số <paramref name="blend"/> (0..1). Blend = 1 thì hai dáng trùng khít → chuyển sang
+        /// thanh đậu không còn bước nhảy (đoạn thẳng cuối của quỹ đạo có thể ngắn hơn chiều dài thanh đậu nên không thể tin vào quỹ đạo).
+        /// </summary>
+        public void BlendToStraight(Vector3 bottom, float height, Quaternion rotation, float blend)
+        {
+            if (_bones == null || blend <= 0f) return;
+            Vector3 up = rotation * Vector3.up;
+            Vector3 fwd = rotation * Vector3.forward;
+            Quaternion rot = HeadAtBottom ? Quaternion.LookRotation(fwd, -up) : Quaternion.LookRotation(fwd, up);
+            for (int i = 0; i < Bones; i++)
+            {
+                float f = HeadAtBottom ? (Bones - 1 - i) : i;
+                Vector3 target = bottom + up * (height * f / (Bones - 1));
+                _bones[i].SetPositionAndRotation(Vector3.Lerp(_bones[i].position, target, blend), Quaternion.Slerp(_bones[i].rotation, rot, blend));
             }
         }
 

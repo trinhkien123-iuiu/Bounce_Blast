@@ -44,13 +44,12 @@ namespace BounceBlast.Gameplay
         }
         Renderer _jelly;
         GameObject _qmark;
-        GameObject _ice;
+        IceBlockerView _ice;
         Transform _coverT;
         Vector3 _capLocal;          // tâm mặt nắp (đầu cột hướng về camera) trong toạ độ mesh của jelly
         bool _hasCap;
         Camera _cam;
         float _coverBlend, _coverBlendTarget;
-        TextMeshPro _iceLabel;
         float _cell;
         float _scaleNow;
         float _scaleTarget;
@@ -98,6 +97,8 @@ namespace BounceBlast.Gameplay
             if (ammoLayer >= 0) foreach (Transform t in GetComponentsInChildren<Transform>(true)) t.gameObject.layer = ammoLayer;
 
             ComputeCapPoint();
+            AmmoFlightTube.Prewarm(_jelly);   // mesh gắn xương dựng sẵn → lần bay đầu không khựng
+            EnsureDockLabel(); _dockLabel.gameObject.SetActive(false);
             if (data.IceHits > 0) CreateIce();
             if (data.Door > 0) CreateCover();
             ApplyAppearance();
@@ -108,8 +109,9 @@ namespace BounceBlast.Gameplay
         }
 
         /// <summary>
-        /// Cửa kính 2 cánh như cửa thang máy (BlockerCover gốc: blend shape 0 = đóng, 90 = mở – 2 nửa trượt sang 2 bên).
-        /// Dựng lại thành 2 tấm phẳng khít đúng miệng hố (cùng bo góc), vật liệu "Cover" của prefab gốc AmmunationBlockerCover.
+        /// Cửa kính 2 cánh (BlockerCover gốc). Dùng NGUYÊN node "Cover" của prefab AmmunationBlockerCover: SkinnedMeshRenderer có
+        /// blend shape 0 (0 = đóng khít miệng hố, 90 = 2 cánh trượt vào 2 bên và biến mất), vật liệu Cover (vạch sáng chéo + khe giữa).
+        /// Code chỉ đặt vị trí/cỡ theo miệng hố và đẩy trọng số blend shape (<see cref="ApplyCover"/>).
         /// </summary>
         void CreateCover()
         {
@@ -118,29 +120,26 @@ namespace BounceBlast.Gameplay
             _coverT = root.transform;
             var pf = _config != null ? _config.ammoCoverPrefab : null; // GameConfig.ammoCoverPrefab
             Transform src = pf != null ? pf.transform.Find("Cover") : null;
-            _coverMat = src != null ? src.GetComponent<Renderer>().sharedMaterial : null;
+            if (src != null)
+            {
+                GameObject inst = Instantiate(src.gameObject, _coverT, false);
+                inst.name = "Cover";
+                inst.SetActive(true);
+                _coverSmr = inst.GetComponent<SkinnedMeshRenderer>();
+                if (_coverSmr != null)
+                {
+                    _coverSmr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    _coverSmr.updateWhenOffscreen = true;
+                }
+                int ammoLayer = LayerMask.NameToLayer("Ammunation");
+                if (ammoLayer >= 0) foreach (Transform t in inst.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = ammoLayer;
+            }
             _coverBlend = _coverBlendTarget = Data.DoorClosed ? 0f : 90f;
             _doorSink = Data.DoorClosed ? 1f : 0f;
         }
 
-        Material _coverMat;
+        SkinnedMeshRenderer _coverSmr;
         float _doorSink;                 // 0..1, nội suy theo trạng thái cửa
-        Transform _doorL, _doorR, _doorBack;
-
-        /// <summary>Tấm lót: hình chữ nhật bo đủ 4 góc (DoorHalf chỉ bo 1 phía).</summary>
-        static Mesh MirrorRound(Mesh src, float hw, float hh, float r)
-        {
-            var pts = new System.Collections.Generic.List<Vector2>();
-            void C(Vector2 c0, float sx, float sy, float start)
-            { Vector2 c = c0 + new Vector2(sx * r, sy * r); for (int i = 0; i <= 5; i++) { float a = (start + 18f * i) * Mathf.Deg2Rad; pts.Add(c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * r); } }
-            C(new Vector2(hw, -hh), -1f, 1f, 270f); C(new Vector2(hw, hh), -1f, -1f, 0f); C(new Vector2(-hw, hh), 1f, -1f, 90f); C(new Vector2(-hw, -hh), 1f, 1f, 180f);
-            var v = new System.Collections.Generic.List<Vector3> { Vector3.zero }; var t = new System.Collections.Generic.List<int>();
-            foreach (Vector2 p in pts) v.Add(p);
-            for (int i = 0; i < pts.Count; i++) { int a = 1 + i, b = 1 + (i + 1) % pts.Count; t.Add(0); t.Add(b); t.Add(a); t.Add(0); t.Add(a); t.Add(b); }
-            var m = new Mesh { name = "DoorBack" }; m.SetVertices(v);
-            var n = new System.Collections.Generic.List<Vector3>(); for (int i = 0; i < v.Count; i++) n.Add(Vector3.back);
-            m.SetNormals(n); m.SetTriangles(t, 0); m.RecalculateBounds(); return m;
-        }
 
         /// <summary>Mỗi lần bắn 1 hộp bất kỳ: cửa đảo trạng thái (gốc BlockerCover.OnAmmoUsed).</summary>
         public void ToggleDoor()
@@ -151,74 +150,28 @@ namespace BounceBlast.Gameplay
             _wobble = 1f;
         }
 
-        /// <summary>Đặt 2 cánh cửa phẳng trên miệng hố (toạ độ world của tâm, kích thước, bán kính bo góc).</summary>
+        const float CoverMeshSize = 1.6314f; // bề rộng mesh Cover gốc ở scale 1 (đóng): bounds prefab 2.06 / scale node 1.2627
+
+        /// <summary>Đặt cửa lên miệng hố: tâm world, kích thước ô hố (bán kính bo góc không dùng – mesh gốc đã bo).</summary>
         public void SetCoverPlacement(Vector3 worldCenter, Vector2 size, float radius)
         {
-            if (_coverT == null) return;
+            if (_coverT == null || _coverSmr == null) return;
             _coverT.SetPositionAndRotation(worldCenter, Quaternion.identity);
             _coverT.localScale = Vector3.one;
-            float hw = size.x * 0.5f, hh = size.y * 0.5f, gap = size.x * 0.006f;
-            // tấm lót sáng sau 2 cánh: khe giữa 2 cánh hiện vạch sáng mảnh như gốc (không lộ màu hộp)
-            _doorBack = DoorHalf("DoorBack", new Vector3(0f, 0f, 0.003f), -hw, hw, -hh, hh, radius, true);
-            _doorBack.GetComponent<MeshFilter>().sharedMesh = MirrorRound(_doorBack.GetComponent<MeshFilter>().sharedMesh, hw, hh, radius);
-            if (_coverMat != null)
-            {
-                var light = new Material(_coverMat) { name = "DoorGap" };
-                if (light.HasProperty("_BaseColor")) light.SetColor("_BaseColor", Color.Lerp(_coverMat.GetColor("_BaseColor"), Color.white, 0.6f));
-                _doorBack.GetComponent<MeshRenderer>().sharedMaterial = light;
-            }
-            // pivot mỗi cánh ở mép ngoài → mở = co bề ngang về phía tường
-            _doorL = DoorHalf("DoorL", new Vector3(-hw, 0f, 0f), 0f, hw - gap, -hh, hh, radius, true);
-            _doorR = DoorHalf("DoorR", new Vector3(hw, 0f, 0f), -(hw - gap), 0f, -hh, hh, radius, false);
+            Transform c = _coverSmr.transform;
+            c.localRotation = Quaternion.Euler(-90f, 0f, 0f);          // mesh gốc nằm trên mặt XZ → dựng về mặt XY hướng camera
+            c.localScale = Vector3.one * (size.x / CoverMeshSize * 1.03f); // +3%: che hẳn viền màu hộp phía sau
+            c.localPosition = Vector3.zero;
             ApplyCover();
-        }
-
-        Transform DoorHalf(string name, Vector3 pivot, float x0, float x1, float y0, float y1, float r, bool roundLeft)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(_coverT, false);
-            go.transform.localPosition = pivot;
-            var pts = new System.Collections.Generic.List<Vector2>();
-            void Corner(Vector2 c0, float rr, float sx, float sy, float start)
-            {
-                if (rr <= 0f) { pts.Add(c0); return; }
-                Vector2 c = c0 + new Vector2(sx * rr, sy * rr);
-                for (int i = 0; i <= 5; i++) { float a = (start + 18f * i) * Mathf.Deg2Rad; pts.Add(c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * rr); }
-            }
-            float rl = roundLeft ? r : 0f, rr2 = roundLeft ? 0f : r;
-            Corner(new Vector2(x1, y0), rr2, -1f, 1f, 270f);
-            Corner(new Vector2(x1, y1), rr2, -1f, -1f, 0f);
-            Corner(new Vector2(x0, y1), rl, 1f, -1f, 90f);
-            Corner(new Vector2(x0, y0), rl, 1f, 1f, 180f);
-            var v = new System.Collections.Generic.List<Vector3>(); var t = new System.Collections.Generic.List<int>();
-            var uv = new System.Collections.Generic.List<Vector2>();
-            Vector2 cen = Vector2.zero; foreach (Vector2 p in pts) cen += p; cen /= pts.Count;
-            v.Add(cen); foreach (Vector2 p in pts) v.Add(p);
-            for (int i = 0; i < v.Count; i++) uv.Add(Vector2.zero);
-            for (int i = 0; i < pts.Count; i++) { int a = 1 + i, b = 1 + (i + 1) % pts.Count; t.Add(0); t.Add(b); t.Add(a); t.Add(0); t.Add(a); t.Add(b); }
-            var m = new Mesh { name = "DoorHalf" };
-            m.SetVertices(v); m.SetUVs(0, uv);
-            var n = new System.Collections.Generic.List<Vector3>(); for (int i = 0; i < v.Count; i++) n.Add(Vector3.back);
-            m.SetNormals(n); m.SetTriangles(t, 0); m.RecalculateBounds();
-            go.AddComponent<MeshFilter>().sharedMesh = m;
-            var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = _coverMat;
-            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            int ammoLayer = LayerMask.NameToLayer("Ammunation");
-            if (ammoLayer >= 0) go.layer = ammoLayer;
-            return go.transform;
+            Bounds b = _coverSmr.bounds;                                // căn tâm hình thật vào tâm hố
+            c.position += new Vector3(worldCenter.x - b.center.x, worldCenter.y - b.center.y, 0f);
         }
 
         void ApplyCover()
         {
-            if (_doorL == null) return;
-            float open = Mathf.SmoothStep(0f, 1f, _coverBlend / 90f);
-            float k = Mathf.Max(0.001f, 1f - open);
-            _doorL.localScale = new Vector3(k, 1f, 1f);
-            _doorR.localScale = new Vector3(k, 1f, 1f);
-            _doorL.gameObject.SetActive(open < 0.999f);
-            _doorR.gameObject.SetActive(open < 0.999f);
-            if (_doorBack != null) _doorBack.gameObject.SetActive(open < 0.05f);
+            if (_coverSmr == null) return;
+            _coverSmr.SetBlendShapeWeight(0, Mathf.Clamp(_coverBlend, 0f, 100f));
+            _coverSmr.enabled = _coverBlend < 89f;
         }
 
         /// <summary>Tâm mặt nắp của cột jelly: trung bình các đỉnh ở đầu cột (trục dài nhất của mesh) quay về phía camera.</summary>
@@ -269,25 +222,11 @@ namespace BounceBlast.Gameplay
             _visual.position += d;
         }
 
+        /// <summary>Băng (/ice-N): dùng nguyên "Ice Model" có sẵn trong prefab gốc – xem <see cref="IceBlockerView"/>.</summary>
         void CreateIce()
         {
-            if (_jelly == null) return;
-            _ice = Instantiate(_jelly.gameObject, _jelly.transform.parent);
-            _ice.name = "Ice";
-            _ice.transform.localScale = _jelly.transform.localScale * 1.16f;
-            Renderer r = _ice.GetComponent<Renderer>();
-            if (_config.iceMaterial != null) r.sharedMaterial = _config.iceMaterial;
-
-            var labelGo = new GameObject("IceCount");
-            labelGo.transform.SetParent(transform, false);
-            labelGo.transform.localPosition = new Vector3(0f, 0f, -_cell * 0.7f);
-            _iceLabel = labelGo.AddComponent<TextMeshPro>();
-            if (_config.worldFont != null) _iceLabel.font = _config.worldFont;
-            _iceLabel.alignment = TextAlignmentOptions.Center;
-            _iceLabel.fontSize = _cell * 3.2f;
-            _iceLabel.rectTransform.sizeDelta = new Vector2(_cell, _cell);
-            _iceLabel.sortingOrder = 6;
-            UpdateIce();
+            _ice = IceBlockerView.Attach(_visual, Data.IceHits);
+            if (_ice != null) _ice.Show(Data.IceHits);
         }
 
         void ApplyAppearance()
@@ -327,26 +266,14 @@ namespace BounceBlast.Gameplay
             AudioManager.Play(Sfx.QmarkReveal);
         }
 
-        /// <summary>Hộp kề (trên/dưới/trái/phải) vừa được bắn → băng nứt thêm 1 nấc.</summary>
+        /// <summary>Hộp kề (trên/dưới/trái/phải) vừa được bắn → băng nứt thêm 1 nấc (hình: <see cref="IceBlockerView"/>).</summary>
         public void CrackIce()
         {
             if (Data.IceHits <= 0) return;
             Data.IceHits--;
             _wobble = 1f;
-            UpdateIce();
-            if (Data.IceHits <= 0)
-            {
-                Vfx.Spawn(_config.ammoLaunchVfx, transform.position, new Color(0.7f, 0.9f, 1f), _cell);
-                AudioManager.Play(Sfx.IceBreak);
-                if (_ice != null) Destroy(_ice);
-                if (_iceLabel != null) Destroy(_iceLabel.gameObject);
-            }
-            else AudioManager.Play(Sfx.IceCrack);
-        }
-
-        void UpdateIce()
-        {
-            if (_iceLabel != null) _iceLabel.SetText("{0}", Data.IceHits);
+            if (_ice != null) _ice.Crack(Data.IceHits);
+            AudioManager.Play(Data.IceHits <= 0 ? Sfx.IceBreak : Sfx.IceCrack);
         }
 
         /// <summary>
@@ -473,84 +400,68 @@ namespace BounceBlast.Gameplay
             if (_jellyFx != null) _jellyFx.ResetNow();
             _press = _pressTarget = 0f;
             _hover = false;
-            StopAllCoroutines(); _move = null;
+            if (!_holdingFlight) { StopAllCoroutines(); _move = null; }   // đang dừng giữa chuyến bay (hết sức chứa) thì để nó bay tiếp
             if (_coverT != null) Destroy(_coverT.gameObject);
             _tint = 1f;
             _sink = _sinkTarget = 0f;
             ApplyTint();
-            if (_iceLabel != null) Destroy(_iceLabel.gameObject);
         }
 
-        bool _hover;
+        bool _hover;                 // đang dừng giữa chuyến bay (hết sức chứa): Update không đụng tới hình
+        bool _holdingFlight;         // chuyến bay đang bị giữ ở tiến độ _holdU
+        bool _flightReleased;
+        float _holdU;
+        Action _doneAfterHold;
+
+        /// <summary>Máng đã chọn cho hộp đang dừng giữa chuyến bay (Send dùng lại đúng máng này khi bay tiếp).</summary>
+        public ConveyorLane HeldLane { get; set; }
+        public bool IsHoldingFlight => _holdingFlight;
 
         /// <summary>
-        /// Video gốc (lose_coche): bấm hộp làm vượt sức chứa → hộp bật khỏi ô, kéo dài thành "thanh" chéo và LƠ LỬNG giữa không trung
-        /// trong lúc hiện Out Of Capacity; chọn Play On thì hộp bay tiếp lên máng (Launch), Give Up thì thua.
+        /// Bấm hộp làm vượt sức chứa (video gốc lose_coche): hộp chạy ĐÚNG hoạt ảnh bay lên máng như lúc chơi bình thường
+        /// (cùng ống thạch, cùng quỹ đạo, cùng chiều) rồi DỪNG giữa chừng ở tiến độ <paramref name="holdU"/> trong lúc hiện
+        /// Out Of Capacity. Chọn Play On → <see cref="FlyTo"/> thả giữ, hộp bay tiếp từ chỗ đó; Give Up → hộp đứng yên (đã dừng).
         /// </summary>
-        public void Hover()
+        public void HoldFlightAt(Vector3 target, Quaternion dockRotation, float dockWidth, float duration, float holdU)
         {
-            if (_hover || IsLaunched) return;
+            if (_hover || IsLaunched || _holdingFlight) return;
             _hover = true;
             _press = _pressTarget = 0f;
             if (_jellyFx != null) _jellyFx.ResetNow();
             if (_coverT != null) Destroy(_coverT.gameObject);
             _tint = 1f; _sink = _sinkTarget = 0f;
             ApplyTint();
-            StartCoroutine(HoverRoutine());
+            DockRotation = dockRotation;
+            DockWidth = dockWidth;
+            _holdingFlight = true;
+            _flightReleased = false;
+            _holdU = Mathf.Clamp(holdU, 0.02f, 0.95f);
+            _move = StartCoroutine(FlyRoutine(target, duration, null));
         }
 
-        public void StopHover() { _hover = false; }
-
-        /// <summary>
-        /// Lơ lửng như video gốc (lose_coche f528–540): hộp thành ỐNG THẠCH dày đúng bề ngang hộp (cùng thân gắn xương với lúc bay,
-        /// không kéo giãn mesh hộp → không bị bẹp/que mảnh), trồi khỏi hố rồi ngả chéo sang phải ~28°, dài ~3 bề ngang,
-        /// đuôi rời hẳn miệng hố; bật nhẹ kiểu thạch rồi đứng yên chờ Out Of Capacity.
-        /// </summary>
-        IEnumerator HoverRoutine()
+        /// <param name="done">gọi khi ống đã yên vị hẳn (sau khi lò xo đuôi lắng)</param>
+        /// <param name="headArrived">gọi sớm hơn: ngay khi ĐẦU ống chạm máy xay (tiến độ <see cref="HeadArriveU"/>) – để máy xay chạy luôn, không đợi đuôi lắng</param>
+        public void FlyTo(Vector3 target, float duration, Action done, Action headArrived = null)
         {
-            if (_jelly == null) yield break;
-            _jelly.GetPropertyBlock(_mpb);
-            if (_body != null) Destroy(_body.gameObject);
-            AmmoFlightTube tube = _body = AmmoFlightTube.Create(_jelly, _mpb);
-            _flying = true; // PoseDocked không đụng vào
-            _visual.gameObject.SetActive(false);
-
-            float sBox = _cell * _config.ammoActiveScale;
-            // nổi ra trước mặt khay & thanh Capacity (camera ortho nhìn thẳng: đổi z không đổi chỗ trên màn hình)
-            Vector3 start = transform.position; start.z = -2.5f;
-            Vector3 exit = start + Vector3.up * (_cell * 0.45f);
-            float hoverAngle = _config.hoverAngle;
-            Vector3 dir = new Vector3(Mathf.Sin(hoverAngle * Mathf.Deg2Rad), Mathf.Cos(hoverAngle * Mathf.Deg2Rad), 0f);
-            tube.SetPath(new[] { start, exit, exit + dir * (_cell * 5f) }, sBox * 1.3f);
-
-            float h0 = sBox * 0.9f, len = sBox * _config.hoverLength;
-            float tailEnd = _cell * 0.45f + _cell * 0.55f;        // đuôi qua khỏi khúc gập, lơ lửng trên miệng hố
-            float t = 0f;
-            float Dur = Mathf.Max(0.05f, _config.hoverTime);
-            while (_hover)
+            _headArrived = headArrived;
+            if (_holdingFlight)    // đang dừng giữa chuyến bay → thả giữ, bay tiếp, xong thì gọi done
             {
-                // đầu vọt ra trước, đuôi theo sau; ease-out-back cho cú bật kiểu thạch
-                float u = Mathf.Clamp01(t / Dur);
-                float back = 1f + 2.2f * Mathf.Pow(u - 1f, 3f) + 1.2f * Mathf.Pow(u - 1f, 2f);
-                float uh = Mathf.Clamp01(u * 1.25f);
-                float head = Mathf.Lerp(h0, tailEnd + len, 1f - Mathf.Pow(1f - uh, 3f));
-                float tail = Mathf.Lerp(0f, tailEnd, back);
-                tail = Mathf.Clamp(tail, 0f, head - h0 * 0.8f);
-                float stretch = (head - tail) / len;
-                float w = sBox * Mathf.Clamp(Mathf.Pow(1f / Mathf.Max(0.3f, stretch), 0.25f), 0.9f, 1.1f);
-                tube.Build(tail, head, w, GridTilt, Quaternion.identity);
-                if (u >= 1f) break;
-                yield return null;
-                t += Mathf.Min(Time.unscaledDeltaTime, 0.05f);
+                _doneAfterHold = done;
+                _flightReleased = true;
+                return;
             }
-            _flying = false;
-        }
-
-        public void FlyTo(Vector3 target, float duration, Action done)
-        {
             if (_move != null) StopCoroutine(_move);
             _move = StartCoroutine(FlyRoutine(target, duration, done));
         }
+
+        /// <summary>Tiến độ chuyến bay mà tại đó đầu ống coi như đã vào máy xay (easing phóng nhanh: ≈ 0.8 → đầu đã ~98% quãng đường).</summary>
+        const float HeadArriveU = 0.8f;
+        Action _headArrived;
+        Vector3 _flightTarget;   // chỗ đậu của chuyến bay hiện tại – nhãn số bi neo vào đây khi ống còn đang bay
+        bool _hasPendingMove;
+        Vector3 _pendingMoveTarget;
+        float _pendingMoveDuration;
+        bool _fractionSet;   // đã có ai đặt độ cao thanh đậu (máy xay đã bắt đầu xay khi ống còn đang lắng) → cuối chuyến bay đừng đặt lại 1
 
         /// <summary>
         /// Video gốc: hộp bay lên máng như một ỐNG THẠCH DẺO – đầu đi trước theo quỹ đạo (lên khỏi hố → chéo tới trên máng
@@ -573,6 +484,8 @@ namespace BounceBlast.Gameplay
             if (_body != null) Destroy(_body.gameObject);
             AmmoFlightTube tube = _body = AmmoFlightTube.Create(_jelly, _mpb);
             _flying = true;
+            _fractionSet = false;
+            bool headFired = false;
             tube.SetPath(new[]
             {
                 start,
@@ -588,11 +501,19 @@ namespace BounceBlast.Gameplay
             // ngắn & phình, bật lại rồi yên. Bán kính giữ thể tích: r ~ sqrt(dài nghỉ / dài hiện tại).
             float total = tube.Length, h0 = sBox * 0.9f;
             const float Anticip = 0.035f, TailHold = 0.05f, K = 300f, Damp = 0.45f;
+            // Pha LẮNG bắt đầu từ lúc đầu ống còn đang tiến vào (u = 0.6) và xong chỉ 0.1 s sau khi hết chuyến bay: ống được kéo MƯỢT về
+            // đúng dáng + cỡ thanh đậu (khớp miệng máy xay) NGAY trong lúc máy xay bắt đầu chạy, thay vì còn nghiêng/phình ~0.4 s sau đó.
+            // Lò xo tích phân bước cố định 1/120 s: không phụ thuộc fps máy.
+            const float SettleStartU = 0.6f, SettleTail = 0.1f, Sub = 1f / 120f;
             float c = 2f * Mathf.Sqrt(K) * Damp;
-            float tail = 0f, tailV = 0f, time = 0f, flyEnd = Anticip + duration;
+            float tail = 0f, tailV = 0f, time = 0f, flyEnd = Anticip + duration, acc = 0f;
+            float restTail = total - DockLen;
+            _flightTarget = target;
             while (true)
             {
                 float dt = Mathf.Min(Time.deltaTime, 0.05f);
+                // dừng giữa chuyến bay (hết sức chứa): thời gian của hoạt ảnh đứng yên → ống giữ nguyên dáng đang có
+                if (_holdingFlight && !_flightReleased && time >= Anticip + _holdU * duration) dt = 0f;
                 float head, rest;
                 if (time < Anticip)
                 {
@@ -609,19 +530,42 @@ namespace BounceBlast.Gameplay
                     // đuôi: lò xo hướng về (đầu - dài nghỉ), kẹt trong hố một nhịp đầu
                     if (time - Anticip > TailHold * duration)
                     {
-                        float acc = K * ((head - rest) - tail) - c * tailV;
-                        tailV += acc * dt;
-                        tail += tailV * dt;
+                        acc += dt;
+                        while (acc >= Sub)
+                        {
+                            float a = K * ((head - rest) - tail) - c * tailV;
+                            tailV += a * Sub;
+                            tail += tailV * Sub;
+                            acc -= Sub;
+                        }
                     }
                     tail = Mathf.Clamp(tail, 0f, head - 0.25f * rest);
                 }
+                float settleStart = Anticip + SettleStartU * duration;
+                float settle = time <= settleStart ? 0f : Mathf.Clamp01((time - settleStart) / (flyEnd + SettleTail - settleStart));
+                float sm = settle * settle * (3f - 2f * settle);
+                if (settle > 0f) { head = Mathf.Lerp(head, total, sm); tail = Mathf.Lerp(tail, restTail, sm); }
+                if (!headFired && time >= Anticip + HeadArriveU * duration)
+                {
+                    headFired = true;
+                    Action ha = _headArrived; _headArrived = null;
+                    ha?.Invoke();
+                }
                 float len = head - tail;
-                float r0 = Mathf.Lerp(sBox * 0.5f, DockR, Mathf.Clamp01((time - Anticip) / duration) * Mathf.Clamp01((time - Anticip) / duration));
+                float p01 = Mathf.Clamp01((time - Anticip) / duration);
+                float r0 = Mathf.Lerp(sBox * 0.5f, DockR, p01 * p01);
                 float r = r0 * Mathf.Clamp(Mathf.Pow(rest / Mathf.Max(0.05f, len), 0.25f), 0.85f, 1.12f); // bề ngang gần như giữ nguyên, chỉ phình/thon nhẹ khi nén/giãn
-                tube.Build(tail, head, r * 2f, GridTilt, DockRotation);
-                transform.position = tube.PointAt(tail + len * 0.5f);
-                bool settled = time >= flyEnd && Mathf.Abs(tail - (total - DockLen)) < 0.03f && Mathf.Abs(tailV) < 0.4f;
-                if (settled || time > flyEnd + 0.35f) break;
+                if (settle > 0f) r = Mathf.Lerp(r, DockR, sm);
+                float toEnd = Mathf.Max(Mathf.SmoothStep(0.6f, 1f, p01) * 0.8f, sm);
+                tube.Build(tail, head, r * 2f, GridTilt, DockRotation, toEnd);
+                if (settle > 0f)
+                {
+                    float h = DockLen * (_fractionSet ? _dockFraction : 1f);
+                    tube.BlendToStraight(target - dockUp * DockBottom, Mathf.Max(0.03f, h), DockRotation, sm);
+                }
+                Vector3 bodyCenter = tube.PointAt(tail + len * 0.5f);
+                transform.position = settle > 0f ? Vector3.Lerp(bodyCenter, target, sm) : bodyCenter;
+                if (time >= flyEnd + SettleTail) break;
                 yield return null;
                 time += dt;
             }
@@ -629,13 +573,23 @@ namespace BounceBlast.Gameplay
             transform.position = target;
             transform.rotation = DockRotation;
             _flying = false;
-            _dockFraction = 1f;
+            if (!_fractionSet) _dockFraction = 1f;
             _move = null;
+            _holdingFlight = false;
+            if (!headFired) { Action ha = _headArrived; _headArrived = null; ha?.Invoke(); }
+            if (_hasPendingMove) { _hasPendingMove = false; _move = StartCoroutine(MoveRoutine(_pendingMoveTarget, _pendingMoveDuration)); }
             done?.Invoke();
+            if (_doneAfterHold != null) { Action d = _doneAfterHold; _doneAfterHold = null; d(); }
         }
 
         public void MoveTo(Vector3 target, float duration)
         {
+            if (_flying)   // đang bay: đừng cắt chuyến bay – dời chỗ ngay sau khi ống yên vị
+            {
+                _hasPendingMove = true; _pendingMoveTarget = target; _pendingMoveDuration = duration;
+                return;
+            }
+            _hasPendingMove = false;
             if (_move != null) StopCoroutine(_move);
             _move = StartCoroutine(MoveRoutine(target, duration));
         }
@@ -685,18 +639,15 @@ namespace BounceBlast.Gameplay
         /// </summary>
         public void ShowDocked(float fraction, int remainingCount = -1)
         {
+            _fractionSet = true;
             _dockFraction = Mathf.Clamp01(fraction);
             PoseDocked();
             UpdateDockLabel(remainingCount);
         }
 
-        void UpdateDockLabel(int count)
+        /// <summary>Tạo sẵn nhãn số bi (tắt) lúc dựng hộp: tạo TextMeshPro ngay lúc ống chạm máy xay gây khựng trên máy yếu.</summary>
+        void EnsureDockLabel()
         {
-            if (count <= 0)
-            {
-                if (_dockLabel != null) _dockLabel.gameObject.SetActive(false);
-                return;
-            }
             if (_dockLabel == null)
             {
                 var labelGo = new GameObject("DockCount");
@@ -712,14 +663,27 @@ namespace BounceBlast.Gameplay
                 _dockLabel.outlineWidth = 0.22f;
                 _dockLabel.sortingOrder = 105;
             }
+        }
+
+        void UpdateDockLabel(int count)
+        {
+            if (count <= 0)
+            {
+                if (_dockLabel != null) _dockLabel.gameObject.SetActive(false);
+                return;
+            }
+            EnsureDockLabel();
+            _dockLabel.fontSize = Mathf.Max(DockWidthResolved * 3.5f, 3.2f);   // bề ngang máy xay chỉ biết sau khi hộp được gán máng
             _dockLabel.gameObject.SetActive(true);
             _dockLabel.SetText("{0}", count);
             _dockLabel.transform.rotation = DockRotation;
             float dw = DockWidthResolved;
             Vector3 dockUp = DockRotation * Vector3.up;
             Vector3 dockFwd = DockRotation * Vector3.forward;
-            _dockLabel.transform.position = transform.position + dockUp * (dw * 0.15f) - dockFwd * 0.08f;
+            _dockLabel.transform.position = LabelAnchor + dockUp * (dw * 0.15f) - dockFwd * 0.08f;
         }
+
+        Vector3 LabelAnchor => _flying ? _flightTarget : transform.position;
 
         void PoseDocked()
         {
@@ -740,6 +704,12 @@ namespace BounceBlast.Gameplay
         void LateUpdate()
         {
             if (IsLaunched && _body != null && !_flying) PoseDocked(); // bám theo khi xếp hàng chờ / MoveTo
+            else if (_flying && _dockLabel != null && _dockLabel.gameObject.activeSelf)
+            {
+                // ống đang bay: nhãn số bi đứng yên tại máy xay (không trôi theo thân ống)
+                float dw = DockWidthResolved;
+                _dockLabel.transform.position = _flightTarget + (DockRotation * Vector3.up) * (dw * 0.15f) - (DockRotation * Vector3.forward) * 0.08f;
+            }
         }
 
         void OnDestroy()

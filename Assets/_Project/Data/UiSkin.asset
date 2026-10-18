@@ -17,15 +17,12 @@ MonoBehaviour:
   failPrefab: {fileID: 1102, guid: 38bb8852a18072a4fa3649eb559df53d, type: 3}
   settingsPrefab: {fileID: 4669, guid: 646b88a51733183489014d2b37266fa1, type: 3}
   outOfCapacityPrefab: {fileID: 5866173181909063932, guid: 9d9cb8f5d56d2384a8f63cb9a3bfb432, type: 3}
+  boosterBuyPrefab: {fileID: 4437156109219499304, guid: 883562aa7a80b7344893b0895ab83c5e, type: 3}
   capacityBarPrefab: {fileID: 8, guid: 8fdb1b3bc52bfc44f854b5cc606f9a01, type: 3}
   font: {fileID: 11400000, guid: aa2e02e5f1a0d0445a08cf1cb847f96d, type: 2}
   fontOutlineMaterial: {fileID: 2100000, guid: 60b38ad1e0f2f7b419f60a9dc6e5fe3e, type: 2}
   capacityBg: {fileID: 21300000, guid: 2d3478de784fd094584785a269cbb4d3, type: 2}
   capacityFill: {fileID: 21300000, guid: 799bf8f5bacabb54ba968f7f89d3dca2, type: 2}
-  confettiTexture: {fileID: 2800000, guid: 1ec0928c29494dd47a3602f86210c657, type: 3}
-  glowTexture: {fileID: 2800000, guid: c3d1b75326f102a41858b879dc9da206, type: 3}
-  raysTexture: {fileID: 2800000, guid: d9bc1e5dfccb2374eba535ea6fcaa2f3, type: 3}
-  sparkleTexture: {fileID: 2800000, guid: 8df8e16377b0ba1449ab6ba42e2a6f77, type: 3}
   overlayCanvasPrefab: {fileID: 9143482096231799201, guid: 00214e135badf38418f5c91335334440, type: 3}
   popupNormal: {fileID: 21300000, guid: 2e7ee5b389f8d084d95d861bf5d5a100, type: 2}
   popupHard: {fileID: 21300000, guid: 153ee0e5eb6a0b548b9ed290e9ff37f4, type: 2}

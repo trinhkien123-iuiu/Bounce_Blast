@@ -5705,7 +5705,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 7073d660a0624e8478544b6de9d6d7fc, type: 2}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -5841,6 +5841,7 @@ GameObject:
   - component: {fileID: 8451}
   - component: {fileID: 18626}
   - component: {fileID: 16448}
+  - component: {fileID: 7381858121663619559}
   m_Layer: 5
   m_Name: Home
   m_TagString: Untagged
@@ -5965,6 +5966,23 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &7381858121663619559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &899
 GameObject:
   m_ObjectHideFlags: 0
@@ -6413,6 +6431,7 @@ GameObject:
   - component: {fileID: 8213}
   - component: {fileID: 16483}
   - component: {fileID: 18837}
+  - component: {fileID: 5433469804326659739}
   m_Layer: 5
   m_Name: SoundButton
   m_TagString: Untagged
@@ -6524,6 +6543,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5433469804326659739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &1480
 GameObject:
   m_ObjectHideFlags: 0
@@ -6799,7 +6835,7 @@ RectTransform:
   m_GameObject: {fileID: 1530}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 12569}
@@ -7193,6 +7229,7 @@ GameObject:
   - component: {fileID: 8543}
   - component: {fileID: 17051}
   - component: {fileID: 19482}
+  - component: {fileID: 5088089503178523065}
   m_Layer: 5
   m_Name: SoundButton
   m_TagString: Untagged
@@ -7304,6 +7341,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5088089503178523065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &1964
 GameObject:
   m_ObjectHideFlags: 0
@@ -7714,6 +7768,7 @@ GameObject:
   - component: {fileID: 18007}
   - component: {fileID: 19544}
   - component: {fileID: 17953}
+  - component: {fileID: 481397087185281268}
   m_Layer: 5
   m_Name: BTN-Play On Gold
   m_TagString: Untagged
@@ -7877,6 +7932,23 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls: []
+--- !u!114 &481397087185281268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &2324
 GameObject:
   m_ObjectHideFlags: 0
@@ -7944,7 +8016,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: f099281f0c87f0b47892efbe27154dd7, type: 2}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -8189,7 +8261,7 @@ RectTransform:
   m_GameObject: {fileID: 2438}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 12845}
@@ -8348,7 +8420,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 800e829951d85cd45814cb30fb723895, type: 2}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -9241,7 +9313,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: ccf1600df621b404e855ef2fdea518b4, type: 2}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -9983,7 +10055,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 2c3278dfb5b8dcc4781347195cc6abdf, type: 2}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -10003,6 +10075,7 @@ GameObject:
   - component: {fileID: 9741}
   - component: {fileID: 18902}
   - component: {fileID: 16409}
+  - component: {fileID: 420215151626835815}
   m_Layer: 5
   m_Name: SoundButton
   m_TagString: Untagged
@@ -10114,6 +10187,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &420215151626835815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &3968
 GameObject:
   m_ObjectHideFlags: 0
@@ -10340,6 +10430,7 @@ GameObject:
   - component: {fileID: 10358}
   - component: {fileID: 19852}
   - component: {fileID: 15291}
+  - component: {fileID: 663984054432700729}
   m_Layer: 5
   m_Name: Restart
   m_TagString: Untagged
@@ -10464,6 +10555,23 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &663984054432700729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &4060
 GameObject:
   m_ObjectHideFlags: 0
@@ -10759,7 +10867,7 @@ RectTransform:
   m_GameObject: {fileID: 4310}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 11366}
@@ -10881,7 +10989,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: eebbb4315f664694fb0394a59272ddfb, type: 2}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -10938,6 +11046,7 @@ GameObject:
   - component: {fileID: 8862}
   - component: {fileID: 17842}
   - component: {fileID: 17911}
+  - component: {fileID: 919465529621318123}
   m_Layer: 5
   m_Name: Release Debugger Opener
   m_TagString: Untagged
@@ -11059,6 +11168,23 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &919465529621318123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4437}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &4498
 GameObject:
   m_ObjectHideFlags: 0
@@ -11295,6 +11421,7 @@ GameObject:
   - component: {fileID: 10278}
   - component: {fileID: 19728}
   - component: {fileID: 19727}
+  - component: {fileID: 9159691022630425749}
   m_Layer: 5
   m_Name: Close Button
   m_TagString: Untagged
@@ -11418,6 +11545,23 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &9159691022630425749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &4671
 GameObject:
   m_ObjectHideFlags: 0
@@ -11499,6 +11643,7 @@ GameObject:
   - component: {fileID: 10279}
   - component: {fileID: 19729}
   - component: {fileID: 17482}
+  - component: {fileID: 2442916922303064825}
   m_Layer: 5
   m_Name: SoundButton
   m_TagString: Untagged
@@ -11610,6 +11755,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2442916922303064825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &4673
 GameObject:
   m_ObjectHideFlags: 0

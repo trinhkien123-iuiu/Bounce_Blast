@@ -35,8 +35,13 @@ namespace BounceBlast.Gameplay
             if (!_playing) return;
             if (Boosters.Count(type) <= 0)
             {
-                Boosters.Add(type, 1); // bản clone: bấm "+" để nhận thêm miễn phí (game gốc mua bằng coin)
-                _ui.Toast("+1 " + type);
+                // Hết lượt → popup mua (game gốc trả coin; bản clone chưa có cửa hàng nên bấm mua là nhận luôn)
+                _ui.ShowBoosterBuy(type, _level.Level.Difficulty, (t, n) =>
+                {
+                    Boosters.Add(t, n);
+                    AudioManager.Play(Sfx.Magic);
+                    _ui.Toast("+" + n + " " + t);
+                });
                 return;
             }
 

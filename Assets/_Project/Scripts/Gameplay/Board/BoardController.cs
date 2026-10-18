@@ -80,6 +80,11 @@ namespace BounceBlast.Gameplay
                 float cw = size.x * _config.columnWidthRatio;
                 colliders = new List<Rect> { new Rect(-cw * 0.5f, -size.y * 0.5f, cw, size.y) };
             }
+            else if (item.Kind == BoardItemKind.Crate)
+            {
+                visual = CrateView.Build(go.transform, item, _cell, _config.crateModularPrefab, _config.cratePrefab, go.layer).transform;
+                label = CreateLabel(go.transform, item, size);
+            }
             else if ((parts == null || parts.Count <= 1) && item.Kind == BoardItemKind.CombinedCube)
             {
                 var full = new HashSet<Vector2Int>();
@@ -119,7 +124,7 @@ namespace BounceBlast.Gameplay
             }
 
             // Khối nhiều ô / hòm / tường: xiên mesh thay vì xoay (xem ShearForView) → mặt trước phẳng khít lưới như gạch 1 ô
-            if (item.Kind != BoardItemKind.Cube && item.Kind != BoardItemKind.Column && visual != null)
+            if (item.Kind != BoardItemKind.Cube && item.Kind != BoardItemKind.Column && item.Kind != BoardItemKind.Crate && visual != null)
                 foreach (MeshFilter smf in visual.GetComponentsInChildren<MeshFilter>(true))
                     if (smf.sharedMesh != null && smf.sharedMesh.isReadable && smf.GetComponent<TextMeshPro>() == null && !smf.sharedMesh.name.StartsWith("Solid"))
                         smf.sharedMesh = ShearForView(smf.sharedMesh);
@@ -454,68 +459,30 @@ namespace BounceBlast.Gameplay
 
         // ------------------------------------------------------------------ Cột nhà (/wl)
         static readonly Color ColumnDust = new Color(0.96f, 0.9f, 0.8f);
-        static GameObject _columnPrefab, _columnBadge;
-        static Dictionary<string, Transform> _columnPieces;
-
-        static string NeighbourKey(IEnumerable<string> parts)
-        {
-            var l = new List<string>(parts);
-            l.Sort(System.StringComparer.Ordinal);
-            return string.Join("-", l);
-        }
+        static GameObject _columnBadge;
 
         /// <summary>
-        /// Cột dựng từ mảnh gốc của ModularPrimitiveColumn: mỗi ô chọn mảnh có tên = tập ô hàng xóm cùng cột
-        /// (T = đế cột, B = đầu cột, T-B = thân; cột rộng 2 ô dùng nửa trái/phải như T-TR-R, L-TL-T…).
+        /// Cột dựng từ mảnh gốc của ModularPrimitiveColumn (<see cref="ModularPrimitiveBuilder"/>, hàng xóm 8 hướng):
+        /// T = đế cột, B = đầu cột, T-B = thân; cột rộng 2 ô dùng nửa trái/phải như T-TR-R, L-TL-T…
         /// </summary>
         Transform CreateColumnVisual(Transform parent, BoardItemData item)
         {
             var root = new GameObject("Visual").transform;
             root.SetParent(parent, false);
-            if (_columnPrefab == null) _columnPrefab = _config.columnPrefab; // GameConfig.columnPrefab
-            if (_columnPrefab == null) return root;
-            if (_columnPieces == null)
-            {
-                _columnPieces = new Dictionary<string, Transform>();
-                foreach (Transform t in _columnPrefab.transform)
-                    if (t.GetComponent<MeshRenderer>() != null) _columnPieces[NeighbourKey(t.name.Split('-'))] = t;
-            }
-            RectInt r = item.Cells;
-            var cells = new HashSet<Vector2Int>();
-            if (item.Mask != null) foreach (Vector2Int m in item.Mask) cells.Add(m);
-            else for (int x = 0; x < r.width; x++) for (int y = 0; y < r.height; y++) cells.Add(new Vector2Int(x, y));
-
-            Transform tilt = root; // mảnh gốc xoay -90° (mặt trên hướng camera thẳng) – giữ nguyên
-            var n = new List<string>(8);
+            GameObject prefab = _config.columnPrefab; // GameConfig.columnPrefab
+            if (prefab == null) return root;
+            Dictionary<string, Transform> pieces = ModularPrimitiveBuilder.Pieces(prefab.transform);
+            HashSet<Vector2Int> cells = ModularPrimitiveBuilder.Cells(item);
             foreach (Vector2Int c in cells)
             {
-                n.Clear();
-                if (cells.Contains(c + new Vector2Int(0, 1))) n.Add("T");
-                if (cells.Contains(c + new Vector2Int(0, -1))) n.Add("B");
-                if (cells.Contains(c + new Vector2Int(-1, 0))) n.Add("L");
-                if (cells.Contains(c + new Vector2Int(1, 0))) n.Add("R");
-                if (cells.Contains(c + new Vector2Int(-1, 1))) n.Add("TL");
-                if (cells.Contains(c + new Vector2Int(1, 1))) n.Add("TR");
-                if (cells.Contains(c + new Vector2Int(-1, -1))) n.Add("BL");
-                if (cells.Contains(c + new Vector2Int(1, -1))) n.Add("BR");
-                if (!_columnPieces.TryGetValue(NeighbourKey(n), out Transform src))
+                string key = ModularPrimitiveBuilder.NeighbourKey(cells, c, true);
+                if (!pieces.TryGetValue(key, out Transform src))
                 {
                     // ngoài các biến thể có sẵn: lấy theo hướng dọc (đế / thân / đầu cột)
-                    bool up = n.Contains("T"), down = n.Contains("B");
-                    _columnPieces.TryGetValue(up && down ? "B-T" : up ? "T" : down ? "B" : "B-T", out src);
+                    bool up = cells.Contains(c + Vector2Int.up), down = cells.Contains(c + Vector2Int.down);
+                    pieces.TryGetValue(up && down ? "B-T" : up ? "T" : down ? "B" : "B-T", out src);
                 }
-                if (src == null) continue;
-                var cellT = new GameObject("Cell").transform;
-                cellT.SetParent(tilt, false);
-                cellT.localPosition = new Vector3((c.x + 0.5f - r.width * 0.5f) * _cell, (c.y + 0.5f - r.height * 0.5f) * _cell, 0f);
-                cellT.localScale = Vector3.one * _cell;
-                GameObject inst = Instantiate(src.gameObject, cellT, false);
-                inst.SetActive(true);
-                inst.transform.localPosition = src.localPosition;
-                inst.transform.localRotation = src.localRotation;
-                inst.transform.localScale = src.localScale;
-                StripPhysics(inst);
-                foreach (Transform t in inst.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = parent.gameObject.layer;
+                if (src != null) ModularPrimitiveBuilder.Place(root, src, c, item.Cells, _cell, Vector3.one, parent.gameObject.layer);
             }
             return root;
         }
@@ -559,9 +526,9 @@ namespace BounceBlast.Gameplay
                 {
                     if (!t.name.Contains("_cell")) continue;
                     hasCells = true;
-                    Fling(t, center);
+                    DebrisFx.Fling(t, center);
                 }
-                if (hasCells) mr.enabled = false; else Fling(mr.transform, center);
+                if (hasCells) mr.enabled = false; else DebrisFx.Fling(mr.transform, center);
             }
             float h = block.Cells.height * _cell;
             for (int i = 0; i < 3; i++)
@@ -569,21 +536,8 @@ namespace BounceBlast.Gameplay
             AudioManager.Play(Sfx.CrateBreak);
         }
 
-        static void Fling(Transform t, Vector3 center)
-        {
-            t.gameObject.SetActive(true);
-            t.SetParent(Vfx.Root, true);
-            var rb = t.GetComponent<Rigidbody>();
-            if (rb == null) rb = t.gameObject.AddComponent<Rigidbody>();
-            rb.isKinematic = false;
-            rb.useGravity = true;
-            Vector3 away = t.position - center; away.z = 0f;
-            rb.velocity = new Vector3(Mathf.Sign(away.x + 1e-3f) * UnityEngine.Random.Range(0.6f, 2.2f), UnityEngine.Random.Range(0.5f, 3f), UnityEngine.Random.Range(-2.5f, -0.5f));
-            rb.angularVelocity = UnityEngine.Random.insideUnitSphere * 9f;
-            Destroy(t.gameObject, UnityEngine.Random.Range(0.9f, 1.4f));
-        }
-
         bool _breakTuned;
+        const int MaxBigBreakBursts = 16;
 
         /// <summary>
         /// Mảnh vỡ gạch: prefab gốc chỉ 5 khối lập phương bay chậm 0.4s (và vật liệu cố định "Blue" bỏ qua màu tô).
@@ -707,13 +661,17 @@ namespace BounceBlast.Gameplay
                 }
             }
 
-            if (item.Kind == BoardItemKind.Crate) AddCratePlanks(v.transform, size);
 
             // Viên đơn (1x1): co giãn ĐỀU như prefab (không ép từng trục) → giữ đúng tỉ lệ & pháp tuyến mặt vát của mesh gốc.
             // Khối nhiều ô (nx > 1 hoặc ny > 1): mesh đã được giãn 9-slice chuẩn theo tỉ lệ (nx, ny), scale ĐỒNG ĐỀU
             // theo bề ngang width = size.x để không bị méo trục Z khi Model xoay -20°, giữ mép 2 đầu chuẩn từng ô.
             if (item.Kind == BoardItemKind.Cube && nx <= 1.01f && ny <= 1.01f)
             {
+                if (_config.cubeCornerRadius > 0f)
+                {
+                    MeshFilter round = v.GetComponentInChildren<MeshFilter>(true);
+                    if (round != null) round.sharedMesh = RoundedCubeMesh.Get(_config.cubeCornerRadius, _config.cubeEdgeRound, _config.cubeBodyDepth);
+                }
                 FitVisualUniform(v.transform, size.x * _config.cubeOverlap);
                 return v.transform;
             }
@@ -758,30 +716,6 @@ namespace BounceBlast.Gameplay
             return center + Mathf.Sign(d) * r;
         }
 
-        /// <summary>Hòm gỗ: phủ 3 tấm ván gốc (PlaneLeft / PlaneMid chéo / PlaneRight) của CombinedCubicCrate lên mặt trước.</summary>
-        void AddCratePlanks(Transform visual, Vector2 size)
-        {
-            if (_config.cratePrefab == null) return;
-            Transform planes = _config.cratePrefab.transform.Find("Model/Planes");
-            if (planes == null) return;
-            GameObject p = Instantiate(planes.gameObject, visual);
-            p.name = "Planks";
-            StripPhysics(p);
-            // ván nằm trên mặt XZ của prefab → lật về mặt XY hướng camera, phủ toàn bộ hòm
-            p.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
-            p.transform.localPosition = Vector3.zero;
-            Bounds b = default;
-            bool has = false;
-            foreach (Renderer r in p.GetComponentsInChildren<Renderer>())
-            {
-                if (!has) { b = r.bounds; has = true; } else b.Encapsulate(r.bounds);
-            }
-            if (!has) return;
-            var s = new Vector3(1f / Mathf.Max(b.size.x, 1e-3f), 1f / Mathf.Max(b.size.y, 1e-3f), 1f);
-            p.transform.localScale = Vector3.Scale(p.transform.localScale, s);
-            p.transform.localPosition = new Vector3(-(b.center.x - visual.position.x) * s.x, -(b.center.y - visual.position.y) * s.y, -0.62f);
-        }
-
         TextMeshPro CreateLabel(Transform parent, BoardItemData item, Vector2 size)
         {
             if (_font == null) return null;
@@ -802,9 +736,10 @@ namespace BounceBlast.Gameplay
             if (_labelMaterial == null && tmp.fontSharedMaterial != null)
             {
                 _labelMaterial = new Material(tmp.fontSharedMaterial);
-                _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.22f);
-                _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0.08f);
-                _labelMaterial.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0.15f, 0.15f, 0.18f, 0.8f));
+                _labelMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.18f);                 // chữ đậm hơn
+                _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+                _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0f);                // viền sắc, không nhoè
+                _labelMaterial.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0.1f, 0.1f, 0.14f, 1f));
                 _labelMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
             }
             if (_labelMaterial != null) tmp.fontSharedMaterial = _labelMaterial;
@@ -867,6 +802,7 @@ namespace BounceBlast.Gameplay
         // ------------------------------------------------------------------ Lưới
         void Occupy(BoardBlock b, bool on)
         {
+            _gridVersion++;   // lưới đổi → bộ nhớ đệm "khối lộ ra" của LOS hết hạn
             foreach (Vector2Int c in b.OccupiedCells())
                 _grid[c.x, c.y] = on ? b : (_grid[c.x, c.y] == b ? null : _grid[c.x, c.y]);
         }
@@ -934,6 +870,8 @@ namespace BounceBlast.Gameplay
             Vector3 pos = block.transform.position;
             if (block.Kind == BoardItemKind.Crate)
             {
+                CrateView crate = block.GetComponentInChildren<CrateView>();
+                if (crate != null) crate.Break();
                 Vfx.Spawn(_config.crateBreakVfx, pos, new Color(0.85f, 0.6f, 0.35f), Mathf.Max(block.Cells.width, block.Cells.height) * _cell);
                 AudioManager.Play(Sfx.CrateBreak);
                 // hòm có thể đã rơi xuống → dời vật bên trong theo cùng độ lệch
@@ -952,10 +890,21 @@ namespace BounceBlast.Gameplay
             }
             else
             {
-                float size = Mathf.Max(block.Cells.width, block.Cells.height) * _cell;
                 EnsureBreakTune();
-                Vfx.Spawn(_config.cubeBreakVfx, pos, _colors.ColorOf(block.ColorCode), size, _colors.CubeMat(block.ColorCode));
-                if (block.Kind == BoardItemKind.CombinedCube) AudioManager.Play(Sfx.BigBlockBreak);
+                Color tint = _colors.ColorOf(block.ColorCode);
+                Material mat = _colors.CubeMat(block.ColorCode);
+                if (block.Kind == BoardItemKind.CombinedCube)
+                {
+                    // Khối lớn (>1 HP): không phóng to 1 hiệu ứng (giọt quá to, xấu) mà nổ như gạch 1 HP – mỗi ô 1 cụm,
+                    // lấy cách đều tối đa MaxBigBreakBursts cụm để không tràn pool Vfx.
+                    var cells = new List<Vector2Int>(block.OccupiedCells());
+                    int step = Mathf.Max(1, Mathf.CeilToInt(cells.Count / (float)MaxBigBreakBursts));
+                    for (int i = 0; i < cells.Count; i += step)
+                        Vfx.Spawn(_config.cubeBreakVfx, CellToWorld(new RectInt(cells[i].x, cells[i].y, 1, 1)), tint, _cell, mat);
+                    AudioManager.Play(Sfx.BigBlockBreak);
+                }
+                else
+                    Vfx.Spawn(_config.cubeBreakVfx, pos, tint, Mathf.Max(block.Cells.width, block.Cells.height) * _cell, mat);
             }
 
             Destroy(block.gameObject);
@@ -1007,31 +956,51 @@ namespace BounceBlast.Gameplay
         }
 
         readonly List<BoardBlock> _losCandidates = new List<BoardBlock>();
-        static readonly RaycastHit2D[] LosHits = new RaycastHit2D[4];
 
+        // Bộ nhớ đệm các khối LỘ RA theo màu. Trước đây mỗi lần một viên bi cần ngắm đều duyệt TOÀN BỘ khối (màn dày 1344 khối) và
+        // gọi IsExposed (cấp phát iterator mỗi khối) → với ~140 bi cùng nảy là điểm nóng CPU + GC. Giờ chỉ dựng lại khi lưới đổi
+        // (khối vỡ / rơi) và chỉ khi có bi hỏi.
+        int _gridVersion, _losCacheVersion = -1;
+        readonly Dictionary<string, List<BoardBlock>> _losByColor = new Dictionary<string, List<BoardBlock>>();
+        readonly List<BoardBlock> _losCrates = new List<BoardBlock>();
+
+        void RefreshLosCache()
+        {
+            if (_losCacheVersion == _gridVersion) return;
+            _losCacheVersion = _gridVersion;
+            foreach (List<BoardBlock> l in _losByColor.Values) l.Clear();
+            _losCrates.Clear();
+            for (int i = 0; i < _blocks.Count; i++)
+            {
+                BoardBlock b = _blocks[i];
+                if (b == null || b.IsDestroyed || !IsExposed(b)) continue;
+                if (b.IsFreeHit) { if (b.IsDestructible) _losCrates.Add(b); continue; }
+                if (b.Kind != BoardItemKind.Cube && b.Kind != BoardItemKind.CombinedCube) continue;
+                string key = b.ColorCode != null ? b.ColorCode.ToLowerInvariant() : "";
+                if (!_losByColor.TryGetValue(key, out List<BoardBlock> list)) _losByColor[key] = list = new List<BoardBlock>();
+                list.Add(b);
+            }
+        }
         /// <summary>
-        /// Khối nhận màu này mà bi bay thẳng tới được (CircleCast không vướng khối khác màu/tường) – lấy theo code
-        /// va chạm cũ (TryGetLineOfSightTarget): chỉ ngắm khi đường bay thông, không bẻ cong xuyên vật cản.
+        /// Khối nhận màu này mà bi bay thẳng tới được (đường bay không vướng khối khác màu) – ngắm khi đường thông, không bẻ cong xuyên vật cản.
+        /// Duyệt THẲNG trên lưới ô (3 tia song song cách nhau ~bán kính bi) thay cho Physics2D.CircleCast: đo ở màn dày (≈240 bi),
+        /// 5 CircleCast/lần nảy chiếm ~17 ms/khung trên Editor; duyệt lưới chỉ là vài trăm lần tra mảng. Tường khung lồi nên đoạn bay
+        /// trong lòng bàn luôn thông tường.
         /// </summary>
         public bool TryGetLineOfSightTarget(string color, Vector2 from, float radius, int mask, out Vector2 point)
         {
             point = default;
+            RefreshLosCache();
             _losCandidates.Clear();
-            for (int i = 0; i < _blocks.Count; i++)
-            {
-                BoardBlock b = _blocks[i];
-                if (b != null && !b.IsDestroyed && IsTarget(b, color) && IsExposed(b))
-                    _losCandidates.Add(b);
-            }
+            string key = color != null ? color.ToLowerInvariant() : "";
+            if (_losByColor.TryGetValue(key, out List<BoardBlock> byColor)) _losCandidates.AddRange(byColor);
             // hết khối cùng màu → ngắm hòm gỗ còn lại (để bi phá hòm thay vì nảy vô định)
             bool aimCrates = _losCandidates.Count == 0;
-            if (aimCrates)
-                foreach (BoardBlock b in _blocks)
-                    if (b != null && !b.IsDestroyed && b.IsFreeHit && b.IsDestructible && IsExposed(b)) _losCandidates.Add(b);
+            if (aimCrates) _losCandidates.AddRange(_losCrates);
             if (_losCandidates.Count == 0) return false;
 
-            // Tìm tối đa 5 khối gần nhất không dùng lambda sort (Zero GC)
-            int checkCount = Mathf.Min(5, _losCandidates.Count);
+            // Tìm tối đa 3 khối gần nhất không dùng lambda sort (Zero GC)
+            int checkCount = Mathf.Min(3, _losCandidates.Count);
             for (int k = 0; k < checkCount; k++)
             {
                 int bestIdx = k;
@@ -1053,37 +1022,59 @@ namespace BounceBlast.Gameplay
                 }
 
                 Vector2 target = _losCandidates[k].transform.position;
-                Vector2 d = target - from;
-                float dist = d.magnitude;
-                if (dist < 0.001f) continue;
-
-                int hits = Physics2D.CircleCastNonAlloc(from, radius * 0.9f, d / dist, LosHits, dist, mask);
-                for (int h = 0; h < hits; h++)
+                BoardBlock hit = FirstBlockOnPath(from, target, radius * 0.7f);
+                if (hit != null && (IsTarget(hit, color) || (aimCrates && hit.IsFreeHit && hit.IsDestructible)))
                 {
-                    if (LosHits[h].collider == null) continue;
-                    BoardBlock hb = LosHits[h].collider.GetComponent<BoardBlock>();
-                    if (hb != null && (IsTarget(hb, color) || (aimCrates && hb.IsFreeHit && hb.IsDestructible)))
-                    {
-                        point = LosHits[h].collider.bounds.center;
-                        return true;
-                    }
-                    if (hb != null && !IsTarget(hb, color) && !(aimCrates && hb.IsFreeHit)) break;
+                    point = hit.transform.position;
+                    return true;
                 }
             }
             return false;
         }
 
+        /// <summary>Khối đầu tiên gặp trên đoạn from→to (3 tia: tâm và hai bên lệch <paramref name="halfWidth"/>); null nếu không gặp gì.</summary>
+        BoardBlock FirstBlockOnPath(Vector2 from, Vector2 to, float halfWidth)
+        {
+            Vector2 d = to - from;
+            float dist = d.magnitude;
+            if (dist < 0.001f) return null;
+            Vector2 dir = d / dist, perp = new Vector2(-dir.y, dir.x) * halfWidth;
+            int cols = _grid.GetLength(0), rows = _grid.GetLength(1);
+            float step = _cell * 0.4f;
+            for (float t = halfWidth * 2f; t <= dist + _cell * 0.5f; t += step)   // bỏ đoạn sát bi (khối vừa va chạm)
+            {
+                Vector2 c = from + dir * t;
+                for (int ray = 0; ray < 3; ray++)
+                {
+                    Vector2 p = ray == 0 ? c : (ray == 1 ? c + perp : c - perp);
+                    int x = Mathf.FloorToInt((p.x - _origin.x) / _cell), y = Mathf.FloorToInt((p.y - _origin.y) / _cell);
+                    if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
+                    BoardBlock b = _grid[x, y];
+                    if (b == null || b.IsDestroyed) continue;
+                    return b;
+                }
+            }
+            return null;
+        }
+
         bool IsExposed(BoardBlock b)
         {
             int cols = _grid.GetLength(0), rows = _level.BoardRows;
-            foreach (Vector2Int c in b.OccupiedCells())
+            RectInt r = b.Cells;
+            if (b.Mask == null)
             {
-                if (c.y + 1 >= rows || Free(c.x, c.y + 1, b)) return true;
-                if (c.x == 0 || Free(c.x - 1, c.y, b)) return true;
-                if (c.x + 1 >= cols || Free(c.x + 1, c.y, b)) return true;
+                for (int x = r.xMin; x < r.xMax; x++)
+                    for (int y = r.yMin; y < r.yMax; y++)
+                        if (CellExposed(x, y, cols, rows, b)) return true;
+                return false;
             }
+            for (int i = 0; i < b.Mask.Count; i++)
+                if (CellExposed(r.x + b.Mask[i].x, r.y + b.Mask[i].y, cols, rows, b)) return true;
             return false;
         }
+
+        bool CellExposed(int x, int y, int cols, int rows, BoardBlock b) =>
+            y + 1 >= rows || Free(x, y + 1, b) || x == 0 || Free(x - 1, y, b) || x + 1 >= cols || Free(x + 1, y, b);
 
         bool Free(int x, int y, BoardBlock self) => _grid[x, y] == null || _grid[x, y] == self;
 

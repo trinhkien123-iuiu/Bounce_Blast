@@ -15,7 +15,10 @@ namespace BounceBlast.Gameplay
         [Header("Prefab gốc (Resources/prefabs)")]
         public GameObject cubePrefab;
         public GameObject combinedCubePrefab;
+        [Tooltip("Hòm gỗ gộp (CombinedCubicCrate) – lấy ván chéo mặt trước (Model/Planes)")]
         public GameObject cratePrefab;
+        [Tooltip("Hòm gỗ từng ô (ModularPrimitiveCrate) – mảnh thân hòm theo hàng xóm + mảnh vỡ CrateFracture")]
+        public GameObject crateModularPrefab;
         public GameObject ammoPrefab;
         public GameObject tunnelPrefab;
         public GameObject ballPrefab;
@@ -75,6 +78,8 @@ namespace BounceBlast.Gameplay
         public int ballAimMinBounces = 3;
 
         [Header("Máng (conveyor)")]
+        [Tooltip("Số bi dựng sẵn vào pool lúc vào màn (rải vài viên mỗi khung). Hộp đầu tiên lên máy xay không phải dựng bi → hết khựng trên máy yếu")]
+        [Range(0, 200)] public int ballPrewarm = 60;
         public float laneSpeed = 5.5f;
         public float laneBallSpacing = 0.27f;
         public float boxFlyDuration = 0.6f;
@@ -121,13 +126,9 @@ namespace BounceBlast.Gameplay
         [Tooltip("Đáy thanh đậu nằm dưới tâm 2 lưỡi cắt bao nhiêu lần bề ngang (lớn hơn = hộp chìm sâu hơn)")]
         public float dockBottomRatio = 0.3f;
 
-        [Header("Hộp đạn – lơ lửng khi hết sức chứa")]
-        [Tooltip("Độ ngả của ống thạch so với phương thẳng đứng (độ)")]
-        public float hoverAngle = 28f;
-        [Tooltip("Chiều dài ống thạch = tỉ lệ này × bề ngang hộp")]
-        public float hoverLength = 3f;
-        [Tooltip("Thời gian ống bật ra khỏi hố (giây)")]
-        public float hoverTime = 0.38f;
+        [Header("Hộp đạn – dừng giữa chuyến bay khi hết sức chứa")]
+        [Tooltip("Khi bấm hộp làm vượt sức chứa, hộp chạy ĐÚNG hoạt ảnh bay lên máng như bình thường rồi DỪNG ở tiến độ này (0 = vừa nén lấy đà, 1 = tới máng). Chọn Play On thì bay tiếp từ chỗ dừng.")]
+        [Range(0.05f, 0.9f)] public float hoverHoldProgress = 0.5f;
         [Tooltip("Hộp lún thêm bao nhiêu ô khi cửa kính đóng, để nắp hộp nằm sau cánh cửa")]
         public float doorExtraSink = 1.6f;
 
@@ -175,6 +176,12 @@ namespace BounceBlast.Gameplay
         public float blockTopTrim = 0.23f;
         [Tooltip("Phóng gạch 1 ô để 4 góc bo tròn không hở nền (prefab gốc ×1.05)")]
         public float cubeOverlap = 1.10f;
+        [Tooltip("Bán kính bo 4 góc gạch 1 ô (theo bề rộng ô). Game gốc bo tròn rõ hơn mesh pCube35 rip được. 0 = dùng nguyên mesh rip.")]
+        [Range(0f, 0.45f)] public float cubeCornerRadius = 0.2f;
+        [Tooltip("Độ bo của mép mặt trên gạch 1 ô (theo bề rộng ô, không vượt bán kính góc)")]
+        [Range(0.02f, 0.45f)] public float cubeEdgeRound = 0.12f;
+        [Tooltip("Độ dày thân gạch 1 ô (theo bề rộng ô). Mesh rip gốc 0.97; mỏng hơn thì bớt lộ thành gạch do góc nhìn nghiêng 20°")]
+        [Range(0.1f, 1.5f)] public float cubeBodyDepth = 0.97f;
         [Tooltip("Bề ngang cột (/wl) so với ô")]
         public float columnWidthRatio = 0.6f;
 
@@ -240,8 +247,14 @@ namespace BounceBlast.Gameplay
             public Color pinsColor = new Color(0.282f, 0.314f, 0.682f);
             [Tooltip("Hệ số sáng của khung (Wall) so với groundColor")]
             public float wallTint = 1.6f;
+            [Tooltip("Hệ số nhân độ sáng thêm cho vỏ máy xay (vỏ đổi tông / bão hòa / sáng theo groundColor của theme so với Normal; Super Hard xám → vỏ xám)")]
+            public float crusherBrightness = 1f;
             [Tooltip("Sprite gradient nền (Mask / MaskHard / MaskSuperHard) – màu đã nằm sẵn trong sprite, KHÔNG tô thêm")]
             public Sprite backgroundMask;
+            [Tooltip("Độ đặc của lớp gradient nền (1 = như gốc; nhỏ hơn thì nền sáng hơn vì lộ màu camera phía sau)")]
+            [Range(0f, 1f)] public float maskAlpha = 1f;
+            [Tooltip("Màu nền camera (phía sau lớp gradient). Alpha = 0 → dùng groundColor. Tách riêng groundColor vì groundColor còn quyết định màu khung/máy xay")]
+            public Color cameraBackground = new Color(0f, 0f, 0f, 0f);
             public Material trayWall;   // type 8: t4/t6/t3-wall
             public Material trayPanel;  // type 7: t4-bg / t6-bg 2 / t3-bg2
             public Material trayHole;   // type 5: Hole-1/2/3

@@ -7323,6 +7323,7 @@ GameObject:
   - component: {fileID: 16968}
   - component: {fileID: 15718}
   - component: {fileID: 17052}
+  - component: {fileID: 6648005018015643466}
   m_Layer: 5
   m_Name: BTN-Try Again
   m_TagString: Untagged
@@ -7498,6 +7499,23 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls: []
+--- !u!114 &6648005018015643466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &2525
 GameObject:
   m_ObjectHideFlags: 0
@@ -9081,6 +9099,7 @@ GameObject:
   - component: {fileID: 7765}
   - component: {fileID: 16300}
   - component: {fileID: 16391}
+  - component: {fileID: 2253175045374826222}
   m_Layer: 5
   m_Name: Specific-Close Button Variant
   m_TagString: Untagged
@@ -9193,6 +9212,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2253175045374826222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &4465
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,2 +1,0 @@
-Column__12_0 hp 100 cells (x:12, y:0, width:2, height:14)
-Column__6_14 hp 100 cells (x:6, y:14, width:2, height:14)

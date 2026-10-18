@@ -48,7 +48,7 @@ namespace BounceBlast.Gameplay
             HandleInput();
         }
 
-        /// <summary>Đọc con trỏ (chuột hoặc touch – Device Simulator / điện thoại): vừa chạm xuống / đang giữ / vừa thả.</summary>
+        /// <summary>Đọc con trỏ: vừa chạm xuống / đang giữ / vừa thả.</summary>
         static void ReadPointer(out bool down, out bool up, out Vector2 screen)
         {
             down = Input.GetMouseButtonDown(0);

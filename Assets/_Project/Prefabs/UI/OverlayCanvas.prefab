@@ -425,6 +425,66 @@ PrefabInstance:
       propertyPath: m_Name
       value: BoosterBar
       objectReference: {fileID: 0}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: hard.hammer
+      value: 
+      objectReference: {fileID: 21300000, guid: 0109feac26a2f6f4c96b5340d3d13ed9, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: hard.number
+      value: 
+      objectReference: {fileID: 21300000, guid: 46cc3ae5edd4f6a4b91060ad3fcb74c6, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: hard.shuffle
+      value: 
+      objectReference: {fileID: 21300000, guid: 94147cab55545bf40964aac59bd198f6, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: hard.capacity
+      value: 
+      objectReference: {fileID: 21300000, guid: 2fd84b6f96161d8468c95736f3404310, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: normal.hammer
+      value: 
+      objectReference: {fileID: 21300000, guid: 4559b774d34dd1444991120f01a3c423, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: normal.number
+      value: 
+      objectReference: {fileID: 21300000, guid: a36f9c58e1c67424fa178af1fba3dc89, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: hard.magicHand
+      value: 
+      objectReference: {fileID: 21300000, guid: 55ca6bc0faa517d49833e0aa2fdd5463, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: normal.shuffle
+      value: 
+      objectReference: {fileID: 21300000, guid: a109aab04eeabc046b82f260ebfb1d8a, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: normal.capacity
+      value: 
+      objectReference: {fileID: 21300000, guid: fe899964ccbe26447bcf5980f86b3eeb, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: normal.magicHand
+      value: 
+      objectReference: {fileID: 21300000, guid: 9bd464eab88f2fe4aa0f4467ff405276, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: superHard.hammer
+      value: 
+      objectReference: {fileID: 21300000, guid: 5f3a6a24048e5404293cc582bc17f455, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: superHard.number
+      value: 
+      objectReference: {fileID: 21300000, guid: 3c06cf60dc11d3e4197d282b02ddc36f, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: superHard.shuffle
+      value: 
+      objectReference: {fileID: 21300000, guid: 141c678d9c69a19499f9f06dd9742abd, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: superHard.capacity
+      value: 
+      objectReference: {fileID: 21300000, guid: ab30b8df7b5e3f94b8bc5f289b154bf7, type: 2}
+    - target: {fileID: 5758271929341540173, guid: e0cce33ebad107a4195005cd6e0ea48d, type: 3}
+      propertyPath: superHard.magicHand
+      value: 
+      objectReference: {fileID: 21300000, guid: 36a4358ee54d1bc4c8c0066bd41b0481, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

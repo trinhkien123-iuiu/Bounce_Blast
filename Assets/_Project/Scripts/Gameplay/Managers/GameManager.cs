@@ -94,8 +94,10 @@ namespace BounceBlast.Gameplay
             CreateCubeLight(gameCamera != null ? gameCamera.transform.parent : null);
             balls.Init(config, colors, board);
             conveyor.Init(config, balls);
+            StartCoroutine(balls.Prewarm(config.ballPrewarm));   // dựng sẵn bi + nạp shader: hộp đầu tiên lên máy xay không bị khựng
             theme.Init(boardRoot, gameCamera);
             theme.SetConveyor(conveyor);
+            if (config.normalTheme != null) theme.SetReferenceGround(config.normalTheme.groundColor);
             Transform tri = boardRoot != null ? boardRoot.Find("Environment Base (1)/Triangle") : null;
             Transform triCol = tri != null ? tri.Find("Model/Triangle") : null;
             if (triCol != null) triCol.gameObject.AddComponent<TriangleFx>().Init(tri);
@@ -169,6 +171,9 @@ namespace BounceBlast.Gameplay
             balls.ClearAll();
             yield return _ui.PlayWinSequence(levelManager.CurrentLevel, CurrentDifficulty, WinCoins, levelManager.LoadNext);
         }
+
+        /// <summary>Chỉ cho công cụ cheat (Scripts/Debug/CheatRegistry): ép thua ngay để thử màn thua.</summary>
+        public void CheatLose() => Lose("Cheat");
 
         void Lose(string reason)
         {

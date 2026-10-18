@@ -108,7 +108,7 @@ Managers          LOGIC điều phối (mỗi cái một việc, xem Docs/kien-t
  └─ CameraFitter   cân camera          └─ Theme           áp theme theo độ khó
 UI                [GameUI] điều phối, kéo sẵn 7 View
  ├─ HUD       OverlayCanvas [OverlayView] · HUD (GameCanvas) [HudView] · CapacityBar [CapacityBarView]
- ├─ Popups    FailPopup · SuccessPopup · Settings · OutOfCapacityPopup   (tắt sẵn)
+ ├─ Popups    FailPopup · SuccessPopup · Settings · OutOfCapacityPopup · BoosterBuyPopup   (tắt sẵn)
  └─ EventSystem
 ```
 

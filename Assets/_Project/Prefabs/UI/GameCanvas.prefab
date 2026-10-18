@@ -564,6 +564,8 @@ MonoBehaviour:
     levelTextMin: {x: 0.15, y: 0.2}
     levelTextMax: {x: 0.85, y: 0.8}
     difficultyLabel: 
+    difficultyTextMin: {x: 0.22, y: 0.05}
+    difficultyTextMax: {x: 0.78, y: 0.3}
     onlyHere:
     - {fileID: 3534}
     - {fileID: 2227}
@@ -572,9 +574,11 @@ MonoBehaviour:
     settingsIcon: {fileID: 21300000, guid: 8574bfa4256eac9479885ce692d3b3ca, type: 2}
     badgeSize: {x: 203, y: 164}
     badgePosition: {x: 40, y: -17}
-    levelTextMin: {x: 0.14, y: 0.36}
-    levelTextMax: {x: 0.86, y: 0.72}
+    levelTextMin: {x: 0.14, y: 0.38}
+    levelTextMax: {x: 0.86, y: 0.74}
     difficultyLabel: Hard
+    difficultyTextMin: {x: 0.22, y: 0.08}
+    difficultyTextMax: {x: 0.78, y: 0.33}
     onlyHere:
     - {fileID: 1570}
     - {fileID: 4363}
@@ -583,9 +587,11 @@ MonoBehaviour:
     settingsIcon: {fileID: 21300000, guid: 8af945c0300852145b79fcb6d7090a67, type: 2}
     badgeSize: {x: 203, y: 164}
     badgePosition: {x: 40, y: -17}
-    levelTextMin: {x: 0.14, y: 0.36}
-    levelTextMax: {x: 0.86, y: 0.72}
+    levelTextMin: {x: 0.14, y: 0.38}
+    levelTextMax: {x: 0.86, y: 0.74}
     difficultyLabel: Super Hard
+    difficultyTextMin: {x: 0.22, y: 0.08}
+    difficultyTextMax: {x: 0.78, y: 0.33}
     onlyHere:
     - {fileID: 2377}
     - {fileID: 3958}
@@ -1522,6 +1528,7 @@ GameObject:
   - component: {fileID: 18217}
   - component: {fileID: 19198}
   - component: {fileID: 18282}
+  - component: {fileID: 7841434212033937323}
   m_Layer: 5
   m_Name: UI Button - Secondary Shop Opener (1)
   m_TagString: Untagged
@@ -1679,6 +1686,23 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+--- !u!114 &7841434212033937323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &1282
 GameObject:
   m_ObjectHideFlags: 0
@@ -3518,6 +3542,7 @@ GameObject:
   - component: {fileID: 9598}
   - component: {fileID: 17660}
   - component: {fileID: 16220}
+  - component: {fileID: 346763092075908178}
   m_Layer: 5
   m_Name: SettingsButton
   m_TagString: Untagged
@@ -3638,6 +3663,23 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &346763092075908178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &2923
 GameObject:
   m_ObjectHideFlags: 0
@@ -4520,6 +4562,7 @@ GameObject:
   - component: {fileID: 16428}
   - component: {fileID: 16205}
   - component: {fileID: 14360}
+  - component: {fileID: 1313955626881512357}
   m_Layer: 5
   m_Name: Continue Button
   m_TagString: Untagged
@@ -4673,6 +4716,23 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &1313955626881512357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &4287
 GameObject:
   m_ObjectHideFlags: 0
@@ -5130,6 +5190,7 @@ GameObject:
   - component: {fileID: 15476}
   - component: {fileID: 17124}
   - component: {fileID: 15643}
+  - component: {fileID: 3647632681043430996}
   m_Layer: 5
   m_Name: UI Button - Secondary Shop Opener (1)
   m_TagString: Untagged
@@ -5287,6 +5348,23 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+--- !u!114 &3647632681043430996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed25cfe3bcdce1247ab5f9894062065f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pressScale: 0.9
+  hoverScale: 1.05
+  bounceScale: 1.12
+  stiffness: 260
+  damping: 16
 --- !u!1 &4639
 GameObject:
   m_ObjectHideFlags: 0

@@ -29,11 +29,38 @@ namespace BounceBlast.Gameplay
             [Tooltip("Mũi tên vàng nhắc dùng – để trống nếu nút này không cần")] public RectTransform warnArrow;
         }
 
+        /// <summary>Bộ hình các nút booster ở một độ khó (gốc: SpriteConfig.spritesBooster – sprite / spriteHardOverride / spriteSuperHardOverride).</summary>
+        [Serializable]
+        public class Style
+        {
+            public Sprite magicHand;
+            public Sprite hammer;
+            public Sprite shuffle;
+            public Sprite capacity;
+            [Tooltip("Ô số tròn (Number / Hard Number / Super Hard Number)")] public Sprite number;
+
+            public Sprite For(BoosterType t)
+            {
+                switch (t)
+                {
+                    case BoosterType.MagicHand: return magicHand;
+                    case BoosterType.Hammer: return hammer;
+                    case BoosterType.Shuffle: return shuffle;
+                    default: return capacity;
+                }
+            }
+        }
+
         [Tooltip("Dải nền dưới cùng (đổi tông theo độ khó)")]
         [SerializeField] Image strip;
         [Tooltip("Hàng chứa 4 nút – dùng để đo mép trên khi cân bố cục màn hình")]
         [SerializeField] RectTransform buttonsRow;
         [SerializeField] List<Entry> boosters = new List<Entry>();
+
+        [Header("Hình nút theo độ khó (để trống một ô = giữ hình đang có)")]
+        [SerializeField] Style normal = new Style();
+        [SerializeField] Style hard = new Style();
+        [SerializeField] Style superHard = new Style();
 
         /// <summary>Bấm vào một nút booster.</summary>
         public event Action<BoosterType> OnPressed;
@@ -64,6 +91,23 @@ namespace BounceBlast.Gameplay
                 if (e == null || e.warnArrow == null) continue;
                 if (e.warnArrow.gameObject.activeSelf != _warnOn) e.warnArrow.gameObject.SetActive(_warnOn);
                 if (_warnOn) e.warnArrow.anchoredPosition = new Vector2(0f, y);
+            }
+        }
+
+        /// <summary>Đổi hình 4 nút + ô số theo độ khó (Normal xanh, Hard tím, Super Hard tối – theo SpriteConfig gốc).</summary>
+        public void ApplyDifficulty(LevelDifficulty difficulty)
+        {
+            Style s = difficulty == LevelDifficulty.SuperHard ? superHard : difficulty == LevelDifficulty.Hard ? hard : normal;
+            foreach (Entry e in boosters)
+            {
+                if (e == null) continue;
+                Sprite sp = s.For(e.type);
+                if (sp != null && e.frame != null) e.frame.sprite = sp;
+                if (s.number != null && e.badge != null)
+                {
+                    Image img = e.badge.GetComponent<Image>();
+                    if (img != null) img.sprite = s.number;
+                }
             }
         }
 

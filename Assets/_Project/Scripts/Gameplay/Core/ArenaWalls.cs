@@ -21,7 +21,24 @@ namespace BounceBlast.Gameplay
         public void EnsureBuilt(GameConfig config)
         {
             var edge = GetComponent<EdgeCollider2D>();
-            if (edge.pointCount < 2) Rebuild(config);
+            if (edge.pointCount < 2) { Rebuild(config); return; }
+            SyncFloor(edge, config);
+        }
+
+        /// <summary>
+        /// Điểm đã nung sẵn nên không tự theo <c>boardOffsetY</c>: mỗi lần vào game kéo hai điểm đáy (cùng y, thấp nhất)
+        /// về đúng <c>arena.yMin + boardOffsetY</c>, khớp đáy bàn gạch.
+        /// </summary>
+        void SyncFloor(EdgeCollider2D edge, GameConfig config)
+        {
+            Vector2[] p = edge.points;
+            float minY = float.MaxValue;
+            foreach (Vector2 v in p) minY = Mathf.Min(minY, v.y);
+            float targetLocalY = config.arena.yMin + config.boardOffsetY - transform.position.y;
+            if (Mathf.Abs(minY - targetLocalY) < 0.0001f) return;
+            for (int i = 0; i < p.Length; i++)
+                if (Mathf.Abs(p[i].y - minY) < 0.0001f) p[i].y = targetLocalY;
+            edge.points = p;
         }
 
         [ContextMenu("Dựng lại từ GameConfig.arena")]

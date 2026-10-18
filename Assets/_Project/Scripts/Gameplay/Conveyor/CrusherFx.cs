@@ -34,6 +34,25 @@ namespace BounceBlast.Gameplay
             }
 
             SetupParticleSystems();
+            StartCoroutine(WarmUp());
+        }
+
+        /// <summary>
+        /// Phát thử 1 hạt cực nhỏ, trong suốt ở mỗi hệ hạt rồi xoá: vẽ lần đầu mới biên dịch shader hạt + dựng buffer, nếu để tới lúc hộp
+        /// đầu tiên chạm máy xay (nổ 40 hạt cùng lúc) thì khựng trên máy yếu.
+        /// </summary>
+        System.Collections.IEnumerator WarmUp()
+        {
+            yield return null;
+            foreach (ParticleSystem ps in new[] { _chunkParticles, _sparkParticles })
+            {
+                if (ps == null) continue;
+                var ep = new ParticleSystem.EmitParams { startSize = 0.0001f, startLifetime = 0.05f, startColor = new Color(1f, 1f, 1f, 0f), velocity = Vector3.zero };
+                ps.Emit(ep, 1);
+            }
+            yield return new WaitForSeconds(0.2f);
+            if (_chunkParticles != null) _chunkParticles.Clear();
+            if (_sparkParticles != null) _sparkParticles.Clear();
         }
 
         static Texture2D _circleTex;

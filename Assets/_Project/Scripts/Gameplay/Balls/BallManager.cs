@@ -34,6 +34,39 @@ namespace BounceBlast.Gameplay
             _trailMat = config.trailMaterial != null ? config.trailMaterial : new Material(Shader.Find("Sprites/Default"));
         }
 
+        /// <summary>
+        /// Làm nóng trước khi chơi: dựng sẵn <paramref name="count"/> viên bi vào pool (mỗi viên = Instantiate prefab + Rigidbody2D + collider + trail)
+        /// và nạp shader/material bi, vệt bi cho từng màu. Rải đều vài viên mỗi khung hình để không làm đứng màn nạp.
+        /// Không làm trước thì hộp ĐẦU TIÊN lên máy xay phải dựng bi + biên dịch shader ngay lúc nhả viên đầu → khựng ~0.4 s trên máy yếu
+        /// (các hộp sau dùng lại pool nên mượt).
+        /// </summary>
+        public System.Collections.IEnumerator Prewarm(int count, int perFrame = 4)
+        {
+            // 1) material + shader (SetPass biên dịch/gắn chương trình shader ngay, không chờ lần vẽ đầu)
+            if (_trailMat != null) _trailMat.SetPass(0);
+            foreach (ColorLibrary.Entry e in _colors.entries)
+            {
+                Material m = _colors.BallMat(e.code);
+                if (m != null) m.SetPass(0);
+                Material tail = Ball.WarmTailMaterial(m, e.code, e.color);
+                if (tail != null) tail.SetPass(0);
+                yield return null;
+            }
+            // 2) pool bi
+            int made = 0;
+            while (made < count)
+            {
+                for (int i = 0; i < perFrame && made < count; i++, made++)
+                {
+                    Ball b = Create();
+                    b.EnterLane();
+                    b.gameObject.SetActive(false);
+                    _pool.Push(b);
+                }
+                yield return null;
+            }
+        }
+
         public Ball Get(string colorCode)
         {
             Ball b = _pool.Count > 0 ? _pool.Pop() : Create();

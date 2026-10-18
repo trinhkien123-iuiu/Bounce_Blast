@@ -107,3 +107,13 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# --- Bounce Blast: ảnh/video tạm, ảnh chụp kiểm thử, cấu hình máy riêng, file Python tự sinh
+/Captures/
+/Screenshots/
+/[Aa]ssets/Screenshots/
+/[Aa]ssets/Screenshots.meta
+__pycache__/
+*.pyc
+.claude/settings.local.json
+.mcp.json

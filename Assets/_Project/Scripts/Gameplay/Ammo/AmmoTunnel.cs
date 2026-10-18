@@ -21,6 +21,9 @@ namespace BounceBlast.Gameplay
         float _punch;
         float _cell;
 
+        /// <summary>Slot vật liệu của VÀNH miệng ống (mesh Tunnel gốc có 2 slot: thân thép xanh + vành). Thân giữ nguyên Tunnel_0, vành mang màu hộp kế tiếp.</summary>
+        const int RimSlot = 0;
+
         Renderer _tube;
         Material _tubeMat;
         ColorLibrary _colors;
@@ -44,7 +47,7 @@ namespace BounceBlast.Gameplay
             foreach (TextMeshPro t in v.GetComponentsInChildren<TextMeshPro>(true)) t.gameObject.SetActive(false);
             BoardController.RemoveStrayText(v.transform);
             Transform tube = _visual.Find("Model/Tunnel");
-            if (tube != null) { _tube = tube.GetComponent<Renderer>(); _tubeMat = _tube.sharedMaterials.Length > 1 ? _tube.sharedMaterials[1] : null; }
+            if (tube != null) { _tube = tube.GetComponent<Renderer>(); _tubeMat = _tube.sharedMaterials.Length > RimSlot ? _tube.sharedMaterials[RimSlot] : null; }
 
             // Mesh "Tunnel" gốc là ống hở 1 đầu; nghiêng -62° thì miệng ống hướng lên màn hình (= U, về phía lối ra).
             // Xoay quanh trục nhìn cho miệng ống quay đúng hướng nhả hộp (/tu-XR → phải, /tu-XL → trái…).
@@ -99,11 +102,11 @@ namespace BounceBlast.Gameplay
         {
             _label.SetText("{0}", Data.Queue.Count);
             // Vành ống mang màu hộp sắp nhả (ảnh gốc: viền hồng/đỏ/xanh quanh số)
-            if (_tube != null && _colors != null && _tube.sharedMaterials.Length > 1)
+            if (_tube != null && _colors != null && _tube.sharedMaterials.Length > RimSlot)
             {
                 Material[] mats = _tube.sharedMaterials;
                 Material next = Data.Queue.Count > 0 ? _colors.AmmoMat(Data.Queue[0].ColorCode) : null;
-                mats[1] = next != null ? next : _tubeMat;
+                mats[RimSlot] = next != null ? next : _tubeMat;
                 _tube.sharedMaterials = mats;
             }
         }

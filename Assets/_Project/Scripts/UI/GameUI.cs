@@ -33,6 +33,7 @@ namespace BounceBlast.Gameplay
         [SerializeField] SuccessPopupView _success;
         [SerializeField] SettingsPopupView _settings;
         [SerializeField] OutOfCapacityPopupView _outOfCapacity;
+        [SerializeField] BoosterBuyPopupView _boosterBuy;
 
         UiSkin _skin;
         Camera _cam;
@@ -193,6 +194,7 @@ namespace BounceBlast.Gameplay
             _difficulty = difficulty;
             if (_hudView != null) _hudView.Apply(level, difficulty);
             // dải booster dưới cùng đổi tông theo độ khó (màu đo từ ảnh gốc: HardBG đỏ / SuperHardBG navy tối)
+            if (_boosterBarView != null) _boosterBarView.ApplyDifficulty(difficulty);
             if (_boosterBarView != null)
                 _boosterBarView.SetStripColor(difficulty == LevelDifficulty.SuperHard ? new Color32(38, 40, 71, 255)
                                             : difficulty == LevelDifficulty.Hard ? new Color32(190, 42, 44, 255)
@@ -273,7 +275,7 @@ namespace BounceBlast.Gameplay
         }
 
         // Mỗi popup chỉ được nối sự kiện MỘT lần – không dựa vào "ô còn trống" vì View đặt sẵn trong scene đã được kéo vào ô.
-        bool _failWired, _outWired, _settingsWired, _successWired;
+        bool _failWired, _outWired, _settingsWired, _successWired, _buyWired;
 
         Action _failRetry;
 
@@ -300,6 +302,33 @@ namespace BounceBlast.Gameplay
             PrepareCanvas(_outOfCapacity);
             _outOfCapacity.Show(diff);
             _activeView = _outOfCapacity;
+
+            Time.timeScale = 0;
+        }
+
+        //Mua booster (hết lượt)
+        Action<BoosterType, int> _buyAction;
+
+        /// <summary>Mở popup mua booster khi nút booster đã hết lượt. Bấm mua → <paramref name="onBuy"/> (bản clone: miễn phí).</summary>
+        public void ShowBoosterBuy(BoosterType type, LevelDifficulty diff, Action<BoosterType, int> onBuy)
+        {
+            _difficulty = diff;
+            ClosePopup();
+            if (!_buyWired)
+            {
+                _boosterBuy = GetPopupView(_boosterBuy, _skin.boosterBuyPrefab, "BoosterBuyPopup");
+                if (_boosterBuy != null)
+                {
+                    _buyWired = true;
+                    _boosterBuy.OnClose += ClosePopup;
+                    _boosterBuy.OnBuy += (t, n) => { ClosePopup(); _buyAction?.Invoke(t, n); };
+                }
+            }
+            if (_boosterBuy == null) return;
+            _buyAction = onBuy;
+            PrepareCanvas(_boosterBuy);
+            _boosterBuy.Show(type, diff);
+            _activeView = _boosterBuy;
 
             Time.timeScale = 0;
         }

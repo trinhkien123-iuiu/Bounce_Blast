@@ -36,6 +36,9 @@ namespace BounceBlast.Gameplay
             TailMats[code ?? ""] = m;
             return m;
         }
+        /// <summary>Tạo sẵn material vệt bi của một màu (BallManager.Prewarm).</summary>
+        public static Material WarmTailMaterial(Material baseMat, string code, Color color) => TailMaterial(baseMat, code, color);
+
         int _bounceCount;
         float _lastUsefulHit;
         float _flatTime;

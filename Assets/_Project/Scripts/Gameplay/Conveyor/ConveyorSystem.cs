@@ -128,15 +128,34 @@ namespace BounceBlast.Gameplay
         }
 
         /// <summary>Gửi hộp lên máng: chọn máng ít bi chờ hơn (hoà thì máng cùng phía với hộp).</summary>
-        public void Send(AmmoBox box)
+        ConveyorLane PickLane(AmmoBox box)
         {
             int l = _left.PendingBalls, r = _right.PendingBalls;
             bool useLeft = l == r ? box.transform.position.x <= _config.dispenserOutlet.x : l < r;
-            ConveyorLane lane = useLeft ? _left : _right;
+            return useLeft ? _left : _right;
+        }
+
+        /// <summary>
+        /// Hộp vượt sức chứa: cho hộp chạy hoạt ảnh bay tới máng sẽ dùng rồi DỪNG giữa chừng (<see cref="AmmoBox.HoldFlightAt"/>).
+        /// Khi được phép bay thì <see cref="Send"/> thả giữ và dùng đúng máng này.
+        /// </summary>
+        public void HoldBoxMidFlight(AmmoBox box)
+        {
+            ConveyorLane lane = PickLane(box);
+            box.HeldLane = lane;
+            box.HoldFlightAt(lane.DockPosition, lane.DockRotation, lane.DockWidth, _config.boxFlyDuration, _config.hoverHoldProgress);
+        }
+
+        public void Send(AmmoBox box)
+        {
+            ConveyorLane lane = box.HeldLane != null ? box.HeldLane : PickLane(box);
+            box.HeldLane = null;
             box.transform.SetParent(lane.transform, true); // hộp rời khay → thuộc máng (Hierarchy gọn)
             box.DockWidth = lane.DockWidth;
             box.DockRotation = lane.DockRotation;
-            box.FlyTo(lane.DockPosition, _config.boxFlyDuration, () => lane.Receive(box));
+            // vào đường ống của máng ngay lúc bấm; bay thẳng tới chỗ của mình (máy xay hoặc hàng chờ); đầu ống chạm là máy xay chạy luôn
+            Vector3 target = lane.Reserve(box);
+            box.FlyTo(target, _config.boxFlyDuration, () => lane.Arrived(box), () => lane.HeadArrived(box));
         }
 
         public void ClearAll()

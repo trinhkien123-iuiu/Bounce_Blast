@@ -68,7 +68,7 @@ namespace BounceBlast.Gameplay
 
             _body = gameObject.AddComponent<Rigidbody2D>();
             _body.bodyType = RigidbodyType2D.Kinematic;
-            _body.interpolation = RigidbodyInterpolation2D.Interpolate;
+            _body.interpolation = RigidbodyInterpolation2D.None;   // chỉ bật nội suy trong lúc khối RƠI (Wake) – 1000+ khối đứng yên không phải nội suy mỗi khung
 
             if (colliderParts == null || colliderParts.Count == 0)
             {
@@ -84,6 +84,44 @@ namespace BounceBlast.Gameplay
                 }
 
             RefreshLabel();
+            ApplyDepth();
+            Sleep();   // đứng yên cho tới khi bị bi trúng hoặc mất chỗ đỡ
+        }
+
+        /// <summary>
+        /// Màn dày đặc có 1000+ khối: mỗi khối chạy FixedUpdate + Update + LateUpdate MỖI khung dù đứng yên (đo: ~3.6 ms/khung trên
+        /// Editor). Giờ component chỉ BẬT khi có việc (rơi xuống ô đích, nảy khi bị trúng) và tự tắt khi xong.
+        /// </summary>
+        /// <param name="moving">true = khối sắp rơi: chuyển Kinematic + nội suy. false (bị bi trúng, chỉ nảy hình) giữ nguyên Static để không dựng lại tiếp xúc.</param>
+        void Wake(bool moving)
+        {
+            if (IsDestroyed) return;
+            enabled = true;
+            if (moving && _body != null)
+            {
+                if (_body.bodyType != RigidbodyType2D.Kinematic) _body.bodyType = RigidbodyType2D.Kinematic;
+                _body.interpolation = RigidbodyInterpolation2D.Interpolate;
+            }
+        }
+
+        /// <summary>Đứng yên → Static: 1000+ khối không còn là 1000+ vật thể kinematic trong mô phỏng Physics2D (đo ở màn dày: phần tốn nhất khung hình).</summary>
+        void Sleep()
+        {
+            if (_body != null)
+            {
+                _body.interpolation = RigidbodyInterpolation2D.None;
+                if (_body.bodyType != RigidbodyType2D.Static) _body.bodyType = RigidbodyType2D.Static;
+            }
+            enabled = false;
+        }
+
+        /// <summary>Hàng thấp gần camera hơn (xem RowDepth) – chỉ cần tính lại khi khối đổi chỗ.</summary>
+        void ApplyDepth()
+        {
+            if (_visual == null) return;
+            Vector3 lp = _visual.localPosition;
+            lp.z = _visualBaseZ + transform.position.y * RowDepth;
+            _visual.localPosition = lp;
         }
 
         /// <summary>Bi màu <paramref name="ballColor"/> có trừ máu được khối này không.</summary>
@@ -102,6 +140,7 @@ namespace BounceBlast.Gameplay
             if (IsDestroyed) return false;
             Hp--;
             _punch = 1f;
+            Wake(false);
             RefreshLabel();
             if (Hp > 0) return false;
             IsDestroyed = true;
@@ -114,7 +153,11 @@ namespace BounceBlast.Gameplay
             IsDestroyed = true;
         }
 
-        public void SetTarget(Vector2 worldPos) => _targetPos = worldPos;
+        public void SetTarget(Vector2 worldPos)
+        {
+            if (((Vector2)transform.position - worldPos).sqrMagnitude > 0.00001f || (_targetPos - worldPos).sqrMagnitude > 0.00001f) Wake(true);
+            _targetPos = worldPos;
+        }
         public bool IsMoving => ((Vector2)transform.position - _targetPos).sqrMagnitude > 0.0001f;
 
         void RefreshLabel()
@@ -143,18 +186,19 @@ namespace BounceBlast.Gameplay
 
         void LateUpdate()
         {
-            if (_visual == null) return;
-            Vector3 lp = _visual.localPosition;
-            lp.z = _visualBaseZ + transform.position.y * RowDepth;
-            _visual.localPosition = lp;
+            ApplyDepth();
         }
 
         void Update()
         {
-            if (_visual == null || _punch <= 0f) return;
-            _punch = Mathf.Max(0f, _punch - Time.deltaTime * 6f);
-            float s = 1f + Mathf.Sin(_punch * Mathf.PI) * (Kind == BoardItemKind.Cube ? 0.18f : 0.04f);
-            _visual.localScale = _visualBaseScale * s;
+            if (_visual != null && _punch > 0f)
+            {
+                _punch = Mathf.Max(0f, _punch - Time.deltaTime * 6f);
+                float s = 1f + Mathf.Sin(_punch * Mathf.PI) * (Kind == BoardItemKind.Cube ? 0.18f : 0.04f);
+                _visual.localScale = _visualBaseScale * s;
+            }
+            // xong việc (đã tới ô đích, hết nảy) → ngủ
+            if (_punch <= 0f && !IsMoving) { ApplyDepth(); Sleep(); }
         }
     }
 }

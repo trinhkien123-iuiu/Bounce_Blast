@@ -59,7 +59,7 @@ Material:
       _GlossMapScale: 0
       _Glossiness: 0
       _GlossyReflections: 0
-      _IndirectIntensity: 0.668
+      _IndirectIntensity: 0.7
       _IndirectIntensityOutline: 0
       _MatCapMaskChannel: 0
       _MatCapType: 0
@@ -135,15 +135,15 @@ Material:
       _ZSmooth: -0.5
       _ZWrite: 1
     m_Colors:
-      _BaseColor: {r: 1, g: 0.44715133, b: 0.0141509175, a: 1}
+      _BaseColor: {r: 1, g: 0.478431, b: 0, a: 1}
       _Color: {r: 1, g: 1, b: 1, a: 1}
       _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-      _HColor: {r: 1, g: 1, b: 1, a: 1}
+      _HColor: {r: 1, g: 0.635294, b: 0.298039, a: 1}
       _MatCapColor: {r: 1, g: 1, b: 1, a: 1}
       _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
       _ReflectionColor: {r: 1, g: 1, b: 1, a: 1}
       _RimColor: {r: 0.8, g: 0.8, b: 0.8, a: 0.5}
-      _SColor: {r: 0.7735849, g: 0.368933, b: 0.11311854, a: 1}
+      _SColor: {r: 0.733333, g: 0.34902, b: 0, a: 1}
       _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
       _SpecularColor: {r: 1, g: 0.6224881, b: 0.48584908, a: 1}
   m_BuildTextureStacks: []

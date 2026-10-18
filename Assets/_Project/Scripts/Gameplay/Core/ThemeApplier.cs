@@ -17,6 +17,12 @@ namespace BounceBlast.Gameplay
         Color _origGradient;
         Color _origCamBg;
         Renderer _wall;
+        readonly System.Collections.Generic.List<CrusherHousing> _housings = new System.Collections.Generic.List<CrusherHousing>();
+        Color _normalGround = new Color(0.282f, 0.314f, 0.682f);
+        readonly System.Collections.Generic.Dictionary<Color, Material[]> _crusherCache = new System.Collections.Generic.Dictionary<Color, Material[]>();
+
+        /// <summary>Vỏ máy xay nhìn thấy (Shredder/Plane.028, material "Tunnel") và cụm vỏ dự phòng polySurface11 ("Blue" + đế). Chỉ đổi các slot đầu, không đụng lưỡi cắt.</summary>
+        struct CrusherHousing { public Renderer renderer; public Material[] original; public int slots; }
         Sprite _origMask;
         Renderer _pins;
         MaterialPropertyBlock _mpb;
@@ -36,11 +42,77 @@ namespace BounceBlast.Gameplay
             Transform pins = boardRoot.Find("Environment Base (1)/Triangle/Model/Triangle");
             if (pins != null) _pins = pins.GetComponent<Renderer>();
             _mpb = new MaterialPropertyBlock();
+            foreach (Renderer r in boardRoot.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] sm = r.sharedMaterials;
+                if (sm.Length == 0 || sm[0] == null) continue;
+                if (r.name == "polySurface11" && sm.Length >= 2 && sm[0].name == "Blue")
+                    _housings.Add(new CrusherHousing { renderer = r, original = sm, slots = 2 });
+                else if (r.name == "Plane.028" && sm[0].name == "Tunnel" && r.transform.parent != null && r.transform.parent.name == "Shredder")
+                    _housings.Add(new CrusherHousing { renderer = r, original = sm, slots = 1 });
+            }
             Transform grad = boardRoot.Find("Gradient_Back/Mask NORMAL");
             if (grad != null) { _gradient = grad.GetComponent<SpriteRenderer>(); _origGradient = _gradient.color; }
         }
 
         public void SetConveyor(ConveyorSystem conveyor) => _conveyorSystem = conveyor;
+
+        /// <summary>groundColor của theme Normal – mốc để tính hướng đổi màu cho các theme khác.</summary>
+        public void SetReferenceGround(Color normalGround) => _normalGround = normalGround;
+
+        /// <summary>
+        /// Vỏ máy xay Normal là xanh thép. Theme khác đổi theo CÙNG hướng với nền: tông (hue) dời bằng chênh lệch hue của groundColor,
+        /// độ bão hòa nhân theo tỉ lệ bão hòa, độ sáng nhân căn bậc hai tỉ lệ sáng (Super Hard xám tối → vỏ xám tối).
+        /// </summary>
+        void ApplyCrusher(GameConfig.Theme theme)
+        {
+            if (_housings.Count == 0) return;
+            foreach (CrusherHousing h in _housings)
+            {
+                if (h.renderer == null) continue;
+                if (theme == null) { h.renderer.sharedMaterials = h.original; continue; }
+                var mats = (Material[])h.original.Clone();
+                for (int i = 0; i < h.slots && i < mats.Length; i++) mats[i] = RecolorCached(h.original[i], theme);
+                h.renderer.sharedMaterials = mats;
+            }
+        }
+
+        // cache theo (material gốc, màu nền) để các renderer dùng chung bản đã tô
+        readonly System.Collections.Generic.Dictionary<string, Material> _recolored = new System.Collections.Generic.Dictionary<string, Material>();
+
+        Material RecolorCached(Material src, GameConfig.Theme theme)
+        {
+            if (src == null) return null;
+            string key = src.GetInstanceID() + "|" + theme.groundColor + "|" + theme.crusherBrightness;
+            if (_recolored.TryGetValue(key, out Material m) && m != null) return m;
+            m = Recolor(src, theme);
+            _recolored[key] = m;
+            return m;
+        }
+
+        Material Recolor(Material src, GameConfig.Theme theme)
+        {
+            var m = new Material(src) { name = src.name + " (theme)" };
+            float hn, sn, vn, hg, sg, vg;
+            Color.RGBToHSV(_normalGround, out hn, out sn, out vn);
+            Color.RGBToHSV(theme.groundColor, out hg, out sg, out vg);
+            float dh = sg < 0.02f || sn < 0.02f ? 0f : hg - hn;
+            float ds = sn > 1e-3f ? sg / sn : 1f;
+            float dv = (vn > 1e-3f ? Mathf.Sqrt(vg / vn) : 1f) * theme.crusherBrightness;
+            foreach (string prop in new[] { "_BaseColor", "_Color", "_HColor", "_SColor" })
+            {
+                if (!m.HasProperty(prop)) continue;
+                Color c = m.GetColor(prop);
+                float h, s, v;
+                Color.RGBToHSV(c, out h, out s, out v);
+                h = Mathf.Repeat(h + dh, 1f);
+                s = Mathf.Clamp01(s * ds);
+                v = Mathf.Clamp01(v * dv);
+                Color nc = Color.HSVToRGB(h, s, v); nc.a = c.a;
+                m.SetColor(prop, nc);
+            }
+            return m;
+        }
 
         /// <summary>
         /// Theo ArtConfig gốc: ColorModularWallBoardGround là màu nền sau bàn (camera + gradient) và tông khung
@@ -72,6 +144,7 @@ namespace BounceBlast.Gameplay
         public void Apply(GameConfig.Theme theme)
         {
             ApplyGround(theme);
+            ApplyCrusher(theme);
             if (_conveyor != null && _origConveyor != null)
             {
                 var mats = (Material[])_origConveyor.Clone();
@@ -89,9 +162,9 @@ namespace BounceBlast.Gameplay
                 // Sprite Mask/MaskHard/MaskSuperHard đã mang sẵn màu gradient gốc → để trắng (đo khớp ảnh gốc)
                 if (_origMask == null) _origMask = _gradient.sprite;
                 _gradient.sprite = theme != null && theme.backgroundMask != null ? theme.backgroundMask : _origMask;
-                _gradient.color = Color.white;
+                _gradient.color = new Color(1f, 1f, 1f, theme != null ? theme.maskAlpha : 1f);
             }
-            if (_cam != null) _cam.backgroundColor = theme != null ? theme.groundColor : _origCamBg;
+            if (_cam != null) _cam.backgroundColor = theme == null ? _origCamBg : theme.cameraBackground.a > 0f ? theme.cameraBackground : theme.groundColor;
         }
     }
 }

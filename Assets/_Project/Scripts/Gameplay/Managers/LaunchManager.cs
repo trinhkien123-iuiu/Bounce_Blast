@@ -85,7 +85,7 @@ namespace BounceBlast.Gameplay
                 _overflowPending = true;
                 _started = true;
                 Capacity.ForceFull = true;
-                box.Hover();
+                _conveyor.HoldBoxMidFlight(box);   // chạy hoạt ảnh bay thật rồi dừng giữa chừng (không còn ống nghiêng riêng)
                 AudioManager.Play(Sfx.Error);
                 StartCoroutine(OutOfCapacityRoutine(box, forced, tapSoundDone));
                 return;

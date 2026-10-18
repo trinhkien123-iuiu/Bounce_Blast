@@ -50,7 +50,9 @@ namespace BounceBlast.Gameplay
         [Tooltip("Pháo hoa SF_Basic")] [SerializeField] Transform fireworks;
 
         [Header("Hiệu ứng bảng thắng")]
-        [Tooltip("Quầng sáng sau xu (AreaShine)")] [SerializeField] Transform areaShine;
+        [Tooltip("Quầng sáng sau xu (AreaShine) – hạt cộng sáng ×250, CHÁY TRẮNG trên máy thật → chỉ dùng khi chưa gán Area Glow")] [SerializeField] Transform areaShine;
+        [Tooltip("Quầng sáng sau xu dạng ảnh thường (alpha blend, độ sáng cố định → không cháy trên mọi máy). Có ảnh này thì tắt AreaShine")] [SerializeField] Graphic areaGlow;
+        [Tooltip("Độ trong suốt của quầng sáng (nhịp thở ±15%)")] [SerializeField, Range(0.1f, 1f)] float areaGlowAlpha = 0.5f;
         [Tooltip("Bục xu (Coin) – cha của icon xu")] [SerializeField] Transform coinRoot;
         [Tooltip("Đống xu (Coin/coinIcon)")] [SerializeField] Transform coinIcon;
         [Tooltip("Khối chữ PERFECT! (tên gốc OutOfCapsity)")] [SerializeField] Transform perfect;
@@ -79,6 +81,17 @@ namespace BounceBlast.Gameplay
             if (coinIcon != null) { _coinBasePos = coinIcon.localPosition; _coinBaseSaved = true; }
             if (continueButton != null) continueButton.onClick.AddListener(Continue);
             if (x2Button != null) x2Button.onClick.AddListener(Continue);
+        }
+
+        void Update()
+        {
+            // quầng sáng thở nhẹ (thời gian tuyệt đối, không phụ thuộc fps/timeScale)
+            if (areaGlow != null && areaGlow.gameObject.activeInHierarchy)
+            {
+                Color c = areaGlow.color;
+                c.a = areaGlowAlpha * (1f + 0.15f * Mathf.Sin(Time.unscaledTime * 2.2f));
+                areaGlow.color = c;
+            }
         }
 
         void Continue()
@@ -149,7 +162,12 @@ namespace BounceBlast.Gameplay
                 r.sortingOrder = order;
             }
             // quầng sáng sau xu: plugin UIParticle gốc phóng particle theo UI → ~4.5 đơn vị world (≈ nửa bảng)
-            if (areaShine != null) { areaShine.localScale = Vector3.one * 250f; ((RectTransform)areaShine).anchoredPosition = new Vector2(6f, -63f); }
+            if (areaGlow != null)
+            {
+                if (areaShine != null) areaShine.gameObject.SetActive(false);
+                areaGlow.gameObject.SetActive(true);
+            }
+            else if (areaShine != null) { areaShine.localScale = Vector3.one * 250f; ((RectTransform)areaShine).anchoredPosition = new Vector2(6f, -63f); }
             foreach (Transform t in burstEffects)
             {
                 if (t == null) continue;

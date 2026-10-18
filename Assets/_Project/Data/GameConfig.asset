@@ -17,6 +17,7 @@ MonoBehaviour:
   cubePrefab: {fileID: 1709254077376921, guid: f1cc67c1093c6b9478de7d5a3c5be287, type: 3}
   combinedCubePrefab: {fileID: 1709254077376921, guid: ea672d17c154db845b05d0e9c3530d79, type: 3}
   cratePrefab: {fileID: 1709254077376921, guid: cb129b00c11615d4e8d8d18ce8f5f2e3, type: 3}
+  crateModularPrefab: {fileID: 1709254077376921, guid: b3a4b223231fc3048b55b333d092f389, type: 3}
   ammoPrefab: {fileID: 1709254077376921, guid: 23bfe0e115989644ca2848bb3dc440e0, type: 3}
   tunnelPrefab: {fileID: 1709254077376921, guid: f49df944846d34947948223e39193f84, type: 3}
   ballPrefab: {fileID: 1709254077376921, guid: 033b85e3b6596064a824161bbe0945af, type: 3}
@@ -51,7 +52,10 @@ MonoBehaviour:
     arrowColor: {r: 0.227, g: 0.243, b: 0.373, a: 1}
     pinsColor: {r: 0.282, g: 0.322, b: 0.706, a: 1}
     wallTint: 1.6
+    crusherBrightness: 1
     backgroundMask: {fileID: 21300000, guid: 41095813a4754c74bb030dd2945a816a, type: 2}
+    maskAlpha: 1
+    cameraBackground: {r: 0, g: 0, b: 0, a: 0}
     trayWall: {fileID: 2100000, guid: a3ebf1dc881ba934a983215a4e4d2bc1, type: 2}
     trayPanel: {fileID: 2100000, guid: 26b0701ee487f7942a494b598a493c0f, type: 2}
     trayHole: {fileID: 2100000, guid: 32689b5254728b64f829fabc1ed15ae5, type: 2}
@@ -70,7 +74,10 @@ MonoBehaviour:
     arrowColor: {r: 0.553, g: 0.153, b: 0.18, a: 1}
     pinsColor: {r: 0.514, g: 0.196, b: 0.157, a: 1}
     wallTint: 1.6
+    crusherBrightness: 1
     backgroundMask: {fileID: 21300000, guid: 56fe60d6bfd4dbb458b084df05cd6f20, type: 2}
+    maskAlpha: 1
+    cameraBackground: {r: 0, g: 0, b: 0, a: 0}
     trayWall: {fileID: 2100000, guid: cdcddf543acbb174f959dfb407f3081e, type: 2}
     trayPanel: {fileID: 2100000, guid: 8efe363526345904e9e7af0659f6435c, type: 2}
     trayHole: {fileID: 2100000, guid: f8db6810bbfdf2541b2fd4da455c623d, type: 2}
@@ -89,7 +96,10 @@ MonoBehaviour:
     arrowColor: {r: 0.196, g: 0.192, b: 0.204, a: 1}
     pinsColor: {r: 0.165, g: 0.165, b: 0.165, a: 1}
     wallTint: 1.6
+    crusherBrightness: 1
     backgroundMask: {fileID: 21300000, guid: 789986c09894d984b9f98ca3548fe955, type: 2}
+    maskAlpha: 1
+    cameraBackground: {r: 0, g: 0, b: 0, a: 0}
     trayWall: {fileID: 2100000, guid: 5a3dfe0259988d348aed1f0181952892, type: 2}
     trayPanel: {fileID: 2100000, guid: 761c5f13d515b47409da5b266b7dbfbb, type: 2}
     trayHole: {fileID: 2100000, guid: 6d6a1a78f08f7d545bdd75893dcddb0a, type: 2}
@@ -103,7 +113,7 @@ MonoBehaviour:
   - id: 1
     clips:
     - {fileID: 8300000, guid: ccbd08cf94a93cc4282812c55ec3b382, type: 3}
-    volume: 0.7
+    volume: 0.4
     minInterval: 0.15
     pitch: {x: 1, y: 1}
   - id: 2
@@ -209,6 +219,7 @@ MonoBehaviour:
   ballMinVerticalSpeed: 1.6
   ballDeflectDeg: 8
   ballAimMinBounces: 3
+  ballPrewarm: 60
   laneSpeed: 5.5
   laneBallSpacing: 0.27
   boxFlyDuration: 0.6
@@ -240,9 +251,7 @@ MonoBehaviour:
   ammoSinkDepth: 1.1
   dockHeightRatio: 2.6
   dockBottomRatio: 0.3
-  hoverAngle: 32
-  hoverLength: 2
-  hoverTime: 0.38
+  hoverHoldProgress: 0.5
   doorExtraSink: 1.6
   trayPanelPad: 0.1
   trayPanelRadius: 0.22
@@ -265,10 +274,13 @@ MonoBehaviour:
   blockBevel: 0.14
   blockDepth: 0.2
   blockFrontZ: -0.36
-  boardOffsetY: 0.24
-  blockBottomExtra: 0.12
-  blockTopTrim: 0.13
-  cubeOverlap: 1.1
+  boardOffsetY: 0.1
+  blockBottomExtra: 0
+  blockTopTrim: 0
+  cubeOverlap: 1.02
+  cubeCornerRadius: 0.25
+  cubeEdgeRound: 0.15
+  cubeBodyDepth: 0.97
   columnWidthRatio: 0.6
   crusherSpinSpeed: 800
   crusherShakeMagnitude: 0.06
