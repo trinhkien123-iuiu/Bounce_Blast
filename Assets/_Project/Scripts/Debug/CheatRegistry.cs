@@ -42,7 +42,7 @@ namespace BounceBlast.Cheats
             Add(new CheatItem
             {
                 group = GroupLevel, label = "Go to level", kind = CheatKind.Stepper,
-                initial = () => lm.currentLevel > 0 ? lm.currentLevel : Mathf.Max(1, PlayerData.Level), min = 1, max = gm.config != null ? gm.config.maxLevel : 550,
+                initial = () => lm.currentLevel > 0 ? lm.currentLevel : Mathf.Max(1, PlayerData.Level), min = 1, max = gm.config != null ? gm.config.MaxLevel : 550,
                 go = n => { PlayerData.Level = n; lm.LoadLevel(n); },
             });
             Add(Btn(GroupLevel, "Restart level", () => lm.Restart()));

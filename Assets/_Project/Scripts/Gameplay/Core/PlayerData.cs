@@ -9,7 +9,12 @@ namespace BounceBlast.Gameplay
     /// </summary>
     public static class PlayerData
     {
-        const string LevelKey = "bb_level";
+        const string BaseLevelKey = "bb_level";
+        static string _levelKey = BaseLevelKey;
+
+        /// <summary>Tiến độ level lưu riêng theo bộ level (bộ gốc giữ khoá cũ "bb_level" để không mất tiến độ đã có).</summary>
+        public static void UseLevelSet(string setName) =>
+            _levelKey = string.IsNullOrEmpty(setName) || setName == "original" ? BaseLevelKey : BaseLevelKey + "_" + setName;
         const string CoinsKey = "bb_coins";
 
         /// <summary>Số tim tối đa hiển thị ở Menu (game gốc có hệ thống tim – bản dựng lại chưa làm nên luôn đầy).</summary>
@@ -18,8 +23,8 @@ namespace BounceBlast.Gameplay
         /// <summary>Level kế tiếp sẽ chơi (≥ 1).</summary>
         public static int Level
         {
-            get => Mathf.Max(1, PlayerPrefs.GetInt(LevelKey, 1));
-            set => PlayerPrefs.SetInt(LevelKey, Mathf.Max(1, value));
+            get => Mathf.Max(1, PlayerPrefs.GetInt(_levelKey, 1));
+            set => PlayerPrefs.SetInt(_levelKey, Mathf.Max(1, value));
         }
 
         public static int Coins

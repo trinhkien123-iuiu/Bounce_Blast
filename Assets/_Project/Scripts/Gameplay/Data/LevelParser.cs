@@ -16,6 +16,18 @@ namespace BounceBlast.Gameplay
         const int CubesStartCol = 5;
         const int AmmoColCount = 8;
 
+        /// <summary>Nạp level theo bộ đang chọn trong GameConfig (bộ gốc CSV hoặc bộ tự làm <see cref="LevelPack"/>).</summary>
+        public static LevelModel Load(GameConfig config, int levelId)
+        {
+            if (config != null && config.levelSource == LevelSource.Custom)
+            {
+                LevelData data = config.customLevels != null ? config.customLevels.Get(levelId) : null;
+                if (data == null) { Debug.LogError($"[LevelParser] Bộ custom không có level {levelId}"); return null; }
+                return Build(data.ToTokens(levelId));
+            }
+            return Load(config != null ? config.levels : null, levelId);
+        }
+
         public static LevelModel Load(LevelSet levelSet, int levelId)
         {
             if (levelSet == null)
@@ -32,7 +44,10 @@ namespace BounceBlast.Gameplay
             return Parse(chunk.board.text, chunk.tunnels != null ? chunk.tunnels.text : null, levelId);
         }
 
-        public static LevelModel Parse(string boardCsv, string tunnelCsv, int levelId)
+        public static LevelModel Parse(string boardCsv, string tunnelCsv, int levelId) => Build(ReadTokens(boardCsv, tunnelCsv, levelId));
+
+        /// <summary>CSV gốc (BoardProps_v3 + TunnelProps_v3) → lưới mã của MỘT level. null nếu không có level đó.</summary>
+        public static LevelTokens ReadTokens(string boardCsv, string tunnelCsv, int levelId)
         {
             List<string[]> rows = ReadCsv(boardCsv);
             if (rows.Count < 3) return null;
@@ -49,31 +64,62 @@ namespace BounceBlast.Gameplay
             }
 
             string[] head = rows[start];
-            var level = new LevelModel { Id = levelId };
-            string hard = Cell(head, 1).ToUpperInvariant();
-            level.Difficulty = hard == "SHARD" || hard == "SUPERHARD" ? LevelDifficulty.SuperHard
-                             : hard == "HARD" ? LevelDifficulty.Hard : LevelDifficulty.Normal;
-            level.Capacity = int.TryParse(Cell(head, 2), out int cap) ? cap : 300;
+            var t = new LevelTokens { Id = levelId };
+            t.HardLevel = Cell(head, 1);
+            t.Capacity = int.TryParse(Cell(head, 2), out int cap) ? cap : 300;
             string size = Cell(head, 3);
             if (size.Contains("x"))
             {
                 string[] d = size.Split('x');
-                int.TryParse(d[0], out level.BoardCols);
-                int.TryParse(d[1], out level.BoardRows);
+                int.TryParse(d[0], out t.BoardCols);
+                int.TryParse(d[1], out t.BoardRows);
             }
-            level.IsFigurative = Cell(head, 4).Equals("TRUE", StringComparison.OrdinalIgnoreCase);
-            level.Multiplier = int.TryParse(Cell(head, ammoStart + AmmoColCount), out int m) && m > 0 ? m : 1;
+            t.IsFigurative = Cell(head, 4).Equals("TRUE", StringComparison.OrdinalIgnoreCase);
+            t.Multiplier = int.TryParse(Cell(head, ammoStart + AmmoColCount), out int m) && m > 0 ? m : 1;
 
             int lineCount = end - start;
-            ParseBoard(level, rows, start, lineCount, cubeCols);
-            ParseAmmo(level, rows, start, lineCount, ammoStart, tunnelCsv);
+            t.Board = new string[cubeCols, lineCount];
+            for (int line = 0; line < lineCount; line++)
+                for (int c = 0; c < cubeCols; c++)
+                    t.Board[c, line] = Cell(rows[start + line], CubesStartCol + c);
+
+            int lastRow = -1;
+            for (int line = 0; line < lineCount; line++)
+                for (int c = 0; c < AmmoColCount; c++)
+                    if (Cell(rows[start + line], ammoStart + c).Length > 0) lastRow = line;
+            t.Ammo = new string[AmmoColCount, lastRow + 1];
+            for (int r = 0; r <= lastRow; r++)
+                for (int c = 0; c < AmmoColCount; c++)
+                    t.Ammo[c, r] = Cell(rows[start + r], ammoStart + c);
+
+            t.Tunnels = ParseTunnelLists(tunnelCsv, levelId);
+            return t;
+        }
+
+        /// <summary>Lưới mã → LevelModel (dùng chung cho level gốc và level tự làm).</summary>
+        public static LevelModel Build(LevelTokens t)
+        {
+            if (t == null) return null;
+            var level = new LevelModel { Id = t.Id };
+            string hard = (t.HardLevel ?? "").Trim().ToUpperInvariant();
+            level.Difficulty = hard == "SHARD" || hard == "SUPERHARD" ? LevelDifficulty.SuperHard
+                             : hard == "HARD" ? LevelDifficulty.Hard : LevelDifficulty.Normal;
+            level.Capacity = t.Capacity;
+            level.BoardCols = t.BoardCols;
+            level.BoardRows = t.BoardRows;
+            level.IsFigurative = t.IsFigurative;
+            level.Multiplier = t.Multiplier > 0 ? t.Multiplier : 1;
+
+            ParseBoard(level, t);
+            ParseAmmo(level, t);
             ComputeTotals(level);
             return level;
         }
 
         // ------------------------------------------------------------------ Bàn chơi
-        static void ParseBoard(LevelModel level, List<string[]> rows, int start, int lineCount, int cubeCols)
+        static void ParseBoard(LevelModel level, LevelTokens t)
         {
+            int lineCount = t.BoardLines, cubeCols = t.BoardDesignCols;
             int mult = level.Multiplier;
             int mm = mult * mult;
             var groups = new Dictionary<string, BoardItemData>();
@@ -83,10 +129,9 @@ namespace BounceBlast.Gameplay
 
             for (int line = 0; line < lineCount; line++)
             {
-                string[] row = rows[start + line];
                 for (int c = 0; c < cubeCols; c++)
                 {
-                    string cell = Cell(row, CubesStartCol + c);
+                    string cell = (t.Board[c, line] ?? "").Trim();
                     if (cell.Length == 0 || cell == "-") continue;
 
                     var rect = new RectInt(c * mult, (lineCount - 1 - line) * mult, mult, mult);
@@ -118,10 +163,10 @@ namespace BounceBlast.Gameplay
                     }
 
                     string[] parts = cell.Split('/');
-                    string[] t = parts[0].Split('-');
-                    string color = t[0];
-                    int hp = t.Length > 1 && int.TryParse(t[1], out int h) ? h : 1;
-                    string group = t.Length > 2 ? t[2] : null;
+                    string[] tk = parts[0].Split('-');
+                    string color = tk[0];
+                    int hp = tk.Length > 1 && int.TryParse(tk[1], out int h) ? h : 1;
+                    string group = tk.Length > 2 ? tk[2] : null;
 
                     // Phần sau dấu '/': hòm gỗ che cube (cr-hp-id). st-/cur-: chưa hỗ trợ → bỏ qua lớp phủ.
                     string crateKey = null;
@@ -197,25 +242,20 @@ namespace BounceBlast.Gameplay
         }
 
         // ------------------------------------------------------------------ Khay đạn
-        static void ParseAmmo(LevelModel level, List<string[]> rows, int start, int lineCount, int ammoStart, string tunnelCsv)
+        static void ParseAmmo(LevelModel level, LevelTokens t)
         {
             int mm = level.Multiplier * level.Multiplier;
-            Dictionary<char, List<string>> tunnelLists = ParseTunnelLists(tunnelCsv, level.Id);
-
-            int lastRow = -1;
-            for (int line = 0; line < lineCount; line++)
-                for (int c = 0; c < AmmoColCount; c++)
-                    if (Cell(rows[start + line], ammoStart + c).Length > 0) lastRow = line;
+            Dictionary<char, List<string>> tunnelLists = t.Tunnels ?? new Dictionary<char, List<string>>();
 
             level.AmmoCols = AmmoColCount;
-            level.AmmoRows = lastRow + 1;
+            level.AmmoRows = t.AmmoRows;
             level.AmmoCells = new AmmoCellData[AmmoColCount, Mathf.Max(1, level.AmmoRows)];
 
             for (int r = 0; r < level.AmmoRows; r++)
             {
                 for (int c = 0; c < AmmoColCount; c++)
                 {
-                    string cell = Cell(rows[start + r], ammoStart + c);
+                    string cell = c < t.AmmoCols ? (t.Ammo[c, r] ?? "").Trim() : "";
                     var data = new AmmoCellData();
                     level.AmmoCells[c, r] = data;
 

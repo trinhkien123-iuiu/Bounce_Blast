@@ -1,5 +1,9 @@
 # Định dạng level CSV
 
+> Level **gốc** (550 level) dùng CSV dưới đây. Level **tự làm** lưu dạng `LevelData` (một asset mỗi level, `Data/Levels/custom/`) –
+> nhưng cả hai đều đổi về cùng "lưới mã" (`LevelTokens`) rồi dựng bằng `LevelParser.Build`, nên các mã dưới đây cũng là cách
+> `LevelData` được hiểu.
+
 Vị trí: `Assets/_Project/Data/Levels/<bộ level>/sheets_<a>_<b>/` — mỗi thư mục chứa 5 level (`a`..`b`). Thêm/đổi level xong chạy menu `Tools/Bounce Blast/Data/Build Level Sets`.
 Bộ level đang giữ trong project: `original` (mặc định), `dailychallenge`. Các bộ khác (`wideboard`, `openboard`, `levelfunnelv*`...) lấy lại từ `D:\toolGame\game\ExportedProject\Assets\Resources\sheets_levels\` khi cần.
 

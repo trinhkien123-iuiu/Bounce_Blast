@@ -69,6 +69,7 @@ namespace BounceBlast.Gameplay
             Instance = this;
             if (gameCamera == null) gameCamera = Camera.main;
 
+            PlayerData.UseLevelSet(config.ActiveSetName);   // tiến độ riêng từng bộ level
             AmmoBoxTuning.Config = config; // tư thế hộp đạn đọc từ GameConfig (chỉnh được ngay cả khi đang Play)
             AudioManager.Init(audioManager != null ? audioManager.gameObject : gameObject, config.sounds);
             DynamicGI.UpdateEnvironment(); // cập nhật ambient SH (Trilight như scene gốc) cho shader toon
@@ -157,7 +158,7 @@ namespace BounceBlast.Gameplay
             SetState(GameState.Won);
             AudioManager.Play(Sfx.Win);
             AudioManager.Play(Sfx.Confetti);
-            PlayerData.Level = Mathf.Min(levelManager.CurrentLevel + 1, config.maxLevel);
+            PlayerData.Level = Mathf.Min(levelManager.CurrentLevel + 1, config.MaxLevel);
             PlayerData.Coins += WinCoins;
             OnWin?.Invoke();
             StartCoroutine(WinRoutine());

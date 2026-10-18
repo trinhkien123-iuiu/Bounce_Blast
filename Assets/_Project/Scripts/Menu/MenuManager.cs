@@ -36,8 +36,9 @@ namespace BounceBlast.Menu
         void Start()
         {
             if (view == null) return;
-            int level = Mathf.Min(PlayerData.Level, config.maxLevel);
-            LevelModel model = LevelParser.Load(config.levels, level);
+            PlayerData.UseLevelSet(config.ActiveSetName);
+            int level = Mathf.Min(PlayerData.Level, config.MaxLevel);
+            LevelModel model = LevelParser.Load(config, level);
             view.SetLevel(level, model != null ? model.Difficulty : LevelDifficulty.Normal);
             view.SetCoins(PlayerData.Coins);
             view.SetHearts(PlayerData.MaxHearts);

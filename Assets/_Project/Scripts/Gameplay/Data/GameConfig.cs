@@ -10,7 +10,15 @@ namespace BounceBlast.Gameplay
         [Header("Level")]
         [Tooltip("Danh mục dữ liệu level (Data/Levels). Tạo bằng menu Tools/Bounce Blast/Data/Build Level Sets")]
         public LevelSet levels;
-        public int maxLevel = 550;
+        [Tooltip("Số level của bộ gốc")] public int maxLevel = 550;
+        [Tooltip("Bộ level đang chơi: Original = 550 level CSV gốc; Custom = bộ tự làm bằng Level Editor")]
+        public LevelSource levelSource = LevelSource.Original;
+        [Tooltip("Bộ level tự làm (Data/Levels/custom/LevelPack_custom.asset)")] public LevelPack customLevels;
+
+        /// <summary>Level lớn nhất của bộ đang chơi.</summary>
+        public int MaxLevel => levelSource == LevelSource.Custom ? Mathf.Max(1, customLevels != null ? customLevels.Count : 1) : maxLevel;
+        /// <summary>Tên bộ đang chơi (dùng làm khoá lưu tiến độ riêng từng bộ).</summary>
+        public string ActiveSetName => levelSource == LevelSource.Custom ? "custom" : "original";
 
         [Header("Prefab gốc (Resources/prefabs)")]
         public GameObject cubePrefab;

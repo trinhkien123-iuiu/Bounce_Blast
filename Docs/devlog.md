@@ -2,6 +2,13 @@
 
 Ghi ngắn mỗi buổi làm: **làm gì – gặp vấn đề gì – quyết định gì**. Mới nhất ở trên.
 
+## 2026-10-19 – Level Editor giai đoạn 1
+- **Dữ liệu:** `LevelData` (mỗi level một asset, field có tên: ô bàn, khối gộp, hòm, cột, hộp, tunnel), `LevelPack` (thứ tự bộ `custom`), `GameConfig.levelSource` (Original / Custom) + `MaxLevel`; tiến độ lưu riêng theo bộ (`PlayerData.UseLevelSet`, bộ gốc giữ khoá cũ).
+- **Một đường dựng:** tách `LevelParser` thành `ReadTokens` (CSV → `LevelTokens`) + `Build` (`LevelTokens` → `LevelModel`); `LevelData.ToTokens` dùng chung `Build` → level tự làm không thể lệch luật level gốc. Kiểm tra khứ hồi CSV → LevelData → game: **550/550 khớp** (lần đầu 527 lệch do tự tính lại cỡ bàn – sửa: giữ cỡ bàn khai báo, cắt dòng trống phía trên khi nhập).
+- **Cửa sổ** `Tools ▸ Bounce Blast ▸ Level Editor` (Ctrl+Shift+L): danh sách + đổi thứ tự / nhân bản / xoá / nhập level gốc; tab Bàn gạch (cọ, tô vùng, tẩy, hút màu, chọn vùng → gộp khối / hòm / cột / tô / xoá); tab Khay đạn (hộp, ô trống, tường, ngoài khay, tunnel + hàng chờ, sửa băng/"?"/cửa; viền xanh = bấm được theo `AmmoPathRules`); cột phải: thông số, cân bi theo màu, lỗi/cảnh báo (`LevelValidator`), Chơi thử (F5, `SessionState` → `LevelManager` chơi đúng asset), Lưu. Undo đầy đủ.
+- Kiểm: nhập level 12 → chơi giống bản CSV (293 khối, cap 240, 608 bi); level làm mới 10×8 (đỏ/xanh + khối gộp vàng) → cân bi đúng, cảnh báo capacity thấp đúng, auto-play tới **thắng**; console sạch. Đã xoá 2 level thử khỏi bộ custom.
+- Còn: giai đoạn 2 (nhập ảnh PNG, tự sinh khay, thống kê cỡ hộp từ level gốc), giai đoạn 3 (bot đo độ khó).
+
 ## 2026-10-18 – Mỗi lớp một việc (chữ S trong SOLID)
 - **GameManager:** dựng dự phòng đèn gạch + camera UI chuyển sang `Core/SceneRig`; bỏ `targetFrameRate` trùng (chỉ còn `FrameRateBootstrap`).
 - **ConveyorLane:** mũi tên trên máng tách thành `Conveyor/LaneArrows`.

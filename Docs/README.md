@@ -12,7 +12,8 @@
 | Thêm loại khối mới trên bàn (bom, cổng…) | `kien-truc/them-loai-khoi.md` |
 | Biết cơ chế nào dùng asset gốc nào | `kien-truc/co-che-asset-map.md` |
 | Xem bản thiết kế tính năng | `thiet-ke/` |
-| Làm level / đọc file CSV level | `tham-khao/csv-format.md` |
+| Làm level mới (Level Editor) | `huong-dan/level-editor.md` |
+| Đọc file CSV level gốc | `tham-khao/csv-format.md` |
 | Biết đã làm gì, khi nào, vì sao | `devlog.md` (mới nhất ở trên) · `bao-cao-tien-do.md` |
 
 ## Cấu trúc thư mục
@@ -26,9 +27,12 @@ Docs/
 │   ├── ui.md                   quy tắc UI: mỗi panel = prefab + 1 View; GameUI chỉ điều phối
 │   ├── them-loai-khoi.md       hệ thống loại khối (Board/Kinds) + các bước thêm loại mới
 │   └── co-che-asset-map.md     cơ chế ↔ prefab/mesh gốc ↔ script hiển thị
+├── huong-dan/              CÁCH DÙNG CÔNG CỤ (cho người làm level / test)
+│   └── level-editor.md         dùng Level Editor: vẽ bàn, xếp khay, cân bi, chơi thử, phím tắt, lỗi thường gặp
 ├── thiet-ke/               BẢN THIẾT KẾ TÍNH NĂNG (trước khi làm)
 │   ├── cheat-tool.md           công cụ cheat test trên máy (đã làm MVP)
-│   └── level-pack-50.md        bộ 50 level mới + mechanic mới (đang chờ duyệt)
+│   ├── level-pack-50.md        bộ 50 level mới + mechanic mới (đang chờ duyệt)
+│   └── level-editor.md         thiết kế công cụ xếp level (GĐ1 đã làm)
 ├── tham-khao/              TRA CỨU
 │   ├── csv-format.md           định dạng level CSV, mã màu, mã vật cản
 │   ├── ripped-assets-analysis.md   phân tích bản rip game gốc & thứ đã chép sang

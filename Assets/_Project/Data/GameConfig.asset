@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levels: {fileID: 11400000, guid: 62add0ae2e67aab4ba20b6300ac37c63, type: 2}
   maxLevel: 550
+  levelSource: 0
+  customLevels: {fileID: 11400000, guid: 458117016bb273140b0b48c6a5ba36ab, type: 2}
   cubePrefab: {fileID: 1709254077376921, guid: f1cc67c1093c6b9478de7d5a3c5be287, type: 3}
   combinedCubePrefab: {fileID: 1709254077376921, guid: ea672d17c154db845b05d0e9c3530d79, type: 3}
   cratePrefab: {fileID: 1709254077376921, guid: cb129b00c11615d4e8d8d18ce8f5f2e3, type: 3}

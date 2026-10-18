@@ -69,6 +69,7 @@ Không đưa lên git (`.gitignore`): `Captures/` (ảnh/video tạm), `Screensh
 | Màu gạch / hộp / bi | `Data/ColorLibrary.asset` → material màu nằm ở `Art/Shared/Colors/` |
 | Theme theo độ khó (nền, máng, mũi tên, màu khung) | `GameConfig` → Normal / Hard / SuperHard Theme (material ở `Art/Environment/`) |
 | Âm thanh, nhạc nền | `GameConfig` → **Âm thanh** (file ở `Audio/`) |
+| **Làm level mới (bộ custom)** | Cửa sổ `Tools/Bounce Blast/Level Editor` (Ctrl+Shift+L) – mỗi level một asset `Data/Levels/custom/Level_xxx.asset` (`LevelData`), thứ tự trong `LevelPack_custom`; chơi bộ này: `GameConfig` → **Level Source = Custom**. Hướng dẫn: `Docs/huong-dan/level-editor.md` |
 | **Dữ liệu một level** | `Data/Levels/original/sheets_a_b/BoardProps_v3.txt` (a..b = 5 level) → bảng gạch + hộp đạn; `TunnelProps_v3.txt` → ống |
 | Thêm bộ level mới | Thả CSV vào `Data/Levels/<bộ>/sheets_a_b/` rồi menu `Tools/Bounce Blast/Data/Build Level Sets` |
 | Hình / kích thước / vị trí nút booster, badge Level, nút Settings | Mở prefab ở `Prefabs/UI/` (BoosterBar, GameCanvas…) hoặc chọn object trong `UI/HUD` / `UI/Popups` rồi sửa; sprite ở `Art/UI/` |

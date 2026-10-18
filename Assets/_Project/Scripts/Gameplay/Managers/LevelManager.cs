@@ -51,13 +51,27 @@ namespace BounceBlast.Gameplay
             // Đợi 1 khung hình cho Canvas của UI có kích thước màn hình thật: CameraFitter đo vị trí hàng HUD và hàng booster
             // trên màn hình để cân bàn chơi, ở khung hình đầu các canvas chưa layout nên đo ra sai và bàn bị nhỏ hơn mức cần.
             yield return null;
+#if UNITY_EDITOR
+            // Level Editor ▸ "Chơi thử": chơi đúng level đang sửa (asset LevelData), không đụng startLevel / bộ level của GameConfig
+            string playtest = UnityEditor.SessionState.GetString(PlaytestKey, "");
+            if (playtest.Length > 0)
+            {
+                UnityEditor.SessionState.EraseString(PlaytestKey);
+                _playtest = UnityEditor.AssetDatabase.LoadAssetAtPath<LevelData>(playtest);
+                if (_playtest != null) { LoadLevel(1); yield break; }
+            }
+#endif
             LoadLevel(continueFromSave || SceneFlow.FromMenu ? PlayerData.Level : startLevel);
         }
+
+        /// <summary>Khoá SessionState mà Level Editor ghi đường dẫn LevelData cần chơi thử.</summary>
+        public const string PlaytestKey = "BB.Playtest.LevelPath";
+        LevelData _playtest;   // đang chơi thử từ Level Editor: Restart / Next đều chơi lại level này
 
         public void LoadLevel(int id)
         {
             OnLevelLoading?.Invoke();
-            id = Mathf.Clamp(id, 1, _config.maxLevel);
+            id = _playtest != null ? 1 : Mathf.Clamp(id, 1, _config.MaxLevel);
 
             _ui.ClosePopup();
             _balls.ClearAll();
@@ -66,7 +80,7 @@ namespace BounceBlast.Gameplay
             _grid.ClearAll();
             foreach (AmmoBox stray in FindObjectsOfType<AmmoBox>()) Destroy(stray.gameObject);
 
-            Level = LevelParser.Load(_config.levels, id);
+            Level = _playtest != null ? LevelParser.Build(_playtest.ToTokens(id)) : LevelParser.Load(_config, id);
             if (Level == null) return;
             currentLevel = id;
 
@@ -89,7 +103,7 @@ namespace BounceBlast.Gameplay
         public void Restart() => LoadLevel(currentLevel);
 
         /// <summary>Sang level kế (tối đa level cuối).</summary>
-        public void LoadNext() => LoadLevel(Mathf.Min(currentLevel + 1, _config.maxLevel));
+        public void LoadNext() => LoadLevel(Mathf.Min(currentLevel + 1, _config.MaxLevel));
 
         [ContextMenu("Debug/Next level")] void DebugNext() => LoadLevel(currentLevel + 1);
         [ContextMenu("Debug/Prev level")] void DebugPrev() => LoadLevel(currentLevel - 1);
