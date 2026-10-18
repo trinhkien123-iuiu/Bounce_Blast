@@ -1,0 +1,80 @@
+using UnityEngine;
+
+namespace BounceBlast.Gameplay
+{
+    /// <summary>
+    /// Cửa kính 2 cánh trên miệng hố (BlockerCover gốc). Dùng NGUYÊN node "Cover" của prefab AmmunationBlockerCover:
+    /// SkinnedMeshRenderer có blend shape 0 (0 = đóng khít miệng hố, 90 = 2 cánh trượt vào 2 bên và biến mất), vật liệu Cover
+    /// (vạch sáng chéo + khe giữa). Lớp này chỉ dựng, đặt vị trí/cỡ theo miệng hố và đẩy trọng số blend shape;
+    /// trạng thái đóng/mở (luật) nằm ở <see cref="AmmoBoxData.DoorClosed"/>.
+    /// </summary>
+    public class AmmoDoorView
+    {
+        const float CoverMeshSize = 1.6314f; // bề rộng mesh Cover gốc ở scale 1 (đóng): bounds prefab 2.06 / scale node 1.2627
+
+        Transform _root;
+        SkinnedMeshRenderer _smr;
+        float _blend, _blendTarget;
+
+        public AmmoDoorView(Transform parent, GameConfig config, bool closed)
+        {
+            _root = new GameObject("DoorCover").transform;
+            _root.SetParent(parent, false);
+            GameObject pf = config != null ? config.ammoCoverPrefab : null; // GameConfig.ammoCoverPrefab
+            Transform src = pf != null ? pf.transform.Find("Cover") : null;
+            if (src != null)
+            {
+                GameObject inst = Object.Instantiate(src.gameObject, _root, false);
+                inst.name = "Cover";
+                inst.SetActive(true);
+                _smr = inst.GetComponent<SkinnedMeshRenderer>();
+                if (_smr != null)
+                {
+                    _smr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    _smr.updateWhenOffscreen = true;
+                }
+                int ammoLayer = LayerMask.NameToLayer("Ammunation");
+                if (ammoLayer >= 0) foreach (Transform t in inst.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = ammoLayer;
+            }
+            _blend = _blendTarget = closed ? 0f : 90f;
+        }
+
+        public void SetClosed(bool closed) => _blendTarget = closed ? 0f : 90f;
+
+        /// <summary>Đặt cửa lên miệng hố: tâm world, kích thước ô hố (mesh gốc đã bo góc).</summary>
+        public void Place(Vector3 worldCenter, Vector2 size)
+        {
+            if (_root == null || _smr == null) return;
+            _root.SetPositionAndRotation(worldCenter, Quaternion.identity);
+            _root.localScale = Vector3.one;
+            Transform c = _smr.transform;
+            c.localRotation = Quaternion.Euler(-90f, 0f, 0f);          // mesh gốc nằm trên mặt XZ → dựng về mặt XY hướng camera
+            c.localScale = Vector3.one * (size.x / CoverMeshSize * 1.03f); // +3%: che hẳn viền màu hộp phía sau
+            c.localPosition = Vector3.zero;
+            Apply();
+            Bounds b = _smr.bounds;                                     // căn tâm hình thật vào tâm hố
+            c.position += new Vector3(worldCenter.x - b.center.x, worldCenter.y - b.center.y, 0f);
+        }
+
+        /// <summary>Trượt cánh cửa tới trạng thái đích (gọi mỗi khung).</summary>
+        public void Tick(float dt)
+        {
+            if (_blend != _blendTarget) _blend = Mathf.MoveTowards(_blend, _blendTarget, dt * 360f);
+        }
+
+        public void Apply()
+        {
+            if (_smr == null) return;
+            _smr.SetBlendShapeWeight(0, Mathf.Clamp(_blend, 0f, 100f));
+            _smr.enabled = _blend < 89f;
+        }
+
+        /// <summary>Hộp rời khay: bỏ cửa.</summary>
+        public void Remove()
+        {
+            if (_root != null) Object.Destroy(_root.gameObject);
+            _root = null;
+            _smr = null;
+        }
+    }
+}

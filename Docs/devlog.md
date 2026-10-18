@@ -2,6 +2,15 @@
 
 Ghi ngắn mỗi buổi làm: **làm gì – gặp vấn đề gì – quyết định gì**. Mới nhất ở trên.
 
+## 2026-10-18 – Mỗi lớp một việc (chữ S trong SOLID)
+- **GameManager:** dựng dự phòng đèn gạch + camera UI chuyển sang `Core/SceneRig`; bỏ `targetFrameRate` trùng (chỉ còn `FrameRateBootstrap`).
+- **ConveyorLane:** mũi tên trên máng tách thành `Conveyor/LaneArrows`.
+- **BoardController (1.095 → ~190 dòng):** `BoardGrid` (ô nào có khối nào, khối lộ ra / rơi được), `BoardTargeting` (bi ngắm khối nào + cache), `BlockVisualFactory` (dựng hình khối, nhãn số, cache mesh), `BlockBreakFx` (hiệu ứng vỡ thạch), `Core/ModelUtil` (tiện ích prefab dùng chung cho gạch, hộp, bi). Bỏ code chết `JoinedCellMesh`, `FitVisual`, `FlattenShading`. Mã cắt nguyên văn theo hàm bằng script, không gõ lại.
+- **AmmoGridController (653 → 296):** `AmmoTrayView` (hình khay/hố/nắp), `AmmoPathRules` (luật thông đường).
+- **AmmoBox (726 → 387):** `AmmoBoxFlight` (bay + đậu + nhãn số bi; máng gọi `box.Flight.*`), `AmmoDoorView` (cửa kính). So từng dòng với bản cũ: khác biệt chỉ là chỗ chuyển lớp + hàm `ToPlane` không ai dùng.
+- Kiểm thử Unity: số khối/nhãn/khối cần phá ở L12/44/49/73/79 giống hệt trước khi tách; phá hòm lộ đúng 96 khối; tự chơi L79/L104: bi nảy, khối gộp mất máu, 2 máy xay xay nối tiếp, băng nứt; L104 cửa đảo trạng thái mỗi lần bắn (đóng: trọng số 0 hiện, mở: 90 ẩn); hết sức chứa → hộp dừng giữa chuyến bay đúng máng, Play On → bay tiếp vào máy xay, nhả đủ 20 bi; console sạch. Chưa thử trên Oppo.
+- Lưu ý khi test bằng MCP: Editor hay tự bật Pause sau vài giây Play (không do code – không có `Debug.Break`, console sạch); nếu thấy hình đứng yên thì kiểm tra nút Pause.
+
 ## 2026-10-18 – Loại khối thành lớp riêng (SOLID: mở rộng không sửa code cũ)
 - Trước: 18 chỗ rẽ nhánh theo `BoardItemKind` rải ở `BoardBlock`, `BoardController` (dựng/vỡ/ngắm/hình), `LevelParser` → thêm một loại khối phải sửa 5 file.
 - Giờ: `Board/Kinds/` – `BlockKind` (lớp gốc, mặc định = gạch thường) + `CubeKind`, `CombinedCubeKind`, `CrateKind`, `WallKind`, `ColumnKind`, bảng tra `BlockKinds`. Mỗi lớp giữ luật (`CountsForWin`, `HitByAnyColor`, `IsStatic`, `IsColorTarget`, `Accepts`, `ShowsHpLabel`, `HitPunch`), cách dựng (`Build`, `ShearMesh`, `CubeLook`, `Material`) và cách vỡ (`OnBroken`). `BoardBlock.Rules` trỏ tới lớp luật; code cột nhà chuyển hẳn sang `ColumnKind`, hòm vỡ sang `CrateKind`. Ngoài `Kinds/` và chỗ `LevelParser` đọc token, không còn chỗ nào so sánh `BoardItemKind`.

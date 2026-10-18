@@ -142,20 +142,20 @@ namespace BounceBlast.Gameplay
         public void HoldBoxMidFlight(AmmoBox box)
         {
             ConveyorLane lane = PickLane(box);
-            box.HeldLane = lane;
+            box.Flight.HeldLane = lane;
             box.HoldFlightAt(lane.DockPosition, lane.DockRotation, lane.DockWidth, _config.boxFlyDuration, _config.hoverHoldProgress);
         }
 
         public void Send(AmmoBox box)
         {
-            ConveyorLane lane = box.HeldLane != null ? box.HeldLane : PickLane(box);
-            box.HeldLane = null;
+            ConveyorLane lane = box.Flight.HeldLane != null ? box.Flight.HeldLane : PickLane(box);
+            box.Flight.HeldLane = null;
             box.transform.SetParent(lane.transform, true); // hộp rời khay → thuộc máng (Hierarchy gọn)
-            box.DockWidth = lane.DockWidth;
-            box.DockRotation = lane.DockRotation;
+            box.Flight.DockWidth = lane.DockWidth;
+            box.Flight.DockRotation = lane.DockRotation;
             // vào đường ống của máng ngay lúc bấm; bay thẳng tới chỗ của mình (máy xay hoặc hàng chờ); đầu ống chạm là máy xay chạy luôn
             Vector3 target = lane.Reserve(box);
-            box.FlyTo(target, _config.boxFlyDuration, () => lane.Arrived(box), () => lane.HeadArrived(box));
+            box.Flight.FlyTo(target, _config.boxFlyDuration, () => lane.Arrived(box), () => lane.HeadArrived(box));
         }
 
         public void ClearAll()

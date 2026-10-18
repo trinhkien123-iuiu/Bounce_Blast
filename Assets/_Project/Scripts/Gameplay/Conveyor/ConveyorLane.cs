@@ -62,7 +62,7 @@ namespace BounceBlast.Gameplay
 
         public Vector3 WaitPosition(int index)
         {
-            float ratio = _config != null ? _config.dockHeightRatio : AmmoBox.DefaultDockHeightRatio;
+            float ratio = _config != null ? _config.dockHeightRatio : AmmoBoxFlight.DefaultDockHeightRatio;
             float step = (DockWidth > 0f ? DockWidth : 0.8f) * (ratio + 0.15f);
             Vector3 dockUp = DockRotation * Vector3.up;
             return DockPosition + dockUp * (step * (index + 1));
@@ -97,7 +97,7 @@ namespace BounceBlast.Gameplay
         /// <summary>Hộp vừa được bấm: xếp vào cuối đường ống, trả về chỗ nó phải bay tới (máy xay nếu đang trống, không thì chỗ chờ).</summary>
         public Vector3 Reserve(AmmoBox box)
         {
-            box.DockRotation = DockRotation;
+            box.Flight.DockRotation = DockRotation;
             _pipe.Add(box);
             return SlotPosition(_pipe.Count - 1);
         }
@@ -110,7 +110,7 @@ namespace BounceBlast.Gameplay
         {
             if (box == null) return;
             _ready.Add(box);
-            if (box != _docked) box.ShowDocked(1f, box.Data.Balls);
+            if (box != _docked) box.Flight.ShowDocked(1f, box.Data.Balls);
         }
 
         float BaseInterval => _config.laneBallSpacing / _config.laneSpeed;
@@ -122,8 +122,8 @@ namespace BounceBlast.Gameplay
             _preloaded = false;
             _dockedTotal = _dockedRemaining = box.Data.Balls;
             if (!keepCadence) _sinceEmit = BaseInterval;   // viên đầu nhả ngay, viên sau theo nhịp
-            box.MoveTo(DockPosition, 0.12f);
-            box.ShowDocked(1f, _dockedRemaining);
+            box.Flight.MoveTo(DockPosition, 0.12f);
+            box.Flight.ShowDocked(1f, _dockedRemaining);
             if (Crusher != null) Crusher.OnBoxEnter(_balls != null ? _balls.ColorOf(box.Data.ColorCode) : Color.white);
         }
 
@@ -135,7 +135,7 @@ namespace BounceBlast.Gameplay
             _pipe.Remove(done);
             _ready.Remove(done);
             done.Finish();
-            for (int i = 0; i < _pipe.Count; i++) if (_pipe[i] != null) _pipe[i].MoveTo(SlotPosition(i), 0.15f);
+            for (int i = 0; i < _pipe.Count; i++) if (_pipe[i] != null) _pipe[i].Flight.MoveTo(SlotPosition(i), 0.15f);
         }
 
         /// <summary>Chiều dài đường máng (đv thế giới).</summary>
@@ -272,7 +272,7 @@ namespace BounceBlast.Gameplay
             b.SetLaneMotion(initPos, initDir, 0f);
             _dockedRemaining--;
             if (Crusher != null) Crusher.Pulse(_balls != null ? _balls.ColorOf(_docked.Data.ColorCode) : Color.white);
-            _docked.ShowDocked(_dockedTotal > 0 ? (float)_dockedRemaining / _dockedTotal : 0f, _dockedRemaining);
+            _docked.Flight.ShowDocked(_dockedTotal > 0 ? (float)_dockedRemaining / _dockedTotal : 0f, _dockedRemaining);
         }
 
         void Update()
@@ -301,7 +301,7 @@ namespace BounceBlast.Gameplay
                 if (!_preloaded && _dockedRemaining > 0 && _dockedRemaining <= PreloadBalls && _pipe.Count > 1 && _pipe[1] != null)
                 {
                     _preloaded = true;
-                    _pipe[1].MoveTo(DockPosition, Mathf.Max(0.08f, _dockedRemaining * BaseInterval));
+                    _pipe[1].Flight.MoveTo(DockPosition, Mathf.Max(0.08f, _dockedRemaining * BaseInterval));
                 }
 
                 if (_dockedRemaining <= 0)
