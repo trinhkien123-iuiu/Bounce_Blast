@@ -3,13 +3,15 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Pháo giấy trong UI – dựng lại plugin UI-particle của game gốc (component đã bị strip khi build, chỉ còn
-/// RectTransform). Thông số lấy từ dữ liệu gốc trong ManagerScene:
+/// Pháo giấy trong UI – dựng lại plugin UI-particle của game gốc (component đã bị strip khi build, chỉ còn RectTransform).
+/// Gắn SẴN trên object pháo trong prefab (cùng một Canvas lồng riêng để bảng thắng không phải dựng lại lưới theo từng mảnh);
+/// mọi thông số nằm trong Inspector, mặc định lấy theo dữ liệu gốc trong ManagerScene:
 ///  - Burst (LogoArea/Confetti/ConfettiBurst): nổ 100 mảnh, texture confetti 3×3 (frame ngẫu nhiên),
 ///    size 40–65, sống 1s, tốc độ 2–10 (giảm dần về 0), trọng lực 9.8, xoay ngẫu nhiên + quay tới 1200°/s.
-///  - Rain (UI Particle ConfettiFullscreen): trễ 1s, rate 300/s trong 1s, rải trên mép trên toàn màn,
+///  - Rain (UI Particle ConfettiFullscreen): trễ 1s, rate 300/s trong 1s, rải trên mép trên của object,
 ///    mảnh chữ nhật 10×30 màu cầu vồng, sống 2–4s, rơi 1–7 + trọng lực, lật 360–720°/s.
 /// Đơn vị tốc độ/trọng lực của plugin nhân 100 ra pixel canvas.
+/// Các mảnh giấy là HẠT (giống ParticleSystem): sinh trong pool lúc chạy, không nằm trong Hierarchy – chỉnh qua thông số ở đây.
 /// </summary>
 public class UiConfetti : MonoBehaviour
 {
@@ -19,57 +21,48 @@ public class UiConfetti : MonoBehaviour
     {
         public RectTransform rt;
         public Graphic g;
-        public Vector2 vel;
-        public float speed0, life, age, rot, spin, flip, flipSpeed, size;
+        public float speed0, life, age, rot, spin, flip, flipSpeed;
         public Vector2 dir;
     }
 
-    static readonly Color[] Rainbow =
+    [SerializeField] Mode mode = Mode.Burst;
+    [Tooltip("Burst: ảnh pháo giấy 3×3 khung (confetti_0.png)")] [SerializeField] Texture sheet;
+    [Tooltip("Burst: số mảnh nổ")] [SerializeField] int burstCount = 100;
+    [Tooltip("Rain: mảnh/giây")] [SerializeField] float rainRate = 300f;
+    [Tooltip("Rain: rải trong bao lâu (giây)")] [SerializeField] float rainDuration = 1f;
+    [Tooltip("Burst: cạnh mảnh (min, max)")] [SerializeField] Vector2 burstSize = new Vector2(40f, 65f);
+    [Tooltip("Rain: cỡ mảnh chữ nhật")] [SerializeField] Vector2 rainSize = new Vector2(16f, 48f);
+    [Tooltip("Tốc độ đầu (min, max) – đơn vị canvas/giây")] [SerializeField] Vector2 speed = new Vector2(200f, 1000f);
+    [Tooltip("Thời gian sống (min, max) giây")] [SerializeField] Vector2 life = new Vector2(1f, 1f);
+    [Tooltip("Trọng lực (đơn vị canvas/giây²)")] [SerializeField] float gravity = 343f;
+    [Tooltip("Tốc độ quay (độ/giây, ±)")] [SerializeField] float spinMax = 1200f;
+    [Tooltip("Rain: màu ngẫu nhiên của mảnh")] [SerializeField] Color[] colors =
     {
         new Color(1f, 0f, 0.168f), new Color(1f, 0.446f, 0f), new Color(1f, 0.923f, 0f), new Color(0.422f, 1f, 0f),
         new Color(0f, 1f, 0.941f), new Color(0f, 0.777f, 1f), new Color(0f, 0.476f, 1f)
     };
 
-    // Pool: trước đây mỗi mảnh là 1 GameObject mới + Destroy → hàng nghìn lần cấp phát/giây (GC giật) và làm Canvas cha
-    // dựng lại lưới mỗi khung. Giờ mảnh được tái dùng, và cả đống confetti nằm trong Canvas lồng riêng (overrideSorting)
-    // nên bảng thắng không bị dựng lại theo từng mảnh giấy.
+    // Pool: mảnh được tái dùng (không Instantiate/Destroy mỗi mảnh → không GC giật).
     readonly Stack<P> _pool = new Stack<P>();
-    Mode _mode;
-    Texture _sheet;
-    float _delay, _emitLeft, _emitAcc;
     readonly List<P> _live = new List<P>();
-    RectTransform _rt;
+    float _delay, _emitLeft, _emitAcc;
+    bool _pendingBurst;
 
-    public static UiConfetti Play(Transform host, Mode mode, Texture sheet, float delay = 0f)
+    /// <summary>Phát pháo sau <paramref name="delay"/> giây.</summary>
+    public void Play(float delay = 0f)
     {
-        var c = host.GetComponent<UiConfetti>();
-        if (c == null) c = host.gameObject.AddComponent<UiConfetti>();
-        c._mode = mode;
-        c._sheet = sheet;
-        c._delay = delay;
-        c._emitLeft = mode == Mode.Burst ? 0f : 1f;
-        c._rt = host as RectTransform;
-        c.EnsureOwnCanvas();
-        // con cũ do plugin gốc sinh (đã mất script) → ẩn
-        foreach (Transform child in host) if (child.name != "confetti") child.gameObject.SetActive(false);
-        host.gameObject.SetActive(true);
-        if (mode == Mode.Burst && delay <= 0f) c.EmitBurst();
-        return c;
-    }
-
-    void EnsureOwnCanvas()
-    {
-        if (GetComponent<Canvas>() != null) return;
-        Canvas parent = GetComponentInParent<Canvas>();
-        var cv = gameObject.AddComponent<Canvas>();
-        cv.overrideSorting = true;
-        cv.sortingLayerID = parent != null ? parent.sortingLayerID : 0;
-        cv.sortingOrder = (parent != null ? parent.sortingOrder : 0) + 2;
+        gameObject.SetActive(true);
+        _delay = delay;
+        _pendingBurst = mode == Mode.Burst;
+        _emitLeft = mode == Mode.Rain ? rainDuration : 0f;
+        _emitAcc = 0f;
+        if (_pendingBurst && delay <= 0f) EmitBurst();
     }
 
     void EmitBurst()
     {
-        for (int i = 0; i < 100; i++) Spawn(Vector2.zero, Random.insideUnitCircle.normalized);
+        _pendingBurst = false;
+        for (int i = 0; i < burstCount; i++) Spawn(Vector2.zero, Random.insideUnitCircle.normalized);
     }
 
     void Update()
@@ -78,13 +71,13 @@ public class UiConfetti : MonoBehaviour
         if (_delay > 0f)
         {
             _delay -= dt;
-            if (_delay <= 0f && _mode == Mode.Burst) EmitBurst();
+            if (_delay <= 0f && _pendingBurst) EmitBurst();
         }
-        else if (_mode == Mode.Rain && _emitLeft > 0f)
+        else if (mode == Mode.Rain && _emitLeft > 0f)
         {
             _emitLeft -= dt;
-            _emitAcc += 300f * dt;
-            Rect r = _rt != null ? _rt.rect : new Rect(-500, -1000, 1000, 2000);
+            _emitAcc += rainRate * dt;
+            Rect r = ((RectTransform)transform).rect;
             while (_emitAcc >= 1f)
             {
                 _emitAcc -= 1f;
@@ -101,23 +94,22 @@ public class UiConfetti : MonoBehaviour
 
             Vector2 v;
             float s;
-            if (_mode == Mode.Burst)
+            if (mode == Mode.Burst)
             {
-                float speedK = 1f - t;                       // speedOverLifetime 1 → 0
-                v = p.dir * p.speed0 * speedK + Vector2.down * 980f * p.age * 0.35f;
+                v = p.dir * p.speed0 * (1f - t) + Vector2.down * gravity * p.age;   // speedOverLifetime 1 → 0
                 // sizeOverLifetime gốc: 0.76 → 0.98 (t 0.64) → 0
                 s = t < 0.64f ? Mathf.Lerp(0.76f, 0.98f, t / 0.64f) : Mathf.Lerp(0.98f, 0f, (t - 0.64f) / 0.36f);
             }
             else
             {
-                v = p.dir * p.speed0 * Mathf.Lerp(1f, 0.22f, t) + Vector2.down * 981f * p.age * 0.25f;
+                v = p.dir * p.speed0 * Mathf.Lerp(1f, 0.22f, t) + Vector2.down * gravity * p.age;
                 s = 1f;
             }
             p.rt.anchoredPosition += v * dt;
             p.rot += p.spin * dt;
             p.flip += p.flipSpeed * dt;
             p.rt.localEulerAngles = new Vector3(0f, 0f, p.rot);
-            float fx = _mode == Mode.Rain ? Mathf.Abs(Mathf.Cos(p.flip * Mathf.Deg2Rad)) : 1f;
+            float fx = mode == Mode.Rain ? Mathf.Abs(Mathf.Cos(p.flip * Mathf.Deg2Rad)) : 1f;
             p.rt.localScale = new Vector3(s * Mathf.Max(0.15f, fx), s, 1f);
         }
     }
@@ -133,38 +125,36 @@ public class UiConfetti : MonoBehaviour
         else
         {
             var go = new GameObject("confetti", typeof(RectTransform));
+            go.hideFlags = HideFlags.DontSave;   // hạt lúc chạy – không bao giờ lưu vào scene/prefab
             go.transform.SetParent(transform, false);
+            go.layer = gameObject.layer;
             var rt = (RectTransform)go.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             p = new P { rt = rt };
-            p.g = _mode == Mode.Burst ? (Graphic)go.AddComponent<RawImage>() : go.AddComponent<Image>();
+            p.g = mode == Mode.Burst ? (Graphic)go.AddComponent<RawImage>() : go.AddComponent<Image>();
             p.g.raycastTarget = false;
         }
         p.rt.anchoredPosition = pos;
         p.dir = dir; p.age = 0f; p.flip = 0f; p.flipSpeed = 0f;
-        RectTransform r = p.rt;
-        if (_mode == Mode.Burst)
+        p.speed0 = Random.Range(speed.x, speed.y);
+        p.life = Random.Range(life.x, life.y);
+        p.spin = Random.Range(-spinMax, spinMax);
+        if (mode == Mode.Burst)
         {
             var img = (RawImage)p.g;
-            img.texture = _sheet;
+            img.texture = sheet;
             int f = Random.Range(0, 9);
             img.uvRect = new Rect((f % 3) / 3f, (f / 3) / 3f, 1f / 3f, 1f / 3f);
-            float size = Random.Range(40f, 65f);
-            r.sizeDelta = new Vector2(size, size);
-            p.speed0 = Random.Range(2f, 10f) * 100f;
-            p.life = 1f;
+            float size = Random.Range(burstSize.x, burstSize.y);
+            p.rt.sizeDelta = new Vector2(size, size);
             p.rot = Random.Range(0f, 360f);
-            p.spin = Random.Range(-1200f, 1200f);
         }
         else
         {
             var img = (Image)p.g;
-            img.color = Rainbow[Random.Range(0, Rainbow.Length)];
-            r.sizeDelta = new Vector2(10f, 30f) * 1.6f;
-            p.speed0 = Random.Range(1f, 7f) * 100f;
-            p.life = Random.Range(2f, 4f);
+            if (colors.Length > 0) img.color = colors[Random.Range(0, colors.Length)];
+            p.rt.sizeDelta = rainSize;
             p.rot = Random.Range(-90f, 90f);
-            p.spin = Random.Range(-180f, 180f);
             p.flipSpeed = Random.Range(360f, 720f);
         }
         _live.Add(p);

@@ -1,102 +1,109 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
 /// Sao lấp lánh quanh đống xu ở bảng thắng (video coin_panel gốc: vài ngôi sao trắng 4 cánh liên tục hiện–tắt
-/// ngẫu nhiên trong vùng quanh xu). Texture sao gốc: _Ripped/Texture2D/sparkle3.png.
+/// ngẫu nhiên trong vùng quanh xu). Gắn trên <c>SparkleLayer</c> (có Canvas lồng riêng để bảng thắng không phải dựng lại lưới);
+/// các ngôi sao là con nằm SẴN trong prefab (lưu tắt) – đổi ảnh/màu sao, thêm bớt sao ngay trong Hierarchy.
+/// Lúc chạy chỉ bật sao ở vị trí/cỡ ngẫu nhiên rồi cho nó hiện–tắt.
 /// </summary>
 public class UiSparkles : MonoBehaviour
 {
-    class Star { public RectTransform rt; public RawImage img; public float age, life, size; }
+    class Star { public RawImage img; public float age, life; public bool live; }
 
-    Texture _tex;
-    Vector2 _area;
+    [Tooltip("Các ngôi sao (con của object này, lưu tắt sẵn). Chuột phải ▸ \"Tạo sao\" để sinh thêm theo số lượng dưới")] [SerializeField] RawImage[] stars = new RawImage[0];
+    [Tooltip("Vùng rải sao quanh tâm (đơn vị canvas)")] [SerializeField] Vector2 area = new Vector2(520f, 380f);
+    [Tooltip("Sao mới mỗi giây")] [SerializeField] float rate = 9f;
+    [Tooltip("Cỡ sao (video gốc: ~30–50px trên màn 480px ≈ 60–140 đơn vị canvas 1242)")] [SerializeField] Vector2 sizeRange = new Vector2(60f, 140f);
+    [Tooltip("Thời gian sống mỗi sao (giây)")] [SerializeField] Vector2 lifeRange = new Vector2(0.45f, 0.8f);
+#if UNITY_EDITOR
+    [Tooltip("Số sao tạo khi bấm \"Tạo sao\"")] [SerializeField] int createCount = 10;
+    [Tooltip("Ảnh sao dùng khi bấm \"Tạo sao\" (sparkle3.png)")] [SerializeField] Texture createTexture;
+#endif
+
+    Star[] _state = new Star[0];
     float _acc;
-    readonly List<Star> _stars = new List<Star>();
-    // Pool + Canvas lồng riêng (xem UiConfetti): không Instantiate/Destroy mỗi sao, không làm bảng thắng dựng lại lưới liên tục
-    readonly Stack<Star> _pool = new Stack<Star>();
-    RectTransform _layer;
-    const float Rate = 9f;          // sao/giây
-    const int MaxStars = 10;
+    bool _running;
 
-    public static UiSparkles Play(RectTransform host, Texture tex, Vector2 area)
+    /// <summary>Bắt đầu lấp lánh (gọi khi bảng thắng hiện).</summary>
+    public void Play()
     {
-        var s = host.GetComponent<UiSparkles>();
-        if (s == null) s = host.gameObject.AddComponent<UiSparkles>();
-        s._tex = tex;
-        s._area = area;
-        s.EnsureLayer();
-        return s;
+        if (_state.Length != stars.Length)
+        {
+            _state = new Star[stars.Length];
+            for (int i = 0; i < stars.Length; i++) _state[i] = new Star { img = stars[i] };
+        }
+        _acc = 0f;
+        _running = true;
     }
 
-    void EnsureLayer()
+    public void Stop()
     {
-        if (_layer != null) return;
-        var go = new GameObject("SparkleLayer", typeof(RectTransform));
-        go.transform.SetParent(transform, false);
-        _layer = (RectTransform)go.transform;
-        _layer.anchorMin = _layer.anchorMax = new Vector2(0.5f, 0.5f);
-        _layer.sizeDelta = Vector2.zero;
-        Canvas parent = GetComponentInParent<Canvas>();
-        var cv = go.AddComponent<Canvas>();
-        cv.overrideSorting = true;
-        cv.sortingLayerID = parent != null ? parent.sortingLayerID : 0;
-        cv.sortingOrder = (parent != null ? parent.sortingOrder : 0) + 1;
+        _running = false;
+        foreach (Star s in _state) { s.live = false; if (s.img != null) s.img.gameObject.SetActive(false); }
     }
+
+    void OnDisable() => Stop();
 
     void Update()
     {
-        if (_tex == null) return;
+        if (!_running) return;
         float dt = Mathf.Min(Time.unscaledDeltaTime, 0.05f);
-        _acc += Rate * dt;
-        while (_acc >= 1f && _stars.Count < MaxStars) { _acc -= 1f; Spawn(); }
-        if (_acc > 1f) _acc = 1f;
-        for (int i = _stars.Count - 1; i >= 0; i--)
+        _acc += rate * dt;
+        while (_acc >= 1f) { _acc -= 1f; if (!Spawn()) { _acc = 0f; break; } }
+        foreach (Star s in _state)
         {
-            Star s = _stars[i];
+            if (!s.live || s.img == null) continue;
             s.age += dt;
             float t = s.age / s.life;
-            if (t >= 1f) { s.rt.gameObject.SetActive(false); _pool.Push(s); _stars.RemoveAt(i); continue; }
+            if (t >= 1f) { s.live = false; s.img.gameObject.SetActive(false); continue; }
             float k = Mathf.Sin(t * Mathf.PI);                 // hiện rồi tắt
-            s.rt.localScale = Vector3.one * k;
-            s.rt.localEulerAngles = new Vector3(0f, 0f, t * 90f);
+            RectTransform rt = s.img.rectTransform;
+            rt.localScale = Vector3.one * k;
+            rt.localEulerAngles = new Vector3(0f, 0f, t * 90f);
             Color c = s.img.color; c.a = k; s.img.color = c;
         }
     }
 
-    void Spawn()
+    bool Spawn()
     {
-        Star st;
-        if (_pool.Count > 0)
+        foreach (Star s in _state)
         {
-            st = _pool.Pop();
-            st.rt.gameObject.SetActive(true);
+            if (s.live || s.img == null) continue;
+            RectTransform rt = s.img.rectTransform;
+            rt.anchoredPosition = new Vector2(Random.Range(-0.5f, 0.5f) * area.x, Random.Range(-0.5f, 0.5f) * area.y);
+            float size = Random.Range(sizeRange.x, sizeRange.y);
+            rt.sizeDelta = new Vector2(size, size);
+            rt.localScale = Vector3.zero;
+            s.age = 0f; s.life = Random.Range(lifeRange.x, lifeRange.y); s.live = true;
+            s.img.gameObject.SetActive(true);
+            return true;
         }
-        else
-        {
-            var go = new GameObject("sparkle", typeof(RectTransform));
-            go.transform.SetParent(_layer != null ? _layer : transform, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            var img = go.AddComponent<RawImage>();
-            img.texture = _tex;
-            img.raycastTarget = false;
-            st = new Star { rt = rt, img = img };
-        }
-        st.rt.anchoredPosition = new Vector2(Random.Range(-0.5f, 0.5f) * _area.x, Random.Range(-0.5f, 0.5f) * _area.y);
-        float size = Random.Range(60f, 140f); // video gốc: sao ~30–50px trên màn 480px ≈ 60–140 đơn vị canvas 1242
-        st.rt.sizeDelta = new Vector2(size, size);
-        st.rt.localScale = Vector3.zero;
-        st.age = 0f; st.life = Random.Range(0.45f, 0.8f); st.size = size;
-        _stars.Add(st);
+        return false;   // đủ sao đang sáng
     }
 
-    void OnDisable()
+#if UNITY_EDITOR
+    [ContextMenu("Tạo sao")]
+    void CreateStars()
     {
-        foreach (Star s in _stars) if (s.rt != null) Destroy(s.rt.gameObject);
-        foreach (Star s in _pool) if (s.rt != null) Destroy(s.rt.gameObject);
-        _stars.Clear();
-        _pool.Clear();
+        var list = new System.Collections.Generic.List<RawImage>(stars);
+        for (int i = 0; i < createCount; i++)
+        {
+            var go = new GameObject("sparkle", typeof(RectTransform));
+            UnityEditor.Undo.RegisterCreatedObjectUndo(go, "Tạo sao");
+            go.transform.SetParent(transform, false);
+            go.layer = gameObject.layer;
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = Vector2.one * sizeRange.y;
+            var img = go.AddComponent<RawImage>();
+            img.texture = createTexture;
+            img.raycastTarget = false;
+            go.SetActive(false);
+            list.Add(img);
+        }
+        stars = list.ToArray();
+        UnityEditor.EditorUtility.SetDirty(this);
     }
+#endif
 }

@@ -87,7 +87,7 @@ Không đưa lên git (`.gitignore`): `Captures/` (ảnh/video tạm), `Screensh
 | Công cụ cheat khi test trên máy (nhảy level, thắng/thua, tốc độ, FPS) | Prefab `Prefabs/UI/CheatPanel` (đặt sẵn trong Gameplay) + `Scripts/Debug/`; luật cheat ở `CheatRegistry`. Mở: 5 chạm góc trên-trái / 3 ngón / F1. Chỉ có ở Editor, Development Build hoặc khi thêm define `BB_CHEATS`. Thiết kế: `Docs/thiet-ke/cheat-tool.md` |
 | Khoá fps, tự hạ độ phân giải trên máy yếu | `Scripts/Gameplay/Core/FrameRateBootstrap.cs`, `AdaptiveResolution.cs` (tự chạy, không cần đặt vào scene) |
 | Logic cân camera theo màn hình | `Scripts/Gameplay/Core/CameraFitter.cs` (số chỉnh ở `GameConfig` → Bố cục màn hình) |
-| Màn hình chính: hình, bố cục, nút, tab | Prefab `Prefabs/UI/MainMenuCanvas` + script `Scripts/UI/MainMenuView.cs`; hình ở `Art/UI/Menu/`; logic ở `Scripts/Menu/MenuManager.cs` |
+| Màn hình chính: hình, bố cục, nút, tab | 6 prefab đặt cạnh nhau dưới `UI/` của MenuGame, mỗi cái một View: `MenuHomeCanvas` [HomeView], `ShopCanvas` [ShopPanelView], `MenuSettingsCanvas` [MenuSettingsView], `MenuBottomBar` [BottomBarView], `MenuToast` [ToastView], `ProfileCanvas` [ProfilePopupView] (đều ở `Prefabs/UI/`); hình ở `Art/UI/{Menu,Shop,Profile,Streak}/`; điều phối ở `Scripts/Menu/MenuManager.cs`; luật Bounce Streak ở `Scripts/Gameplay/Core/BounceStreak.cs` |
 | Level / xu đang lưu, chuyển scene | `Scripts/Gameplay/Core/PlayerData.cs`, `SceneFlow.cs` |
 | Camera UI (xa bàn chơi ở x −1000) | Scene: `Camera & Lights/UI Camera` (ô `GameManager.uiCamera`) |
 
@@ -97,12 +97,18 @@ Không đưa lên git (`.gitignore`): `Captures/` (ảnh/video tạm), `Screensh
 
 ```
 Camera & Lights   Main Camera (ortho, chỉ để vẽ UI)
-Managers          MenuManager [MenuManager] (config + view) · AudioManager
-UI                MainMenuCanvas [MainMenuView]  (prefab Prefabs/UI/MainMenuCanvas) + EventSystem
+Managers          MenuManager [MenuManager] (config + 5 View + mảng trang theo tab) · AudioManager
+UI                MenuHomeCanvas [HomeView]          trang Home (Play, xu/tim, avatar, thanh Bounce Streak [StreakBarView] lồng bên trong)
+                  ShopCanvas [ShopPanelView]         trang Shop (tắt sẵn)
+                  MenuSettingsCanvas [MenuSettingsView] trang Settings (tắt sẵn)
+                  MenuBottomBar [BottomBarView]      thanh 5 tab (order 5, luôn nằm trên trang)
+                  ProfileCanvas [ProfilePopupView]   popup Profile – đổi tên, chọn avatar (order 30, tắt sẵn)
+                  MenuToast [ToastView]              dòng thông báo (order 50)
+                  EventSystem
 ```
-- Gồm: nút **Play** (3 kiểu Normal/Hard/Super Hard theo độ khó level kế tiếp), xu, tim, thanh 5 tab (Home, Settings chạy; **Shop / Journey / Collection chưa làm** → bấm hiện "coming soon"), trang Settings (âm thanh / nhạc / rung).
+- Gồm: nút **Play** (3 kiểu Normal/Hard/Super Hard theo độ khó level kế tiếp), xu, tim, thanh 5 tab (Home, Shop, Settings chạy; **Journey / Collection chưa làm** → bấm hiện "coming soon"); bấm tab thì `MenuManager` bật đúng một trang, tắt các trang khác, trang Settings (âm thanh / nhạc / rung).
 - Luồng: `MenuGame` ──Play──▶ `Gameplay` ──Settings ▸ Home──▶ `MenuGame` (`SceneFlow`). Tiến độ (level, xu) ở `PlayerData` (PlayerPrefs). Vào Gameplay từ Menu thì chơi tiếp level đã lưu; bấm Play thẳng scene Gameplay thì dùng `LevelManager.startLevel`.
-- Đổi hình menu → `Art/UI/Menu/`; đổi nhạc menu → `GameConfig.musicMenu`; đổi bố cục → mở prefab `MainMenuCanvas`.
+- Đổi hình menu → `Art/UI/Menu/`; đổi nhạc menu → `GameConfig.musicMenu`; đổi bố cục → mở prefab của trang tương ứng (`MenuHomeCanvas`, `ShopCanvas`…). Mỗi Canvas gốc là Screen Space - Camera, khoảng cách 1; ô camera nối trong scene (override cố ý).
 
 ## 3. Scene `Gameplay.unity` — Hierarchy
 

@@ -39,6 +39,7 @@ namespace BounceBlast.UI
             public Sprite shuffle;
             public Sprite capacity;
             [Tooltip("Ô số tròn (Number / Hard Number / Super Hard Number)")] public Sprite number;
+            [Tooltip("Màu dải nền dưới cùng ở độ khó này (đo từ ảnh gốc). Alpha 0 = giữ màu đang có")] public Color stripColor = new Color(1f, 1f, 1f, 0f);
 
             public Sprite For(BoosterType t)
             {
@@ -95,10 +96,11 @@ namespace BounceBlast.UI
             }
         }
 
-        /// <summary>Đổi hình 4 nút + ô số theo độ khó (Normal xanh, Hard tím, Super Hard tối – theo SpriteConfig gốc).</summary>
+        /// <summary>Đổi hình 4 nút + ô số + màu dải nền theo độ khó (Normal xanh, Hard tím, Super Hard tối – theo SpriteConfig gốc).</summary>
         public void ApplyDifficulty(LevelDifficulty difficulty)
         {
             Style s = difficulty == LevelDifficulty.SuperHard ? superHard : difficulty == LevelDifficulty.Hard ? hard : normal;
+            if (strip != null && s.stripColor.a > 0f) strip.color = s.stripColor;
             foreach (Entry e in boosters)
             {
                 if (e == null) continue;
@@ -111,9 +113,6 @@ namespace BounceBlast.UI
                 }
             }
         }
-
-        /// <summary>Tông dải nền theo độ khó (màu đo từ ảnh gốc).</summary>
-        public void SetStripColor(Color c) { if (strip != null) strip.color = c; }
 
         /// <summary>Bật/tắt mũi tên nhắc dùng booster.</summary>
         public void SetWarn(bool on) => _warnOn = on;

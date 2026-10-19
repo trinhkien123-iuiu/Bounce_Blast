@@ -14,7 +14,7 @@ Phân loại: **PROJECT** = đã dùng được trong `_Project`; **ARCHIVE** = 
 | **Collection** | Ảnh bếp "Kitchen" 3 nhân vật; hộp phần thưởng (3000 xu, thìa vàng "Grand Prize!", booster ×2); thanh `6/81` + rương; đồng hồ `8d 0h`; lưới 9 bộ thẻ (Breakfast, Christmas, Coffee, Dairy Products, Desserts, Fruit, Meats, Pastry, Sauces) mỗi bộ có thanh tiến độ + phần thưởng; nút (i), sao, gói thẻ ở rìa |
 | **Settings** | Sound, Music, Vibration + **Support, Terms, Privacy, Restore Purchases** |
 
-Bản dựng lại hiện có: Home (rút gọn, chưa có avatar, thanh phần thưởng, 6 nút sự kiện), Settings (3 công tắc), tab còn lại báo "coming soon" (bản gốc Journey cũng là "Coming Soon" nên khớp).
+Bản dựng lại hiện có: Home (avatar, xu/tim, thanh Bounce Streak; chưa có 6 nút sự kiện), Shop (tách nguyên bản gốc, mua giả lập), Settings (3 công tắc); Journey, Collection báo "coming soon". Chi tiết: `Docs/kien-truc/ui.md` mục "Trang Shop + thanh Bounce Streak".
 
 ## 2. Kết quả kiểm tra asset (theo từng trang của MainMenuCanvas gốc)
 

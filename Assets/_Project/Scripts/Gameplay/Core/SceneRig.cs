@@ -3,8 +3,8 @@ using UnityEngine;
 namespace BounceBlast.Gameplay
 {
     /// <summary>
-    /// Dựng DỰ PHÒNG các phần của cảnh khi scene chưa đặt sẵn: đèn riêng cho gạch, camera riêng cho UI.
-    /// Scene Gameplay hiện đã có sẵn cả hai nên thường không làm gì; tách khỏi GameManager để GameManager chỉ điều phối.
+    /// Dựng DỰ PHÒNG đèn riêng cho gạch khi scene chưa đặt sẵn (camera UI giờ bắt buộc đặt sẵn trong scene).
+    /// Scene Gameplay hiện đã có sẵn nên thường không làm gì; tách khỏi GameManager để GameManager chỉ điều phối.
     /// </summary>
     public static class SceneRig
     {
@@ -34,29 +34,6 @@ namespace BounceBlast.Gameplay
                 src.cullingMask &= ~(1 << cube);
                 break;
             }
-        }
-
-        /// <summary>
-        /// Camera riêng cho canvas UI (Screen Space - Camera): chiếu ortho chuẩn. Camera game dùng ma trận chiếu ép dọc
-        /// (giữ khung hình gốc) – nếu UI vẽ bằng nó thì cũng bị kéo dọc/lệch. Canvas Screen Space - Camera chỉ được vẽ
-        /// bởi camera gán cho nó, nên camera game không cần đổi culling mask (thanh capacity world-space vẫn do camera game vẽ).
-        /// </summary>
-        public static Camera CreateUiCamera(Camera gameCamera)
-        {
-            var go = new GameObject("UI Camera");
-            go.transform.SetParent(gameCamera != null ? gameCamera.transform.parent : null, false);
-            go.transform.position = new Vector3(-1000f, 0f, -10f); // xa bàn chơi: canvas đặt trước camera này không đè vật thể
-            var c = go.AddComponent<Camera>();
-            c.orthographic = true;
-            c.orthographicSize = 10f;
-            c.clearFlags = CameraClearFlags.Depth;
-            c.cullingMask = ~0; // đứng xa bàn chơi (x -1000): frustum chỉ chứa các canvas gắn vào nó
-            c.depth = (gameCamera != null ? gameCamera.depth : 0f) + 1f;
-            c.nearClipPlane = 0.01f;
-            c.farClipPlane = 50f;
-            c.allowHDR = false;
-            c.allowMSAA = false;
-            return c;
         }
     }
 }

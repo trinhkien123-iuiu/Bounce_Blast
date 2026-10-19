@@ -2235,7 +2235,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 1000
@@ -2333,7 +2333,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   panel: {fileID: 3379052521650805809}
   overlay: {fileID: 1909802914458439364}
-  allowInReleaseBuild: 0
   cornerWidth: 0.35
   cornerHeight: 0.1
   tapsToOpen: 5
@@ -3820,7 +3819,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5311047439540836778
 RectTransform:
   m_ObjectHideFlags: 0

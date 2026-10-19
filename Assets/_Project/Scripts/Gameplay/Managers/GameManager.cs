@@ -21,15 +21,14 @@ namespace BounceBlast.Gameplay
         [Header("Asset")]
         public GameConfig config;
         public ColorLibrary colors;
-        public UiSkin skin;
+        [Tooltip("Chỉ dùng cho tool Editor (Tools/Bounce Blast/Setup) – lúc chạy không đọc")] public UiSkin skin;
 
         [Header("Scene")]
         public Transform boardRoot;
         public Camera gameCamera;
-        [Tooltip("Đặt sẵn trong Hierarchy để thấy & sửa UI trong Editor (UI/GameUI, bên dưới là các canvas…). " +
-                 "Bỏ trống thì GameManager tự tạo lúc chạy từ các prefab trong UiSkin.")]
+        [Tooltip("UI đặt sẵn trong Hierarchy (UI/GameUI, bên dưới là các canvas…) – bắt buộc, lúc chạy không tự dựng UI.")]
         public GameUI ui;
-        [Tooltip("Camera vẽ UI (đặt sẵn trong Hierarchy, đứng xa bàn chơi ở x −1000). Bỏ trống thì tự tạo lúc chạy. " +
+        [Tooltip("Camera vẽ UI (đặt sẵn trong Hierarchy, đứng xa bàn chơi ở x −1000) – bắt buộc. " +
                  "Các Canvas UI đã trỏ sẵn tới camera này nên Edit mode nhìn Game view giống hệt lúc Play.")]
         public Camera uiCamera;
 
@@ -81,7 +80,8 @@ namespace BounceBlast.Gameplay
             conveyor = Get(conveyor, "Conveyor");
             balls = Get(balls, "Balls");
             theme = Get(theme, "Theme");
-            _ui = ui != null ? ui : CreateChild<GameUI>("UI");
+            _ui = ui;
+            if (_ui == null) { Debug.LogError("GameManager: ô UI trống – đặt UI/GameUI vào scene và kéo vào ô"); enabled = false; return; }
             if (vfxRoot == null)
             {
                 var vfx = new GameObject("VFX");
@@ -102,7 +102,8 @@ namespace BounceBlast.Gameplay
             Transform tri = boardRoot != null ? boardRoot.Find("Environment Base (1)/Triangle") : null;
             Transform triCol = tri != null ? tri.Find("Model/Triangle") : null;
             if (triCol != null) triCol.gameObject.AddComponent<TriangleFx>().Init(tri);
-            _ui.Build(skin, config, uiCamera != null ? uiCamera : SceneRig.CreateUiCamera(gameCamera), gameCamera);
+            if (uiCamera == null) Debug.LogError("GameManager: ô UI Camera trống – các Canvas trỏ tới camera này");
+            _ui.Build(config, uiCamera, gameCamera);
             cameraFitter = Get(cameraFitter, "CameraFitter");
             cameraFitter.Init(config, _ui, gameCamera);
             arenaWalls = Get(arenaWalls, "ArenaWalls"); // RequireComponent tự thêm EdgeCollider2D
@@ -160,6 +161,7 @@ namespace BounceBlast.Gameplay
             AudioManager.Play(Sfx.Confetti);
             PlayerData.Level = Mathf.Min(levelManager.CurrentLevel + 1, config.MaxLevel);
             PlayerData.Coins += WinCoins;
+            BounceStreak.RecordWin();
             OnWin?.Invoke();
             StartCoroutine(WinRoutine());
         }
@@ -183,6 +185,7 @@ namespace BounceBlast.Gameplay
             if (state != GameState.Playing) return;
             SetState(GameState.Lost);
             AudioManager.Play(Sfx.Lose);
+            BounceStreak.RecordLose();
             OnLose?.Invoke(reason);
             _ui.ShowFail(levelManager.CurrentLevel, CurrentDifficulty, reason, levelManager.Restart);
         }

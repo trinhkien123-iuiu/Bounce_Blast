@@ -35,7 +35,6 @@ namespace BounceBlast.UI
         [SerializeField] Image iconImage;
         [SerializeField] TMP_Text priceText;
         [SerializeField] TMP_Text countText;
-        [Tooltip("Nút xem quảng cáo nhận 1 lượt (chưa làm) – tắt")] [SerializeField] GameObject adButton;
         [SerializeField] List<Entry> entries = new List<Entry>();
 
         /// <summary>Bấm mua (bản clone: miễn phí) – kèm loại booster và số lượt được nhận.</summary>
@@ -64,7 +63,6 @@ namespace BounceBlast.UI
                 if (priceText != null) priceText.text = e.price.ToString();
                 if (countText != null) countText.text = "x" + e.count;
             }
-            if (adButton != null) adButton.SetActive(false);
             OpenBase(difficulty);
         }
 

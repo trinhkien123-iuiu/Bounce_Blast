@@ -9,13 +9,13 @@ namespace BounceBlast.UI
     /// Script quản lý của prefab CapacityBar – gắn ngay trên gốc prefab.
     ///
     /// Giữ tham chiếu tới thanh fill / chữ % / icon vô hạn bằng Inspector, và tự lo phần hiển thị.
-    /// GameUI chỉ gọi <see cref="SetFill"/>. Tư thế (vị trí, xoay, cỡ) đã nung sẵn trong prefab –
-    /// xem Docs 5.9; code không đặt lại nữa.
+    /// GameUI chỉ gọi <see cref="SetFill"/>. Tư thế (vị trí, xoay, cỡ), camera, font, màu chữ và độ bù dẹt của chữ
+    /// (scale y 1.33 – camera game ép dọc cos20) đều lưu sẵn trong prefab/scene; code không đặt lại.
     /// </summary>
     [DisallowMultipleComponent]
     public class CapacityBarView : MonoBehaviour
     {
-        [Tooltip("Canvas world-space bên trong prefab – cần gán camera lúc chạy")]
+        [Tooltip("Canvas world-space bên trong prefab – camera (Main Camera) và thứ tự vẽ lưu sẵn trong scene")]
         [SerializeField] Canvas worldCanvas;
         [Tooltip("Thanh màu chạy theo % sức chứa")]
         [SerializeField] Image fill;
@@ -25,39 +25,6 @@ namespace BounceBlast.UI
         [SerializeField] GameObject infiniteIcon;
 
         int _shownKey = int.MinValue;
-
-        /// <summary>GameUI gán camera (không serialize được) và thứ tự vẽ.</summary>
-        public void Bind(Camera worldCam, int sortingOrder, TMP_FontAsset font, Material fontMaterial)
-        {
-            if (worldCanvas != null)
-            {
-                worldCanvas.worldCamera = worldCam;
-                worldCanvas.sortingOrder = sortingOrder;
-            }
-            if (label != null)
-            {
-                UnsquashLabel();
-                label.color = Color.white;
-                if (fontMaterial != null && font != null) { label.font = font; label.fontSharedMaterial = fontMaterial; }
-            }
-            if (infiniteIcon != null) infiniteIcon.SetActive(false);
-        }
-
-        /// <summary>
-        /// Canvas của prefab ép dọc (scale y = 0.8 × x để thanh có độ dày đúng như gốc) và camera game lại ép dọc thêm
-        /// cos20 (xem CameraFitter) → chữ bị bẹp ~25%. Bù riêng cho chữ: scale y của nó = scale x / cos20 trong hệ thế giới,
-        /// để lên màn hình chữ có tỉ lệ 1:1. Đặt giá trị tuyệt đối (không nhân dồn) nên gọi nhiều lần vẫn đúng.
-        /// </summary>
-        void UnsquashLabel()
-        {
-            Transform t = label.transform, parent = t.parent;
-            if (parent == null) return;
-            Vector3 ps = parent.lossyScale;
-            if (ps.y <= 1e-6f) return;
-            Vector3 ls = t.localScale;
-            ls.y = ls.x * (ps.x / ps.y) / ViewSpace.LegacyCos;
-            t.localScale = ls;
-        }
 
         /// <param name="fill01">0..1 phần sức chứa đã dùng</param>
         /// <param name="started">đã thả quả bi đầu tiên chưa</param>

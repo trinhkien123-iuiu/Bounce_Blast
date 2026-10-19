@@ -181,4 +181,80 @@ Vignette/Toast đã do `OverlayView` quản lý; `Spawn()` đã bỏ; `GameUI` c
 `GameUI.ShowXxx` trước đây nối sự kiện (`OnClose`, `OnRetry`, `OnContinue`…) trong khối `if (_view == null)`. Khi View được kéo sẵn vào ô `[SerializeField]` thì ô không null → khối không bao giờ chạy → nút bấm không làm gì. Đã đổi sang cờ `_failWired/_outWired/_settingsWired/_successWired` (nối đúng 1 lần). **Quy tắc:** nối sự kiện theo cờ "đã nối", không dựa vào "ô còn trống". Đã kiểm bằng click giả trong Play: Settings (mở/đóng/Restart), Fail Try Again, OutOfCapacity Play On, Success Continue đều chạy.
 
 ## MainMenuCanvas (scene MenuGame)
-Tách từ `MainMenuCanvas` của ManagerScene gốc bằng `Tools/UnityYaml/ui_extract.py` (tham số mới `--skip` bỏ nhánh Shop / Leaderboards / Collections; `--assets-out` mặc định `Art/UI/Menu/Extra`). Script KPFramework bị bỏ, logic viết lại trong `MainMenuView` (giữ ô tham chiếu bằng Inspector, `Validate()`, sự kiện `OnPlay/OnComingSoon/OnSoundChanged…`) và `MenuManager` (điều phối). 41 sprite/texture menu lấy từ `_Archive` ra `Art/UI/Menu/{Sprites,Textures}`. Toast sao chép từ OverlayCanvas. Canvas Screen Space - Camera trỏ sẵn Main Camera của scene (order giữ 3 như gốc – các canvas con override order tuyệt đối nên KHÔNG đổi order gốc). Nút bấm của View vẫn nối bằng `AddListener` trong `Awake`.
+*(Lịch sử – bố cục hiện tại xem mục "Tách MainMenuCanvas…" bên dưới.)* Tách từ `MainMenuCanvas` của ManagerScene gốc bằng `Tools/UnityYaml/ui_extract.py` (tham số mới `--skip` bỏ nhánh Shop / Leaderboards / Collections; `--assets-out` mặc định `Art/UI/Menu/Extra`). Script KPFramework bị bỏ, logic viết lại trong `MainMenuView` (giữ ô tham chiếu bằng Inspector, `Validate()`, sự kiện `OnPlay/OnComingSoon/OnSoundChanged…`) và `MenuManager` (điều phối). 41 sprite/texture menu lấy từ `_Archive` ra `Art/UI/Menu/{Sprites,Textures}`. Toast sao chép từ OverlayCanvas. Canvas Screen Space - Camera trỏ sẵn Main Camera của scene (order giữ 3 như gốc – các canvas con override order tuyệt đối nên KHÔNG đổi order gốc). Nút bấm của View vẫn nối bằng `AddListener` trong `Awake`.
+
+### Trang Shop + thanh Bounce Streak (MenuGame)
+- **Shop**: tách nguyên `Shop Panel` của ManagerScene gốc → prefab `Prefabs/UI/ShopCanvas.prefab` (2345 object; bỏ script IAP/KPFramework/UIParticle; gốc có Canvas riêng), đặt dưới `UI/`, là trang của tab 0. Mỗi gói (6 bundle + 6 gói xu, đúng thứ tự gốc) có component `ShopOfferItem` gắn ngay trên object của gói (`Content/IAP Content - …`): **dữ liệu** (tên, chuỗi giá, xu, số booster mỗi loại, phút tim vô hạn, No Ads) + tham chiếu hình. Chữ và ô bật/tắt của gói **lưu sẵn trong prefab**; sửa số trong Inspector thì chữ tự đổi theo (chỉ trong Editor, hoặc chuột phải ▸ "Ghi dữ liệu ra hình"). `ShopPanelView` chỉ gom các gói + số xu đầu trang + ô Free Coin. Ô cuối "Free Coin" (gốc là xem quảng cáo): 50 xu, hồi 24h, có đồng hồ đếm ngược.
+- **Không có mua hàng thật**: bấm mua là `MenuManager.Buy` cộng luôn phần thưởng (xu → `PlayerData.Coins`, booster → `BoosterSystem.Add`, tim vô hạn → `PlayerData.AddInfiniteHearts`, cờ `PlayerData.NoAds`).
+- Dữ liệu gói: Starter (3 000 xu, x1 booster, 1h, 137.000 ₫), Small (2 500, 30m, 156.000 ₫), Medium (7 500, x2, 2h, No Ads) lấy theo ảnh gốc; giá Medium và các gói còn lại là **tự đặt** (ảnh gốc không chụp tới) – sửa trong Inspector của `Shop Panel`.
+- Nút "+" cạnh xu/tim ở Home (`HomeView.shopOpeners`) mở tab Shop như gốc; nút hồ sơ vẫn báo "coming soon".
+- **Bounce Streak**: thanh tách từ `MainPanelCanvas/MainPanelBarMain` trong `Resources/asyncload/BounceStreakLoadAsync.prefab` gốc (đây mới là thanh trên Home; `RewardBarArea` là thanh trong popup – lần đầu lấy nhầm) → `Prefabs/UI/StreakMainBar.prefab`, đặt ở `Main Panel/Container/Canvas` (y −306 so với đỉnh vùng an toàn), script `StreakBarView` (thanh Filled, chữ x/y, đồng hồ đợt sự kiện, tim vô hạn + băng đỏ, bấm khi đầy để nhận). Luật trong `Gameplay/Core/BounceStreak.cs`: mốc 1/3/5/10 trận thắng liên tiếp → 10m/30m/1h/2h tim vô hạn; thua (`GameManager` lúc Lose) là về mốc đầu; mỗi đợt 4 ngày, hết đợt thì chuỗi về 0.
+  - **Bẫy sprite bị cắt sát:** bản rip cắt sprite trong atlas sát mép (mất lề trong suốt của sprite gốc): `MainMenuBarGreen` còn 799×52, `RedBanner (1)` còn 618×242. Gốc kéo chúng phủ cả khung → ở bản rip thành khối chữ nhật / bị giãn. Cách sửa: đặt kích thước = kích thước sprite × tỉ lệ khung (1.1), đo vị trí theo ảnh gốc. Huy chương `capsule` lưu scale 1.8 (trạng thái hoạt ảnh) → đặt 1.15 theo ảnh.
+  - **Safe area:** gốc gắn `KPSafeArea` (thân script mất khi rip) trên `Main Panel/Container` → viết lại `SafeAreaFitter`. Ảnh gốc chụp máy có tai thỏ (~124 đơn vị) nên hàng avatar/xu/tim và thanh Streak trong ảnh thấp hơn Editor đúng chừng đó.
+- **Popup Profile**: tách `ProfileSystem/SelectProfileCanvas` gốc → `Prefabs/UI/ProfileCanvas.prefab` (order 30, lưu TẮT), đặt dưới `UI/`, script `ProfilePopupView`: ô tên (tối đa 14 ký tự như gốc), lưới 20 avatar (thứ tự theo mảng `avatarSprite` của `KPProfileEditPanel` gốc; ô chọn hiện khung cam + dấu tích, to 1.1), Save / Close. Ô avatar vàng (`GoldenProfile`, phần thưởng sự kiện) tắt. Lưu ở `PlayerData.ProfileName` / `PlayerData.Avatar`; avatar ở Home (`HomeView.avatarImage`) đổi theo. 19 ảnh `Profile-2…20` chép từ `Resources/profileicons` của bản rip vào `Art/UI/Profile/Sprites` (giữ GUID; game gốc nạp lúc chạy nên tool tách không tự kéo theo).
+- `Prefabs/UI/StreakRewardBar.prefab` (thanh lấy nhầm) không còn ai dùng – xoá tay được (lệnh xoá qua MCP bị chặn).
+- Ô đồng hồ tim ở Home (`heartTimerText`) hiện "Full", hoặc thời gian tim vô hạn còn lại. Avatar `Profile-1` đã bật (trước bị tắt `Panel`).
+- 41 sprite/texture/anim Shop dùng tới đã chuyển từ `_Archive` ra `Art/UI/Shop/{Sprites,Textures,Animations}` (giữ GUID).
+- Chưa làm: Journey, Collection (vẫn "coming soon"), Support/Terms/Privacy/Restore trong Settings, 6 nút sự kiện hai bên Home, hoạt ảnh tăng thanh Streak (cờ x25, pháo sáng).
+
+### Tách MainMenuCanvas thành các prefab đặt cạnh nhau (theo đúng nguyên tắc mục 1)
+Trước đây Home, Settings, thanh tab, Toast (và Shop lúc mới thêm) cùng nằm trong một prefab `MainMenuCanvas` với một script `MainMenuView` ôm hết – sai nguyên tắc "mỗi panel một prefab + một View". Đã tách:
+
+| Prefab (`Prefabs/UI/`) | View | Nội dung | Sorting order |
+|---|---|---|---|
+| `MenuHomeCanvas` (đổi tên từ MainMenuCanvas, giữ GUID) | `HomeView` (đổi từ `MainMenuView`, giữ GUID script) | Nút Play, xu/tim, avatar, thanh Bounce Streak (`StreakMainBar` lồng – là một phần của trang Home), `SafeAreaFitter` trên Container | 3 |
+| `ShopCanvas` | `ShopPanelView` | Trang Shop | 3 |
+| `MenuSettingsCanvas` | `MenuSettingsView` | Nền caro `BG (1)` + trang Settings (3 công tắc) | 3 |
+| `MenuBottomBar` | `BottomBarView` | Thanh 5 tab + dải sáng | 5 |
+| `ProfileCanvas` | `ProfilePopupView` | Popup Profile (bấm avatar) – lưu TẮT | 30 |
+| `MenuToast` | `ToastView` | Dòng thông báo | 50 |
+
+- Ba trang (Home/Shop/Settings) cùng order 3 vì mỗi lúc chỉ bật một; thanh tab và Toast luôn ở trên.
+- `MenuManager` giữ 5 ô View + mảng `pages` (cùng thứ tự tab: Shop, –, Home, –, Settings; ô trống = "coming soon") và tự bật/tắt trang; các View không biết nhau.
+- Canvas gốc mỗi prefab: Screen Space - Camera, plane distance 1; ô camera nối trong scene. **Bẫy đã dính:** prefab gốc lưu Overlay (scene mới override sang Camera) → prefab mới chép phải Overlay, ảnh chụp camera không thấy gì. Giờ prefab đã lưu đúng Screen Space - Camera.
+
+### Quy tắc: hình tĩnh nằm trong prefab, code chỉ đổi thứ thay đổi lúc chơi
+User yêu cầu: mở Hierarchy phải thấy đúng UI sẽ hiện, không để code bật/tắt hay ghi chữ cố định lúc chạy (về sau update khó tìm). Vì vậy:
+- **Lưu sẵn trong prefab** (sửa thẳng trong Editor): mọi sprite, kích thước, vị trí, chữ cố định, ô nào bật/tắt (ruy băng "Best Offers", mục Support/Terms/Privacy/Restore, ô avatar vàng, băng đỏ của thanh Streak, ô thưởng của từng gói Shop…), ảnh 20 avatar, alpha 0 của Toast.
+- **Code chỉ đổi lúc chạy** – và chỉ những thứ này:
+
+| View | Đổi lúc chạy | Vì sao phải là code |
+|---|---|---|
+| `HomeView` | Chữ "Level N", nút Play nào hiện (theo độ khó), số xu, số tim / "Full" / giờ tim vô hạn, ảnh avatar | theo dữ liệu người chơi |
+| `StreakBarView` | Độ đầy thanh, chữ x/y, chữ phút thưởng, đồng hồ đợt, nhịp phóng to khi nhận được | theo tiến độ + thời gian thật |
+| `ShopPanelView` | Số xu đầu trang, nút Claim ↔ đồng hồ của ô Free Coin | theo dữ liệu + thời gian thật |
+| `ProfilePopupView` | Ô đang chọn (khung cam + dấu tích + ×1.1), ảnh lớn, ô tên | theo lựa chọn của người chơi |
+| `BottomBarView` | Icon tab đang chọn phóng to, hiện tên tab, dải sáng trượt | theo tab đang chọn |
+| `MenuSettingsView` | Hình bật/tắt của 3 công tắc | theo cài đặt đã lưu |
+| `MenuManager` | Bật đúng một trang (Home/Shop/Settings), mở/đóng popup Profile | điều hướng |
+| `SuccessPopupView` | Bật/tắt theo trình tự (logo → bảng), chữ Level/xu, nảy bảng, đống xu rơi, chớp sáng nhấp nháy, gọi pháo / sao / vệt sáng | trình tự thời gian |
+| `UiConfetti` | Sinh **hạt** pháo giấy trong pool (giống ParticleSystem, không lưu vào scene – `HideFlags.DontSave`) | hạt hiệu ứng; mọi thông số (số mảnh, cỡ, tốc độ, sống, trọng lực, màu) ở Inspector |
+| `UiSparkles` | Bật 10 ngôi sao (đặt sẵn trong prefab) ở vị trí/cỡ ngẫu nhiên, cho hiện–tắt | hiệu ứng |
+| `UiShineSweep` | Bật + trượt dải sáng (đặt sẵn `ShineMask/ShineBand` dưới nút) | hiệu ứng |
+| `BoosterBarView` | Hình 4 nút + ô số + màu dải theo độ khó (dữ liệu từng độ khó trong Inspector: Normal / Hard / Super Hard) | theo độ khó level |
+| `HudView` | Badge Level, nút Settings theo độ khó (dữ liệu trong Inspector) | theo độ khó level |
+| `CapacityBarView` | Độ đầy, màu thanh theo %, chữ %, icon vô hạn | theo tiến độ |
+| `SafeAreaFitter` | Neo của `Main Panel/Container` – chạy cả trong **Edit mode** (`[ExecuteAlways]` + `DrivenRectTransformTracker`, như Layout Group): Edit và Play giống nhau, Inspector khoá xám ô neo, giá trị không lưu vào scene/prefab | vùng an toàn khác nhau theo từng máy |
+
+- Thêm UI mới: cái gì không phụ thuộc dữ liệu/thời gian thì đặt thẳng trong prefab, KHÔNG viết `SetActive`/`text =`/`sprite =` trong `Awake`.
+- **Đã kiểm (2026-10-19):** chụp toàn bộ 869 RectTransform dưới `UI/` lúc Edit và lúc Play (Game view máy 1080×2280 có tai thỏ) → chỉ dải sáng tab (`hover`) lệch vài đơn vị do trượt theo tab; còn lại trùng khớp. Trước khi sửa, `Container` nhảy xuống ~5% khi Play vì `SafeAreaFitter` chỉ chạy lúc Play.
+- Muốn xem UI trên máy không tai thỏ: đổi Game view sang độ phân giải thường (VD 1242×2688) – safe area là cả màn hình nên Container phủ kín.
+
+### Đợt rà toàn dự án (2026-10-19) – "mọi UI chỉnh được trong Hierarchy"
+Cách kiểm: chụp toàn bộ RectTransform của scene lúc Edit, lúc Play (đầu màn), lúc mở từng popup, lúc chạy màn Thắng → so khác nhau và đếm object mới sinh. Kết quả sau khi sửa:
+
+| Scene / lúc | Object UI mới sinh | UI bị đổi khác Edit |
+|---|---|---|
+| MenuGame – Play | 0 | 0 (trừ dải sáng tab trượt vài đơn vị) |
+| Gameplay – đầu màn | 0 (trước: 0) | 0 (trước: 6 – chữ thanh Capacity bị scale, CheatPanel bị tắt…) |
+| Gameplay – màn Thắng | 0 (trước: 18 – lớp sao, mặt nạ/vệt sáng nút, ảnh chớp sáng) | chỉ trạng thái hoạt ảnh (trước: ~25 giá trị hình bị ghi đè) |
+
+Đã chuyển từ code vào prefab/scene:
+- **GameUI** không còn: tự tạo EventSystem, tự dựng popup từ prefab khi ô trống, đặt chế độ vẽ / camera / khoảng cách / thứ tự / CanvasScaler cho mọi Canvas. Tất cả lưu sẵn: chế độ vẽ + thứ tự + khoảng cách trong prefab, ô camera (UI Camera) trong scene. Ô View trống → báo lỗi rõ thay vì tự dựng.
+- **GameManager** không tự tạo GameUI / UI Camera nữa (bắt buộc đặt sẵn). Các hệ thống bàn chơi (Board, Balls…) vẫn có dự phòng – không phải UI.
+- **CapacityBar**: camera game + thứ tự 4 của Canvas thế giới (scene), font/màu chữ, bù dẹt chữ scale y 1.33, icon vô hạn tắt (prefab).
+- **BoosterBar**: màu dải nền 3 độ khó vào `Style.stripColor` (trước viết cứng trong GameUI).
+- **BoosterBuyPopup**: nút quảng cáo `RV` tắt sẵn; Canvas như các popup khác.
+- **SuccessCanvas**: khối live-ops tắt sẵn, Dim xếp dưới cùng, Animator logo tắt, cỡ chữ logo (sprite × 1.29), AreaGlow bật / AreaShine tắt, chỗ dừng đống xu (+45, ×0.85), thứ tự vẽ hạt, `preserveAspect` cho sprite bị cắt, pháo nổ có `UiConfetti` + Canvas lồng, mưa pháo nằm ở gốc canvas, pháo hoa SF_Basic (World, scale 134.4, y −1150, duration 0.45, radius 3.5), 3 ảnh chớp sáng `CoinFlash / CoinFlashCore / CoinRays`, `Coin/SparkleLayer` + 10 sao, `ShineMask/ShineBand` dưới Continue và X2.
+- **CheatPanel**: `Panel` lưu tắt (mở bằng 5 chạm / 3 ngón / F1). Hàng nút cheat vẫn sinh từ `CheatRegistry` (danh sách viết bằng code) theo mẫu `buttonTemplate`/`stepperTemplate` đặt sẵn – đổi giao diện hàng thì sửa mẫu.
+- Thêm nút/hiệu ứng mới: `UiShineSweep` ▸ chuột phải "Tạo lớp vệt sáng", `UiSparkles` ▸ "Tạo sao" – dựng sẵn trong Editor, lưu vào prefab.
