@@ -29,8 +29,7 @@ namespace BounceBlast.Menu
         [Tooltip("Popup Profile (bấm avatar ở Home)")] [SerializeField] ProfilePopupView profile;
 
         [Header("Tab")]
-        [Tooltip("Trang ứng với từng tab của thanh dưới đáy (cùng thứ tự); để TRỐNG nếu tính năng chưa làm (Journey, Collection)")]
-        [SerializeField] GameObject[] pages = new GameObject[0];
+        [Tooltip("Vuốt ngang chuyển trang (UI/MenuPager) – giữ danh sách trang theo tab")] [SerializeField] MenuPager pager;
         [Tooltip("Tab đang chọn lúc mở Menu")] [SerializeField] int startTab = 2;
         [Tooltip("Vị trí tab Shop (nút '+' cạnh xu / tim mở tab này)")] [SerializeField] int shopTab = 0;
 
@@ -53,6 +52,7 @@ namespace BounceBlast.Menu
             home.Streak.OnClaim += ClaimStreak;
 
             bottomBar.OnTabClicked += SelectTab;
+            pager.OnPageChanged += bottomBar.Highlight;
 
             settings.OnSoundChanged += v => AudioManager.SoundOn = v;
             settings.OnMusicChanged += v => AudioManager.MusicOn = v;
@@ -78,7 +78,8 @@ namespace BounceBlast.Menu
             home.SetAvatar(profile.Avatar(PlayerData.Avatar));
             profile.Hide();
             settings.SetValues(AudioManager.SoundOn, AudioManager.MusicOn, PlayerPrefs.GetInt("bb_vibration", 1) == 1);
-            SelectTab(startTab);
+            pager.Show(startTab, false);
+            bottomBar.Highlight(startTab);
             AudioManager.PlayMusic(config.musicMenu);
         }
 
@@ -86,6 +87,7 @@ namespace BounceBlast.Menu
         {
             // đồng hồ tim vô hạn đếm lùi mỗi giây
             if (!_ready) return;
+            pager.Locked = profile.gameObject.activeSelf;   // popup Profile đang mở thì không vuốt trang
             _clock -= Time.unscaledDeltaTime;
             if (_clock > 0f) return;
             _clock = 1f;
@@ -103,18 +105,16 @@ namespace BounceBlast.Menu
             toast.Show("Profile saved!");
         }
 
-        /// <summary>Chọn một tab: bật đúng trang của nó. Tab chưa có trang → chỉ báo "coming soon", không đổi tab.</summary>
+        /// <summary>Chọn một tab: trượt sang trang của nó. Tab chưa có trang → chỉ báo "coming soon", không đổi tab.</summary>
         void SelectTab(int index)
         {
-            if (index < 0 || index >= pages.Length) return;
-            if (pages[index] == null)
+            if (index < 0 || index >= pager.Count) return;
+            if (!pager.HasPage(index))
             {
                 toast.Show(bottomBar.Title(index) + " - coming soon!");
                 return;
             }
-            for (int i = 0; i < pages.Length; i++)
-                if (pages[i] != null) pages[i].SetActive(i == index);
-            bottomBar.Highlight(index);
+            pager.Show(index, true);
         }
 
         /// <summary>Bản dựng lại không có mua hàng thật: bấm mua là nhận luôn phần thưởng của gói.</summary>
@@ -175,7 +175,8 @@ namespace BounceBlast.Menu
             Check(bottomBar, "bottomBar", bottomBar != null ? bottomBar.Validate() : null, miss);
             Check(toast, "toast", toast != null ? toast.Validate() : null, miss);
             Check(profile, "profile", profile != null ? profile.Validate() : null, miss);
-            if (bottomBar != null && pages.Length != bottomBar.Count) miss.Add("pages (cần " + bottomBar.Count + " phần tử)");
+            Check(pager, "pager", pager != null ? pager.Validate() : null, miss);
+            if (bottomBar != null && pager != null && pager.Count != bottomBar.Count) miss.Add("pager.pages (cần " + bottomBar.Count + " phần tử)");
             return miss.Count == 0 ? null : string.Join(", ", miss);
         }
 

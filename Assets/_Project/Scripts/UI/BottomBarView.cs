@@ -27,6 +27,8 @@ namespace BounceBlast.UI
         [SerializeField] Tab[] tabs = new Tab[0];
         [Tooltip("Dải sáng nằm sau tab đang chọn")] [SerializeField] RectTransform hover;
         [SerializeField] float selectedIconScale = 1.2f;
+        [Tooltip("Pos Y của icon tab ĐANG CHỌN – nâng lên chừa chỗ cho tên tab bên dưới (tên tab đặt Pos Y trong prefab)")] [SerializeField] float selectedIconY = 68f;
+        [Tooltip("Pos Y của icon tab chưa chọn (không có tên bên dưới)")] [SerializeField] float iconY = 0f;
         [SerializeField] float hoverSpeed = 14f;
 
         /// <summary>Người chơi bấm tab thứ i.</summary>
@@ -56,7 +58,13 @@ namespace BounceBlast.UI
             for (int i = 0; i < tabs.Length; i++)
             {
                 bool on = i == index;
-                if (tabs[i].icon != null) tabs[i].icon.localScale = Vector3.one * (on ? selectedIconScale : 1f);
+                if (tabs[i].icon != null)
+                {
+                    tabs[i].icon.localScale = Vector3.one * (on ? selectedIconScale : 1f);
+                    Vector2 p = tabs[i].icon.anchoredPosition;
+                    p.y = on ? selectedIconY : iconY;
+                    tabs[i].icon.anchoredPosition = p;
+                }
                 if (tabs[i].label != null) tabs[i].label.SetActive(on);
             }
         }

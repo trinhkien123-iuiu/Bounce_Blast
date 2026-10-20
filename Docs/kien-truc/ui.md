@@ -226,7 +226,8 @@ User yêu cầu: mở Hierarchy phải thấy đúng UI sẽ hiện, không đ�
 | `ProfilePopupView` | Ô đang chọn (khung cam + dấu tích + ×1.1), ảnh lớn, ô tên | theo lựa chọn của người chơi |
 | `BottomBarView` | Icon tab đang chọn phóng to, hiện tên tab, dải sáng trượt | theo tab đang chọn |
 | `MenuSettingsView` | Hình bật/tắt của 3 công tắc | theo cài đặt đã lưu |
-| `MenuManager` | Bật đúng một trang (Home/Shop/Settings), mở/đóng popup Profile | điều hướng |
+| `MenuManager` | Mở/đóng popup Profile, nối tab ↔ trang | điều hướng |
+| `MenuPager` | Vuốt ngang chuyển trang: dời `content` của trang theo ngón tay, trượt nốt rồi trả về x = 0; bật đúng một trang | điều hướng (thao tác người chơi) |
 | `SuccessPopupView` | Bật/tắt theo trình tự (logo → bảng), chữ Level/xu, nảy bảng, đống xu rơi, chớp sáng nhấp nháy, gọi pháo / sao / vệt sáng | trình tự thời gian |
 | `UiConfetti` | Sinh **hạt** pháo giấy trong pool (giống ParticleSystem, không lưu vào scene – `HideFlags.DontSave`) | hạt hiệu ứng; mọi thông số (số mảnh, cỡ, tốc độ, sống, trọng lực, màu) ở Inspector |
 | `UiSparkles` | Bật 10 ngôi sao (đặt sẵn trong prefab) ở vị trí/cỡ ngẫu nhiên, cho hiện–tắt | hiệu ứng |
@@ -258,3 +259,53 @@ Cách kiểm: chụp toàn bộ RectTransform của scene lúc Edit, lúc Play (
 - **SuccessCanvas**: khối live-ops tắt sẵn, Dim xếp dưới cùng, Animator logo tắt, cỡ chữ logo (sprite × 1.29), AreaGlow bật / AreaShine tắt, chỗ dừng đống xu (+45, ×0.85), thứ tự vẽ hạt, `preserveAspect` cho sprite bị cắt, pháo nổ có `UiConfetti` + Canvas lồng, mưa pháo nằm ở gốc canvas, pháo hoa SF_Basic (World, scale 134.4, y −1150, duration 0.45, radius 3.5), 3 ảnh chớp sáng `CoinFlash / CoinFlashCore / CoinRays`, `Coin/SparkleLayer` + 10 sao, `ShineMask/ShineBand` dưới Continue và X2.
 - **CheatPanel**: `Panel` lưu tắt (mở bằng 5 chạm / 3 ngón / F1). Hàng nút cheat vẫn sinh từ `CheatRegistry` (danh sách viết bằng code) theo mẫu `buttonTemplate`/`stepperTemplate` đặt sẵn – đổi giao diện hàng thì sửa mẫu.
 - Thêm nút/hiệu ứng mới: `UiShineSweep` ▸ chuột phải "Tạo lớp vệt sáng", `UiSparkles` ▸ "Tạo sao" – dựng sẵn trong Editor, lưu vào prefab.
+
+### Vuốt ngang chuyển trang (MenuGame)
+- `UI/MenuPager` (script `MenuPager`) giữ danh sách trang theo tab: `root` (Canvas gốc của trang), `content` (con phủ kín được trượt – Home: `MenuCanvas`, Shop: `IN APP PURCHASE`, Settings: `Content` mới gom `BG (1)` + `Settings Panel`), `group` (CanvasGroup trên gốc trang).
+- Kéo ngang quá 25 px → trang đi theo ngón tay, trang kế lộ ra; thả quá 25% bề ngang hoặc vuốt nhanh → sang trang, không thì trượt về. Tab chưa có trang (Journey, Collection) bị bỏ qua. Hết trang thì chỉ kéo được 15% rồi bật lại. Bấm tab cũng trượt sang.
+- Khi đang vuốt: `CanvasGroup.interactable = false` để cú thả không thành cú bấm nút; ScrollRect dọc của trang (Shop) tạm khoá. Kéo dọc trước thì là cuộn, không vuốt.
+- Popup Profile mở → khoá vuốt. Thông số (ngưỡng, % chuyển trang, thời gian trượt, độ cản ở mép) chỉnh trong Inspector của `MenuPager`.
+- Thanh tab: tên tab Pos Y 83 (prefab); icon tab đang chọn Pos Y 68, tab khác 0 (`BottomBarView.selectedIconY / iconY`).
+
+### Dọn prefab MenuGame (2026-10-20)
+Prefab tách từ game gốc mang theo nhánh của tính năng gốc không có trong bản dựng lại, lồng sâu và tên khó hiểu. Đã dọn bằng công cụ `Assets/_Project/Editor/UiTidy.cs`
+(`Dump` in cây kèm cờ, `Delete` / `Flatten` / `RemoveNestedCanvas` / `Rename` đều kiểm tra trước, `ShotMenu` chụp 5 trạng thái để so):
+
+| Prefab | Trước → sau (object) | Sâu nhất | Đã bỏ |
+|---|---|---|---|
+| MenuHomeCanvas | 113 → 52 (gồm StreakMainBar 40 → 16) | 12 → 10 | hiệu ứng xu bay, nút ưu đãi `MainPanelGrid`, thẻ sưu tập trên nút Play, nút Setting cũ, nền tiền tệ Hard/Super Hard, hoạt ảnh hoàn thành / x1–x100 của thanh Streak |
+| MenuSettingsCanvas | 122 → 61 | 14 → 10 | khối popup gốc (header, "+20 Capacity", nút đóng), nút mở debugger + ô mật khẩu, thanh xu ẩn, icon tắt |
+| ShopCanvas | 601 → 296 | 13 → 10 | 4 Canvas trạng thái IAP, hạt lấp lánh ở mọi ô thưởng, khung phụ / lớp mờ của nút mua, ruy băng, 2 thanh cuộn ẩn |
+| MenuBottomBar | 32 → 27 | 7 → 4 | huy hiệu thông báo đang tắt |
+| ProfileCanvas | 92 → 80 | 9 | ô avatar vàng, vòng quay tải, dấu tick, 2 thanh cuộn ẩn |
+
+- Giữ lại: những thứ tắt nhưng code bật theo trạng thái (nút Play Hard/Super Hard, ô No Ads, nút đếm ngược Free Coin…) và tính năng sẽ làm (Support / Terms / Privacy / Restore).
+- Canvas lồng chỉ còn cái override thứ tự vẽ (TopBar, StreakMainBar, thanh tab).
+- Tên mới thống nhất (tiếng Anh, PascalCase): Home `Content/Viewport/SafeArea/{PlayButtons/{Normal,Hard,SuperHard}, TopBar/{Coins,Hearts,ProfileButton,StreakMainBar}}`;
+  Streak `Bar/{Frame/{Fill/Progress, TimerTab/Timer}, Reward/{Icon,Banner/Red,Duration}, Medal/Icon}`;
+  Settings `Content/{Background, Mask/{Header/TopBar, Popup/Panel/Window/Body/Rows/{Sound,Music,Vibration}/{Label,Toggle,On,Off}}}`;
+  Shop `Content/{Body/ScrollView/Viewport/Items/{Header_*, Bundle_Starter…Mega, CoinPack_1…6, FreeCoins}/Card/{Background,BuyButton/Price,Title,Coins,Boosters/{MagicHand,Hammer,Shuffle,Capacity},Extras/{InfiniteHearts,NoAds}}, TopBar}`;
+  thanh tab `Panel/Tabs/Tab_{Shop,Journey,Home,Collection,Settings}/{Icon,Label}`; Profile `Dim/Window/{Header,NameRow,AvatarGrid/…/Items/Avatar_01…20,SaveButton,CloseButton}`.
+- Kiểm: chụp 5 trạng thái (Home, Shop đầu/cuối, Settings, Profile) trước/sau → trùng từng pixel; Edit = Play; thử Play đổi tab, vuốt, bật/tắt âm, mua gói, chọn avatar + Save.
+- **Bẫy đã dính:** gỡ thanh cuộn khỏi ScrollRect (chế độ AutoHideAndExpandViewport) thì ScrollRect thôi điều khiển `Viewport`; override cũ trong scene đặt Viewport về 0 → mặt nạ cắt mất lưới avatar. Đã bỏ override (prefab lưu đúng kích thước). Gỡ thanh cuộn ở prefab khác nhớ kiểm Viewport.
+- Prefab không còn giống cây gốc: muốn tách lại từ bản gốc bằng `ui_extract.py` thì ra prefab mới, không ghi đè.
+
+### Dọn prefab popup Gameplay (2026-10-20)
+Cùng công cụ `UiTidy` (thêm `ShotGame`: chụp từng popup qua UI Camera trên nền đen, màn Thắng 2 trạng thái logo / bảng):
+
+| Prefab | Trước → sau (object) | Sâu nhất | Đã bỏ |
+|---|---|---|---|
+| SuccessCanvas | 220 → 83 | 7 → 6 | `WinPanelLiveOpsManagement` (Sky Race), thanh xu ẩn, Well Done / New Feature / Next Feature, 3 ConfettiBurst thừa, `Confeti` + mưa pháo cũ, AreaShine, Trail/Left/Right tắt |
+| OutOfCapacityPopup (đã gộp `OutOfCapacityPanel`) | 100 → 21 | 11 → 7 | khối "+20 CAPACITY", `Extra Rewards` (55 object hạt sáng/ô thưởng IAP), mũi tên + tim "-1" tắt, cụm nút quảng cáo `AB_EGP` |
+| FailCanvas | 58 → 25 | 8 → 6 | xu / giải thưởng tắt, mặt buồn, thanh 5 tim, "YOU WILL RETURN", giá tiền + mũi tên tắt; làm phẳng `Inner Content` |
+| SettingsCanvas | 84 → 44 | 10 → 7 | header tắt, khối "+20 Capacity / FREE", nút debugger + ô mật khẩu, nhãn "SOUND" tắt; làm phẳng `End Game - Play On Panel` |
+| BoosterBuyPopup (đã gộp `BoosterBuyPanel`) | 44 → 21 | 8 → 7 | nút quảng cáo `RV`, nút "CARD SPECIAL OFFERS", nền tiền tệ / giảm giá tắt; bỏ Canvas lồng |
+
+- **Gộp prefab lồng**: OutOfCapacity và BoosterBuy trước là 2 prefab (vỏ chỉ có Canvas + script, ruột ở `…Panel`) → đã unpack ruột vào vỏ, mỗi popup còn 1 prefab, con tên `Panel`. `OutOfCapacityPanel.prefab`, `BoosterBuyPanel.prefab` (và `StreakRewardBar.prefab`) không còn ai dùng – xoá tay được.
+- Giữ: khung / bục theo độ khó (code bật theo độ khó), nút Support đang hiện ở Settings, hạt lấp lánh sau icon booster, các SubEmitter pháo hoa (ParticleSystem tham chiếu), chữ logo BOUNCE BLAST giữ tên (nằm trên đường dẫn hoạt ảnh của Animator `Logo`).
+- Tên mới: Success `Stage/{Card/{Background,Content/{Podium_*,Coin/{CoinPile,SparkleLayer/Star_01…10},Prize/Amount},Level,Perfect/Title,ContinueButton,X2Button},LogoArea/{ConfettiBursts/Burst_1-2,Fireworks,Logo}}, ConfettiRain`;
+  Fail `Panel/{Dim,Content/{Frame/{Frame_Normal|Hard|SuperHard,Level,Header},TryAgain/TryAgainButton,CloseButton}}`;
+  Settings `Dim/Window/Content/{Frame,CloseButton,Title,Rows/{Support,Sound,Music,Vibration,Bottom/{RestartButton,HomeButton}}}`;
+  OutOfCapacity `Panel/{Dim,Content/{Title,Body/{PlayOn/{PlayOnButton,Price},GiveUpButton}}}`; BoosterBuy `Panel/{Dim,Window/{CloseButton,Header/Title,Body/{Icon,Description},Buy/Price/BuyButton}}`.
+- Kiểm: 6 ảnh trước/sau trùng từng pixel; mọi View `Validate` đủ; Play mở từng popup qua GameUI (độ khó Hard) + bấm Try Again / Add Capacity / mua / Close + chạy màn Thắng; Edit = Play (0 object mới).
+- Bẫy của công cụ chụp: đừng tìm object theo tên trong `ShotGame` (tên đổi khi dọn) – lấy theo ô tham chiếu của View.
