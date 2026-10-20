@@ -18,7 +18,7 @@ namespace BounceBlast.UI
     [DisallowMultipleComponent]
     public class HudView : MonoBehaviour
     {
-        /// <summary>Kiểu dáng của HUD ở một độ khó (kích thước/vị trí đo từ ảnh gốc 858×1908, ×1.448 ra canvas 1242).</summary>
+        /// <summary>Kiểu dáng của HUD ở Hard / Super Hard (Normal lấy đúng như prefab, ô Normal chỉ dùng mảng onlyHere) (kích thước/vị trí đo từ ảnh gốc 858×1908, ×1.448 ra canvas 1242).</summary>
         [Serializable]
         public class Style
         {
@@ -62,8 +62,20 @@ namespace BounceBlast.UI
         /// <summary>RectTransform nút Settings – GameManager đo tâm dọc của nó để đặt mép trên khung máng.</summary>
         public RectTransform SettingsRect => settingsIcon != null ? settingsIcon.rectTransform : null;
 
+        // Kiểu Normal = đúng như prefab: ghi lại lúc Awake, Apply(Normal) trả về y nguyên (chỉnh badge / chữ trực tiếp trong prefab).
+        struct RectState { public Vector2 aMin, aMax, oMin, oMax, size, pos; }
+        static RectState Save(RectTransform t) => new RectState { aMin = t.anchorMin, aMax = t.anchorMax, oMin = t.offsetMin, oMax = t.offsetMax, size = t.sizeDelta, pos = t.anchoredPosition };
+        static void Load(RectTransform t, RectState r) { t.anchorMin = r.aMin; t.anchorMax = r.aMax; t.sizeDelta = r.size; t.anchoredPosition = r.pos; }
+        RectState _badgeRect, _levelRect, _diffRect;
+        Sprite _badgeSprite, _settingsSprite;
+        bool _diffActive;
+
         void Awake()
         {
+            if (badge != null) { _badgeRect = Save(badge.rectTransform); _badgeSprite = badge.sprite; }
+            if (levelText != null) _levelRect = Save(levelText.rectTransform);
+            if (difficultyText != null) { _diffRect = Save(difficultyText.rectTransform); _diffActive = difficultyText.gameObject.activeSelf; }
+            if (settingsIcon != null) _settingsSprite = settingsIcon.sprite;
             if (settingsButton == null && settingsIcon != null) settingsButton = settingsIcon.GetComponent<Button>();
             if (settingsButton == null) return;
             settingsButton.onClick.RemoveAllListeners();
@@ -76,6 +88,16 @@ namespace BounceBlast.UI
         public void Apply(int level, LevelDifficulty difficulty)
         {
             Style s = StyleFor(difficulty);
+            if (difficulty == LevelDifficulty.Normal)
+            {
+                // Normal: đúng như prefab – không đè giá trị bạn chỉnh
+                if (levelText != null) { levelText.text = "Lv " + level; Load(levelText.rectTransform, _levelRect); }
+                if (badge != null) { badge.sprite = _badgeSprite; Load(badge.rectTransform, _badgeRect); }
+                if (difficultyText != null) { difficultyText.gameObject.SetActive(_diffActive); Load(difficultyText.rectTransform, _diffRect); }
+                if (settingsIcon != null) settingsIcon.sprite = _settingsSprite;
+                SetGroup(normal, true); SetGroup(hard, false); SetGroup(superHard, false);
+                return;
+            }
 
             if (levelText != null)
             {

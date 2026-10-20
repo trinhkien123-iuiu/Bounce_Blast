@@ -15,7 +15,8 @@ public class UiShineSweep : MonoBehaviour
     [Tooltip("Trễ trước lần quét đầu (lệch nhịp giữa các nút)")] [SerializeField] float startDelay;
     [Tooltip("Dải chạy từ -x đến +x lần bề ngang nút")] [SerializeField] float travel = 0.75f;
 
-    float _t, _delay;
+    float _t, _delay, _bandY;
+    bool _bandYSaved;
     bool _running;
 
     /// <summary>Bắt đầu quét (gọi khi nút hiện ra).</summary>
@@ -45,7 +46,8 @@ public class UiShineSweep : MonoBehaviour
         if (band.gameObject.activeSelf != on) band.gameObject.SetActive(on);
         if (!on) return;
         float w = ((RectTransform)transform).rect.width;
-        band.anchoredPosition = new Vector2(Mathf.Lerp(-travel, travel, _t / sweep) * w, 0f);
+        if (!_bandYSaved) { _bandY = band.anchoredPosition.y; _bandYSaved = true; }   // Y trong prefab
+        band.anchoredPosition = new Vector2(Mathf.Lerp(-travel, travel, _t / sweep) * w, _bandY);
     }
 
 #if UNITY_EDITOR

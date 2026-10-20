@@ -35,8 +35,8 @@ Systems
     ├── FailPopup                [FailPopupView]        (tắt sẵn)
     ├── SuccessPopup             [SuccessPopupView]     (tắt sẵn)
     ├── SettingsPopup            [SettingsPopupView]    (tắt sẵn)
-    ├── OutOfCapacityPopup       [OutOfCapacityPopupView] (tắt sẵn; bọc OutOfCapacityPanel gốc)
-    └── EventSystem                              (đặt sẵn)
+    └── OutOfCapacityPopup       [OutOfCapacityPopupView] (tắt sẵn)
+EventSystem                                      (đặt sẵn, ở GỐC scene – không nằm trong UI)
 ```
 
 - **Camera UI** (`UI Camera`, đứng xa bàn chơi ở x −1000) nằm trong `Camera & Lights`, gán vào ô `GameManager.uiCamera`. Mọi Canvas UI trong scene đã chọn sẵn `Screen Space - Camera` + camera này + `sortingOrder` (Overlay 5, HUD 10, popup 30) nên **Edit mode nhìn Game view giống hệt Play**. (Scene view vẽ chúng quanh x −1000, chọn UI rồi bấm `F` để tới.)
@@ -309,3 +309,32 @@ Cùng công cụ `UiTidy` (thêm `ShotGame`: chụp từng popup qua UI Camera t
   OutOfCapacity `Panel/{Dim,Content/{Title,Body/{PlayOn/{PlayOnButton,Price},GiveUpButton}}}`; BoosterBuy `Panel/{Dim,Window/{CloseButton,Header/Title,Body/{Icon,Description},Buy/Price/BuyButton}}`.
 - Kiểm: 6 ảnh trước/sau trùng từng pixel; mọi View `Validate` đủ; Play mở từng popup qua GameUI (độ khó Hard) + bấm Try Again / Add Capacity / mua / Close + chạy màn Thắng; Edit = Play (0 object mới).
 - Bẫy của công cụ chụp: đừng tìm object theo tên trong `ShotGame` (tên đổi khi dọn) – lấy theo ô tham chiếu của View.
+
+### Thư mục script UI (2026-10-20)
+`Scripts/UI/` chia theo nơi dùng (namespace vẫn là `BounceBlast.UI`, GUID script giữ nguyên nên scene/prefab không đổi):
+`Common/` (MirroredImage, UiButtonFeedback, SafeAreaFitter, UiSkin) · `Effects/` (UiConfetti, UiSparkles, UiShineSweep, UiSpin) ·
+`Gameplay/` (GameUI, HudView, OverlayView, BoosterBarView, CapacityBarView) · `Gameplay/Popups/` (PopupViewBase + 5 popup) ·
+`Menu/` (HomeView, BottomBarView, MenuPager, MenuSettingsView, ToastView, ProfilePopupView, StreakBarView) · `Menu/Shop/` (ShopPanelView, ShopOfferItem).
+Thêm script UI mới: đặt vào thư mục theo scene/màn dùng nó; dùng ở cả hai scene thì vào `Common/`.
+
+### EventSystem ở gốc scene (2026-10-20)
+Cả MenuGame và Gameplay: `EventSystem` (EventSystem + StandaloneInputModule) chuyển từ `UI/EventSystem` ra gốc scene, ngay sau `UI`. Lý do: nó là hệ thống input của cả scene, không phải màn UI; nằm trong `UI` thì ai tắt cả nhóm UI là mất hết bấm/chạm (kể cả popup bật lại sau). Không object nào tham chiếu tới nó; `GameUI` tìm bằng `FindObjectOfType`. Đã kiểm bằng raycast thật qua EventSystem: nút Settings HUD, booster, Close popup (Gameplay); tab dưới đáy, trượt trang (MenuGame).
+
+### Quy tắc: hiệu ứng / trạng thái tính TỪ giá trị prefab, không đặt cứng (2026-10-20)
+User chỉnh scale icon tab trong prefab, bấm Play thì bị trả về – vì code ghi `localScale = Vector3.one * …`, `anchoredPosition = (0, y)`.
+**Quy tắc:** code chỉ được nhân / cộng phần hiệu ứng lên **giá trị đọc từ prefab** (ghi lại ở `Awake` hoặc lần đầu dùng), không bao giờ đặt về hằng số (1, 0…).
+Đã sửa theo quy tắc này:
+
+| Script | Trước | Giờ |
+|---|---|---|
+| `BottomBarView` | icon = 1 / 1.2, Y = 0 / 68 | icon = cỡ prefab × `selectedIconScale`, Y prefab + `selectedIconLift` (tab đang chọn trong prefab được quy ngược về) |
+| `ProfilePopupView` | ô chọn = 1.1, ô khác = 1 | cỡ prefab × `selectedScale` |
+| `BoosterBarView` | nút đang dùng = 1.12; mũi tên = (0, y) | cỡ prefab × 1.12; mũi tên = vị trí prefab + nhấp nhô |
+| `PopupViewBase` (mọi popup) | nảy 0 → 1 | nảy 0 → cỡ prefab của `content` |
+| `SuccessPopupView` | bảng, PERFECT!, chữ logo nảy về 1 | nảy về cỡ prefab |
+| `MenuPager` | X trang = 0 khi đứng yên | X prefab + độ lệch khi vuốt |
+| `UiSpin` | bật lại = góc 0 | bật lại = góc prefab |
+| `UiShineSweep` | dải Y = 0 | dải giữ Y prefab |
+| `HudView` | badge / chữ đặt theo ô kiểu dáng kể cả Normal | Normal = đúng như prefab; Hard / Super Hard theo ô kiểu dáng trong Inspector |
+
+- **Bẫy thứ hai – override trong scene:** chỉnh trong Prefab Mode nhưng scene còn override cũ cho cùng thuộc tính (VD icon Journey scale 0.864 trong scene vs 0.612 trong prefab) thì Play dùng giá trị scene. Kiểm: chọn object trong scene, thuộc tính in đậm / vạch xanh bên trái = override → chuột phải ▸ Revert. Đã bỏ override đó.

@@ -21,6 +21,12 @@ Assets/
 │   ├── Scripts/                      ← assembly BounceBlast.Runtime (BounceBlast.Runtime.asmdef)
 │   │   ├── Gameplay/{Ammo,Balls,Board,Conveyor,Core,Data,Managers}   ← namespace BounceBlast.Gameplay
 │   │   ├── UI/                       ← namespace BounceBlast.UI: GameUI (điều phối) + các View + hiệu ứng UI
+│   │   │   ├── Common/              ← dùng chung: MirroredImage, UiButtonFeedback, SafeAreaFitter, UiSkin
+│   │   │   ├── Effects/             ← hiệu ứng UI: UiConfetti, UiSparkles, UiShineSweep, UiSpin
+│   │   │   ├── Gameplay/            ← màn chơi: GameUI, HudView, OverlayView, BoosterBarView, CapacityBarView
+│   │   │   │   └── Popups/          ← PopupViewBase + Fail / Success / Settings / OutOfCapacity / BoosterBuy
+│   │   │   └── Menu/                ← màn chính: HomeView, BottomBarView, MenuPager, MenuSettingsView, ToastView, ProfilePopupView, StreakBarView
+│   │   │       └── Shop/            ← ShopPanelView, ShopOfferItem
 │   │   ├── Menu/                     ← namespace BounceBlast.Menu: MenuManager (scene MenuGame)
 │   │   └── Debug/                    ← namespace BounceBlast.Cheats: công cụ cheat (chỉ Editor / Development Build / BB_CHEATS)
 │   ├── Editor/                       ← công cụ chỉ chạy trong Editor (BounceBlast.Editor.asmdef, namespace BounceBlast.EditorTools)
@@ -104,7 +110,8 @@ UI                MenuHomeCanvas [HomeView]          trang Home (Play, xu/tim, a
                   MenuBottomBar [BottomBarView]      thanh 5 tab (order 5, luôn nằm trên trang)
                   ProfileCanvas [ProfilePopupView]   popup Profile – đổi tên, chọn avatar (order 30, tắt sẵn)
                   MenuToast [ToastView]              dòng thông báo (order 50)
-                  EventSystem
+                  MenuPager [MenuPager]              vuốt ngang chuyển trang
+EventSystem       nhận bấm / chạm cho mọi Canvas – để riêng ở gốc scene (không nằm trong UI: tắt UI cũng không mất input)
 ```
 - Gồm: nút **Play** (3 kiểu Normal/Hard/Super Hard theo độ khó level kế tiếp), xu, tim, thanh 5 tab (Home, Shop, Settings chạy; **Journey / Collection chưa làm** → bấm hiện "coming soon"); bấm tab thì `MenuManager` bật đúng một trang, tắt các trang khác, trang Settings (âm thanh / nhạc / rung).
 - Luồng: `MenuGame` ──Play──▶ `Gameplay` ──Settings ▸ Home──▶ `MenuGame` (`SceneFlow`). Tiến độ (level, xu) ở `PlayerData` (PlayerPrefs). Vào Gameplay từ Menu thì chơi tiếp level đã lưu; bấm Play thẳng scene Gameplay thì dùng `LevelManager.startLevel`.
@@ -126,8 +133,8 @@ Managers          LOGIC điều phối (mỗi cái một việc, xem mục 4b)
 CheatPanel        [CheatHost + CheatPanelView + CheatPerfOverlay] – tự huỷ ở bản phát hành
 UI                [GameUI] điều phối, kéo sẵn 7 View
  ├─ HUD       OverlayCanvas [OverlayView] · HUD (GameCanvas) [HudView] · CapacityBar [CapacityBarView]
- ├─ Popups    FailPopup · SuccessPopup · Settings · OutOfCapacityPopup · BoosterBuyPopup   (tắt sẵn)
- └─ EventSystem
+ └─ Popups    FailPopup · SuccessPopup · Settings · OutOfCapacityPopup · BoosterBuyPopup   (tắt sẵn)
+EventSystem       nhận bấm / chạm cho mọi Canvas – để riêng ở gốc scene
 ```
 
 **Quy tắc UI:** mỗi panel = 1 prefab đặt sẵn + 1 script `XxxView` giữ tham chiếu bằng Inspector; `GameUI` chỉ ra lệnh. Chi tiết, khuôn mẫu, các bẫy đã dính: `Docs/kien-truc/ui.md`.

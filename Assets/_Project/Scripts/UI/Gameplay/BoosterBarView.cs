@@ -71,6 +71,12 @@ namespace BounceBlast.UI
         public RectTransform ButtonsRow => buttonsRow;
 
         bool _warnOn;
+        // cỡ nút / vị trí mũi tên trong prefab – hiệu ứng chỉ cộng/nhân lên trên
+        readonly Dictionary<Transform, Vector3> _baseScale = new Dictionary<Transform, Vector3>();
+        readonly Dictionary<RectTransform, Vector2> _basePos = new Dictionary<RectTransform, Vector2>();
+
+        Vector3 BaseScale(Transform t) { Vector3 v; if (!_baseScale.TryGetValue(t, out v)) _baseScale[t] = v = t.localScale; return v; }
+        Vector2 BasePos(RectTransform t) { Vector2 v; if (!_basePos.TryGetValue(t, out v)) _basePos[t] = v = t.anchoredPosition; return v; }
 
         void Awake()
         {
@@ -86,13 +92,14 @@ namespace BounceBlast.UI
 
         void LateUpdate()
         {
+            foreach (Entry e in boosters) if (e != null && e.warnArrow != null) BasePos(e.warnArrow);   // ghi vị trí gốc trước khi nhấp nhô
             // mũi tên nhấp nhô khi sức chứa gần đầy (video gốc lose_coche)
             float y = 8f + Mathf.Abs(Mathf.Sin(Time.unscaledTime * Mathf.PI * 1.6f)) * 26f;
             foreach (Entry e in boosters)
             {
                 if (e == null || e.warnArrow == null) continue;
                 if (e.warnArrow.gameObject.activeSelf != _warnOn) e.warnArrow.gameObject.SetActive(_warnOn);
-                if (_warnOn) e.warnArrow.anchoredPosition = new Vector2(0f, y);
+                if (_warnOn) e.warnArrow.anchoredPosition = BasePos(e.warnArrow) + new Vector2(0f, y);
             }
         }
 
@@ -128,7 +135,7 @@ namespace BounceBlast.UI
             if (has && e.count != null) e.count.text = count.ToString();
             if (e.frame != null)
             {
-                e.frame.rectTransform.localScale = Vector3.one * (armed ? 1.12f : 1f);
+                e.frame.rectTransform.localScale = BaseScale(e.frame.rectTransform) * (armed ? 1.12f : 1f);
                 e.frame.color = armed ? new Color(1f, 0.9f, 0.5f) : Color.white;
             }
         }

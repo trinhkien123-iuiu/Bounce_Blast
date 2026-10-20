@@ -74,12 +74,19 @@ namespace BounceBlast.UI
         public event Action OnContinue;
 
         Vector3 _coinPos, _coinScale = Vector3.one;   // chỗ dừng cuối của đống xu = giá trị trong prefab
+        // cỡ trong prefab của mọi thứ có hiệu ứng nảy (bảng, PERFECT!, chữ logo) – nảy quanh giá trị này, không về 1 cứng
+        readonly Dictionary<Transform, Vector3> _baseScale = new Dictionary<Transform, Vector3>();
+        Vector3 BaseScale(Transform t) { Vector3 v; if (!_baseScale.TryGetValue(t, out v)) _baseScale[t] = v = t.localScale; return v; }
 
         protected override bool UsesPopIn => false;
 
         void Awake()
         {
             if (coinIcon != null) { _coinPos = coinIcon.localPosition; _coinScale = coinIcon.localScale; }
+            if (container != null) BaseScale(container);
+            if (perfect != null) BaseScale(perfect);
+            Transform anim = logoAnimation != null ? logoAnimation : logo;
+            if (anim != null) foreach (Transform t in anim) BaseScale(t);
             if (continueButton != null) continueButton.onClick.AddListener(Continue);
             if (x2Button != null) x2Button.onClick.AddListener(Continue);
         }
@@ -137,11 +144,11 @@ namespace BounceBlast.UI
             for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / 0.35f)
             {
                 if (container == null) yield break;
-                container.localScale = Vector3.one * EaseOutBack(k);
+                container.localScale = BaseScale(container) * EaseOutBack(k);
                 if (cg != null) cg.alpha = 1f;
                 yield return null;
             }
-            if (container != null) container.localScale = Vector3.one;
+            if (container != null) container.localScale = BaseScale(container);
             if (container != null) yield return PanelEffects();
         }
 
@@ -193,12 +200,12 @@ namespace BounceBlast.UI
                     SetAlpha(coinRays, pulse * 0.8f);
                     coinRays.rectTransform.localEulerAngles = raysRot + new Vector3(0f, 0f, -t * 40f);
                 }
-                if (perfect != null) perfect.localScale = Vector3.one * EaseOutBack(Mathf.Clamp01(t / 0.4f));
+                if (perfect != null) perfect.localScale = BaseScale(perfect) * EaseOutBack(Mathf.Clamp01(t / 0.4f));
                 yield return null;
             }
             foreach (Graphic g in flashes) if (g != null) g.gameObject.SetActive(false);
             if (coinRays != null) coinRays.rectTransform.localEulerAngles = raysRot;
-            if (perfect != null) perfect.localScale = Vector3.one;
+            if (perfect != null) perfect.localScale = BaseScale(perfect);
 
             // 3) sao lấp lánh liên tục quanh xu  4) vệt sáng quét qua nút Continue / x2
             if (sparkles != null) sparkles.Play();
@@ -248,7 +255,7 @@ namespace BounceBlast.UI
         {
             Transform anim = logoAnimation != null ? logoAnimation : logo;
             var all = new List<Transform>();
-            foreach (Transform t in anim) { all.Add(t); t.localScale = Vector3.zero; }
+            foreach (Transform t in anim) { all.Add(t); BaseScale(t); t.localScale = Vector3.zero; }
             if (logoBadge != null) yield return Pop(logoBadge, 0.35f);
             foreach (LogoLetter l in logoLetters)
             {
@@ -260,18 +267,19 @@ namespace BounceBlast.UI
             }
             if (logoBlast != null) yield return Pop(logoBlast, 0.3f);
             AudioManager.Play(Sfx.Confetti);
-            foreach (Transform t in all) if (t.localScale == Vector3.zero) t.localScale = Vector3.one;
+            foreach (Transform t in all) if (t.localScale == Vector3.zero) t.localScale = BaseScale(t);
         }
 
-        static IEnumerator Pop(Transform t, float dur)
+        IEnumerator Pop(Transform t, float dur)
         {
+            Vector3 s = t != null ? BaseScale(t) : Vector3.one;
             for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / dur)
             {
                 if (t == null) yield break;
-                t.localScale = Vector3.one * EaseOutBack(k);
+                t.localScale = s * EaseOutBack(k);
                 yield return null;
             }
-            if (t != null) t.localScale = Vector3.one;
+            if (t != null) t.localScale = s;
         }
 
         protected override void CollectMissing(List<string> missing)

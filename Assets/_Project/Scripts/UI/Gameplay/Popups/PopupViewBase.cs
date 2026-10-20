@@ -56,17 +56,21 @@ namespace BounceBlast.UI
             foreach (GameObject go in objs) if (go != null) go.SetActive(on);
         }
 
+        Vector3 _contentScale;
+        bool _contentScaleSaved;
+
         IEnumerator PopIn()
         {
+            if (content != null && !_contentScaleSaved) { _contentScale = content.localScale; _contentScaleSaved = true; }   // cỡ trong prefab (lần mở đầu)
             if (rootGroup == null) rootGroup = GetComponent<CanvasGroup>();
             for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / PopTime)   // unscaled: game đang tạm dừng khi hiện popup Thua
             {
                 if (rootGroup != null) rootGroup.alpha = Mathf.Clamp01(k * 2f);
-                if (content != null) content.localScale = Vector3.one * EaseOutBack(k);
+                if (content != null) content.localScale = _contentScale * EaseOutBack(k);
                 yield return null;
             }
             if (rootGroup != null) rootGroup.alpha = 1f;
-            if (content != null) content.localScale = Vector3.one;
+            if (content != null) content.localScale = _contentScale;
         }
 
         protected static float EaseOutBack(float x)

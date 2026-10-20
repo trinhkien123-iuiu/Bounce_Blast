@@ -33,7 +33,7 @@ namespace BounceBlast.UI
         [SerializeField] Button saveButton;
         [SerializeField] Button closeButton;
         [SerializeField] ScrollRect scroll;
-        [Tooltip("Ô đang chọn to hơn các ô khác (ảnh gốc ≈ 1.1)")] [SerializeField] float selectedScale = 1.1f;
+        [Tooltip("Ô đang chọn to gấp mấy lần cỡ trong prefab (ảnh gốc ≈ 1.1)")] [SerializeField] float selectedScale = 1.1f;
 
         /// <summary>Bấm Save: (tên, chỉ số avatar).</summary>
         public event Action<string, int> OnSave;
@@ -41,6 +41,7 @@ namespace BounceBlast.UI
 
         public int AvatarCount => slots.Length;
         int _avatar;
+        Vector3[] _slotScale;   // cỡ từng ô trong prefab
 
         void Awake()
         {
@@ -80,11 +81,16 @@ namespace BounceBlast.UI
         void Select(int index)
         {
             _avatar = Mathf.Clamp(index, 0, Mathf.Max(0, slots.Length - 1));
+            if (_slotScale == null)
+            {
+                _slotScale = new Vector3[slots.Length];
+                for (int i = 0; i < slots.Length; i++) _slotScale[i] = slots[i].button != null ? slots[i].button.transform.localScale : Vector3.one;
+            }
             for (int i = 0; i < slots.Length; i++)
             {
                 bool on = i == _avatar;
                 if (slots[i].selected != null) slots[i].selected.SetActive(on);
-                if (slots[i].button != null) slots[i].button.transform.localScale = Vector3.one * (on ? selectedScale : 1f);
+                if (slots[i].button != null) slots[i].button.transform.localScale = _slotScale[i] * (on ? selectedScale : 1f);
             }
             if (currentImage != null) currentImage.sprite = Avatar(_avatar);
         }

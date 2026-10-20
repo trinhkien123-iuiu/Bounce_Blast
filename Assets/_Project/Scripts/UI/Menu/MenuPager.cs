@@ -12,7 +12,7 @@ namespace BounceBlast.UI
     ///
     /// Đặt sẵn ở <c>UI/MenuPager</c> (scene MenuGame). Mỗi trang là một prefab riêng (Canvas gốc không dời được),
     /// nên thứ được trượt là <see cref="Page.content"/> – con phủ kín màn hình của trang. Lúc đứng yên mọi content ở x = 0
-    /// (đúng như trong prefab); chỉ khi đang vuốt / đang trượt content mới lệch, xong lại về 0.
+    /// (đúng như trong prefab); chỉ khi đang vuốt / đang trượt content mới lệch, xong lại về vị trí prefab.
     /// </summary>
     [DisallowMultipleComponent]
     public class MenuPager : MonoBehaviour
@@ -51,6 +51,12 @@ namespace BounceBlast.UI
         int _target = -1;
         int _restoreFrame = -1;
         readonly List<ScrollRect> _lockedScrolls = new List<ScrollRect>();
+        readonly Dictionary<RectTransform, float> _baseX = new Dictionary<RectTransform, float>();   // X của content trong prefab
+
+        void Awake()
+        {
+            foreach (Page p in pages) if (p.content != null) _baseX[p.content] = p.content.anchoredPosition.x;
+        }
 
         /// <summary>Có popup che (VD Profile) thì tạm khoá vuốt.</summary>
         public bool Locked { get; set; }
@@ -105,10 +111,13 @@ namespace BounceBlast.UI
             return w > 1f ? w : 1242f;
         }
 
-        static void SetX(RectTransform rt, float x)
+        /// <summary>Đặt độ lệch khi vuốt – cộng lên X trong prefab (đứng yên = đúng như prefab).</summary>
+        void SetX(RectTransform rt, float offset)
         {
+            float bx;
+            if (!_baseX.TryGetValue(rt, out bx)) _baseX[rt] = bx = rt.anchoredPosition.x;
             Vector2 p = rt.anchoredPosition;
-            p.x = x;
+            p.x = bx + offset;
             rt.anchoredPosition = p;
         }
 

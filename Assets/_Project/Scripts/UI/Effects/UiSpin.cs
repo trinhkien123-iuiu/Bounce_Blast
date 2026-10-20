@@ -10,7 +10,14 @@ namespace BounceBlast.UI
     {
         [Tooltip("Độ/giây; âm = ngược chiều kim đồng hồ")] [SerializeField] float degreesPerSecond = 25f;
 
-        void OnEnable() => transform.localRotation = Quaternion.identity;
+        Quaternion _base;
+        bool _saved;
+
+        void OnEnable()
+        {
+            if (!_saved) { _base = transform.localRotation; _saved = true; }   // góc trong prefab
+            transform.localRotation = _base;
+        }
 
         void Update() => transform.Rotate(0f, 0f, -degreesPerSecond * Time.unscaledDeltaTime);
     }
