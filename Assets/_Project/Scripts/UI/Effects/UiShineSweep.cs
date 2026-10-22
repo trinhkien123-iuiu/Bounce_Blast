@@ -5,7 +5,7 @@ using UnityEngine.UI;
 /// Vệt sáng chéo quét ngang qua nút theo chu kỳ (video coin_panel gốc: nút Continue / x2 lóe một dải sáng
 /// nghiêng ~25° chạy trái → phải mỗi ~2.4s). Gắn trên nút; lớp mặt nạ <c>ShineMask</c> (cùng hình nút) và dải <c>ShineBand</c>
 /// nằm SẴN trong prefab dưới nút – sửa màu / độ rộng / góc nghiêng của dải ngay trong Hierarchy.
-/// Lúc chạy chỉ bật dải và trượt nó ngang qua nút. Nút mới chưa có lớp: chuột phải component ▸ "Tạo lớp vệt sáng".
+/// Lúc chạy chỉ bật dải và trượt nó ngang qua nút. Dùng cho nút màn Thắng (code gọi Restart) và nền thẻ gói Shop (playOnEnable). Nút mới chưa có lớp: chuột phải component ▸ "Tạo lớp vệt sáng".
 /// </summary>
 public class UiShineSweep : MonoBehaviour
 {
@@ -14,10 +14,11 @@ public class UiShineSweep : MonoBehaviour
     [Tooltip("Giây một lần quét")] [SerializeField] float sweep = 0.55f;
     [Tooltip("Trễ trước lần quét đầu (lệch nhịp giữa các nút)")] [SerializeField] float startDelay;
     [Tooltip("Dải chạy từ -x đến +x lần bề ngang nút")] [SerializeField] float travel = 0.75f;
+    [Tooltip("Tự quét khi object bật (VD thẻ gói Shop). Tắt = chờ code gọi Restart (VD nút màn Thắng)")] [SerializeField] bool playOnEnable;
 
     float _t, _delay, _bandY;
     bool _bandYSaved;
-    bool _running;
+    bool _running, _once;
 
     /// <summary>Bắt đầu quét (gọi khi nút hiện ra).</summary>
     public void Restart()
@@ -25,6 +26,17 @@ public class UiShineSweep : MonoBehaviour
         _t = 0f;
         _delay = startDelay;
         _running = true;
+        _once = false;
+    }
+
+    /// <summary>Quét đúng một lượt ngay (VD khi rê chuột vào nút) rồi dừng.</summary>
+    public void SweepOnce()
+    {
+        if (_running && !_once) return;   // đang quét theo chu kỳ thì thôi
+        _t = 0f;
+        _delay = 0f;
+        _running = true;
+        _once = true;
     }
 
     public void Stop()
@@ -32,6 +44,8 @@ public class UiShineSweep : MonoBehaviour
         _running = false;
         if (band != null) band.gameObject.SetActive(false);
     }
+
+    void OnEnable() { if (playOnEnable) Restart(); }
 
     void OnDisable() => Stop();
 
@@ -41,6 +55,7 @@ public class UiShineSweep : MonoBehaviour
         float dt = Time.unscaledDeltaTime;
         if (_delay > 0f) { _delay -= dt; return; }
         _t += dt;
+        if (_once && _t >= sweep) { Stop(); return; }
         if (_t > period) _t -= period;
         bool on = _t < sweep;
         if (band.gameObject.activeSelf != on) band.gameObject.SetActive(on);

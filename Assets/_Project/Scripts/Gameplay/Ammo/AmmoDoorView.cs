@@ -41,19 +41,21 @@ namespace BounceBlast.Gameplay
 
         public void SetClosed(bool closed) => _blendTarget = closed ? 0f : 90f;
 
-        /// <summary>Đặt cửa lên miệng hố: tâm world, kích thước ô hố (mesh gốc đã bo góc).</summary>
-        public void Place(Vector3 worldCenter, Vector2 size)
+        /// <summary>Đặt cửa lên miệng hố: tâm world, kích thước miệng hố (mesh gốc đã bo góc), hướng mặt khay (+Y lên màn hình, −Z về camera).</summary>
+        public void Place(Vector3 worldCenter, Vector2 size, Quaternion plate)
         {
             if (_root == null || _smr == null) return;
-            _root.SetPositionAndRotation(worldCenter, Quaternion.identity);
+            _root.SetPositionAndRotation(worldCenter, plate);
             _root.localScale = Vector3.one;
             Transform c = _smr.transform;
-            c.localRotation = Quaternion.Euler(-90f, 0f, 0f);          // mesh gốc nằm trên mặt XZ → dựng về mặt XY hướng camera
-            c.localScale = Vector3.one * (size.x / CoverMeshSize * 1.03f); // +3%: che hẳn viền màu hộp phía sau
+            c.localRotation = Quaternion.Euler(-90f, 0f, 0f);          // mesh gốc nằm trên mặt XZ → dựng về mặt XY của mặt khay
+            float k = size.x / CoverMeshSize * 1.03f;                    // +3%: che hẳn viền màu hộp phía sau
+            c.localScale = new Vector3(k, k, k * size.y / size.x);       // mesh gốc nằm mặt XZ: trục Z thành chiều dọc trên màn hình (miệng hố co dọc)
             c.localPosition = Vector3.zero;
             Apply();
-            Bounds b = _smr.bounds;                                     // căn tâm hình thật vào tâm hố
-            c.position += new Vector3(worldCenter.x - b.center.x, worldCenter.y - b.center.y, 0f);
+            Bounds b = _smr.bounds;                                     // căn tâm hình thật vào tâm hố (trong mặt khay)
+            Vector3 d = Quaternion.Inverse(plate) * (worldCenter - b.center);
+            c.position += plate * new Vector3(d.x, d.y, 0f);
         }
 
         /// <summary>Trượt cánh cửa tới trạng thái đích (gọi mỗi khung).</summary>

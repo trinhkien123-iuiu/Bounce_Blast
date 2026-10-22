@@ -61,6 +61,7 @@ MonoBehaviour:
     trayWall: {fileID: 2100000, guid: a3ebf1dc881ba934a983215a4e4d2bc1, type: 2}
     trayPanel: {fileID: 2100000, guid: 26b0701ee487f7942a494b598a493c0f, type: 2}
     trayHole: {fileID: 2100000, guid: 32689b5254728b64f829fabc1ed15ae5, type: 2}
+    trayOutline: {r: 0.2901961, g: 0.32156864, b: 0.6784314, a: 1}
   hardTheme:
     useColors: 1
     backgroundTop: {r: 0.62, g: 0.2, b: 0.17, a: 1}
@@ -83,6 +84,7 @@ MonoBehaviour:
     trayWall: {fileID: 2100000, guid: cdcddf543acbb174f959dfb407f3081e, type: 2}
     trayPanel: {fileID: 2100000, guid: 8efe363526345904e9e7af0659f6435c, type: 2}
     trayHole: {fileID: 2100000, guid: f8db6810bbfdf2541b2fd4da455c623d, type: 2}
+    trayOutline: {r: 0.9882353, g: 0.67058825, b: 0.60784316, a: 1}
   superHardTheme:
     useColors: 1
     backgroundTop: {r: 0.2, g: 0.2, b: 0.21, a: 1}
@@ -105,6 +107,7 @@ MonoBehaviour:
     trayWall: {fileID: 2100000, guid: 5a3dfe0259988d348aed1f0181952892, type: 2}
     trayPanel: {fileID: 2100000, guid: 761c5f13d515b47409da5b266b7dbfbb, type: 2}
     trayHole: {fileID: 2100000, guid: 6d6a1a78f08f7d545bdd75893dcddb0a, type: 2}
+    trayOutline: {r: 0.45882353, g: 0.45882353, b: 0.45882353, a: 1}
   sounds:
   - id: 0
     clips:
@@ -238,23 +241,37 @@ MonoBehaviour:
   viewHalfWidth: 5.98
   viewMaxZoomOut: 1.3
   viewMinHalfHeight: 11.6
-  ammoTargetCell: 1.45
+  ammoTargetCell: 1.2
   ammoBoosterGap: 0.2
   ammoActivePose:
-    tiltX: -73
-    length: 0.62
-    offset: {x: 0, y: 0.39, z: 0}
-    scale: 1
+    tiltX: -72.3
+    length: 0.552
+    offset: {x: -0.01, y: 0.43, z: 0}
+    scale: 1.055
   ammoInactivePose:
-    tiltX: -80.2
-    length: 0.52
-    offset: {x: 0, y: 0.07, z: 0}
-    scale: 1
-  ammoSinkDepth: 1.1
+    tiltX: -86.4
+    length: 0.1
+    offset: {x: 0, y: -0.12, z: 0}
+    scale: 1.057
+  ammoSinkDepth: 1.134
+  tunnelSize: 1.15
+  tunnelTiltX: -70
+  tunnelAngleUp: 0
+  tunnelAngleDown: 180
+  tunnelAngleLeft: 90
+  tunnelAngleRight: -90
+  ammoFlightLength: 2.6
   dockHeightRatio: 2.6
   dockBottomRatio: 0.3
   hoverHoldProgress: 0.5
   doorExtraSink: 1.6
+  trayProcedural: 0
+  wallKit: {fileID: 11400000, guid: 1a939a6a1b9d04e4096a9ea39fca6de1, type: 2}
+  trayRefCols: 7
+  trayRefRows: 6
+  trayMaxGrow: 1.16
+  trayOutlineMaterial: {fileID: 2100000, guid: 2789bf72911a1094dab1d0da32c3f55e, type: 2}
+  trayBoxDepth: -0.6
   trayPanelPad: 0.1
   trayPanelRadius: 0.22
   traySlotSize: 0.8
@@ -279,15 +296,17 @@ MonoBehaviour:
   boardOffsetY: 0.1
   blockBottomExtra: 0
   blockTopTrim: 0
-  cubeOverlap: 1.02
-  cubeCornerRadius: 0.25
-  cubeEdgeRound: 0.15
-  cubeBodyDepth: 0.97
+  cubeOverlap: 1.05
+  cubeCornerRadius: 0.12
+  cubeEdgeRound: 0.1
+  cubeBodyDepth: 0.5
   columnWidthRatio: 0.6
   crusherSpinSpeed: 800
   crusherShakeMagnitude: 0.06
   crusherShakeFrequency: 28
   crusherShakeDamping: 6
+  holeLidSize: 0.96
+  holeLidRadius: 0.3
   holeLidBand: 0.09
   holeLidDripTime: 0.18
   holeLidDelay: 0.55

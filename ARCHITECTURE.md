@@ -16,8 +16,9 @@
 ```
 Assets/
 ├── _Project/                         ← MỌI thứ do ta làm / chốt
-│   ├── Scenes/MenuGame.unity         ← màn hình chính (index 0 trong Build Settings)
-│   ├── Scenes/Gameplay.unity         ← màn chơi (index 1)
+│   ├── Scenes/Loading.unity          ← màn loading khi mở app / vào màn chơi (index 0 trong Build Settings)
+│   ├── Scenes/MenuGame.unity         ← màn hình chính (index 1)
+│   ├── Scenes/Gameplay.unity         ← màn chơi (index 2)
 │   ├── Scripts/                      ← assembly BounceBlast.Runtime (BounceBlast.Runtime.asmdef)
 │   │   ├── Gameplay/{Ammo,Balls,Board,Conveyor,Core,Data,Managers}   ← namespace BounceBlast.Gameplay
 │   │   ├── UI/                       ← namespace BounceBlast.UI: GameUI (điều phối) + các View + hiệu ứng UI
@@ -114,7 +115,7 @@ UI                MenuHomeCanvas [HomeView]          trang Home (Play, xu/tim, a
 EventSystem       nhận bấm / chạm cho mọi Canvas – để riêng ở gốc scene (không nằm trong UI: tắt UI cũng không mất input)
 ```
 - Gồm: nút **Play** (3 kiểu Normal/Hard/Super Hard theo độ khó level kế tiếp), xu, tim, thanh 5 tab (Home, Shop, Settings chạy; **Journey / Collection chưa làm** → bấm hiện "coming soon"); bấm tab thì `MenuManager` bật đúng một trang, tắt các trang khác, trang Settings (âm thanh / nhạc / rung).
-- Luồng: `MenuGame` ──Play──▶ `Gameplay` ──Settings ▸ Home──▶ `MenuGame` (`SceneFlow`). Tiến độ (level, xu) ở `PlayerData` (PlayerPrefs). Vào Gameplay từ Menu thì chơi tiếp level đã lưu; bấm Play thẳng scene Gameplay thì dùng `LevelManager.startLevel`.
+- Luồng: mở app ▶ `Loading` ▶ `MenuGame` ──Play──▶ `Loading` ▶ `Gameplay` ──Settings ▸ Home──▶ `MenuGame` (`SceneFlow`). Tiến độ (level, xu) ở `PlayerData` (PlayerPrefs). Vào Gameplay từ Menu thì chơi tiếp level đã lưu; bấm Play thẳng scene Gameplay thì dùng `LevelManager.startLevel`.
 - Đổi hình menu → `Art/UI/Menu/`; đổi nhạc menu → `GameConfig.musicMenu`; đổi bố cục → mở prefab của trang tương ứng (`MenuHomeCanvas`, `ShopCanvas`…). Mỗi Canvas gốc là Screen Space - Camera, khoảng cách 1; ô camera nối trong scene (override cố ý).
 
 ## 3. Scene `Gameplay.unity` — Hierarchy
@@ -162,7 +163,7 @@ Trước đây một `GameManager` ôm hết (~460 dòng); nay **một manager =
 |---|---|---|
 | `GameManager` | Dựng + nối các manager (`Awake`), giữ **trạng thái** `Loading → Playing → Won / Lost`, quyết định thắng / thua, thưởng xu, lưu level | Không đọc chuột, không bắn hộp, không dựng bàn |
 | `LevelManager` | `LoadLevel / Restart / LoadNext`, dựng bàn + khay, cân camera, theme + nhạc, báo UI; ô `startLevel`, `continueFromSave` | Không biết luật thắng thua |
-| `InputManager` | Đọc chuột / touch → "bấm hộp" hoặc "bấm khối (búa)" → ra lệnh cho Launch / Booster | Không chứa luật |
+| `InputManager` | Đọc chuột / touch → "bấm hộp" hoặc "bấm khối (búa)" → ra lệnh cho Launch / Booster. **Nhấn giữ chỗ trống trong khu khay đạn** (dưới thanh Capacity, không trúng hộp) = tăng tốc: `Time.timeScale` lên dần `holdSpeed` (1.5) trong `speedRamp` (0.15 s), **chỉ khi trên bàn đang có bi** (`BallManager.ActiveCount > 0`; hết bi hoặc thả tay thì về 1); hiện viền trắng `SpeedUpCanvas` (tách từ "TapToSpeedUp" của game gốc, sprite `Vignette_mir`) qua `GameUI.SetSpeedUp`; popup mở hoặc hết ván thì tắt (không đè `timeScale = 0` của popup). Hai số chỉnh trên component trong scene Gameplay. | Không chứa luật |
 | `LaunchManager` | Bắn hộp, **sức chứa** (`Capacity`), Out Of Capacity, phát hiện hết nước đi | Không quyết định thua (chỉ báo) |
 | `BoosterManager` | Bấm booster, booster lên cò, búa, đẩy số lượng lên UI | |
 | `DebugManager` | `autoPlay` (tự chơi để test) – tắt khi build; công cụ cheat trên máy là prefab `CheatPanel` riêng | |

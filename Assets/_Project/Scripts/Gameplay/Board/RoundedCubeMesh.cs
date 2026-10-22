@@ -13,10 +13,13 @@ namespace BounceBlast.Gameplay
     {
         const float HalfX = 0.5f, HalfY = 0.4365f, CenterY = 0.5591f;  // mặt trước của pCube35
         const float FrontZ = -0.484f;
-        // Độ mịn vừa đủ cho gạch ~25 px: 1344 viên × ~110 tam giác (trước 6/4 = ~310 tam giác → 465k tam giác ở màn dày, nặng cho GPU di động)
-        const int CornerSegs = 3, EdgeSegs = 2;
+        // Góc gạch gốc: "vót" nhỏ ở 4 đầu nhọn rồi làm mịn nhẹ (2 đoạn mỗi góc), cạnh còn lại gần thẳng.
+        // Mép mặt trước bo mịn 3 nấc để chuyển sáng mềm (2 nấc → 1 vạch trắng gắt).
+        const int CornerSegs = 2, EdgeSegs = 3;
 
         static readonly Dictionary<(int, int, int), Mesh> Cache = new Dictionary<(int, int, int), Mesh>();
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetCache() => Cache.Clear();   // không domain reload khi vào Play → dựng lại mesh theo code mới
 
         /// <param name="corner">bán kính góc (theo bề rộng ô, 0.05–0.4)</param>
         /// <param name="edge">độ bo của mép mặt trước (theo bề rộng ô, ≤ corner)</param>
@@ -89,6 +92,19 @@ namespace BounceBlast.Gameplay
                     Tri(a0, b0, a1, nrm);
                     Tri(a1, b0, b1, nrm);
                 }
+
+            // Tấm lót vuông sau thân, pháp tuyến quay vào trong (+Z) → tô màu bóng (_SColor): lấp chỗ 4 góc bo gặp nhau thành khe tối
+            // như game gốc thay vì lộ nền bảng chơi
+            {
+                Vector3 back = Vector3.forward;
+                // không chìa ra ngoài ô: góc nhìn nghiêng làm tấm lót xa hơn bị dời lên, chìa ra sẽ đè lên viên phía trên
+                float z = FrontZ + depth * 0.95f, hx = HalfX, hy = HalfX;
+                int b0 = V.Count;
+                V.Add(new Vector3(-hx, CenterY - hy, z)); V.Add(new Vector3(hx, CenterY - hy, z));
+                V.Add(new Vector3(hx, CenterY + hy, z)); V.Add(new Vector3(-hx, CenterY + hy, z));
+                for (int i = 0; i < 4; i++) N.Add(back);
+                Tri(b0, b0 + 1, b0 + 2, Vector3.back); Tri(b0, b0 + 2, b0 + 3, Vector3.back);   // mặt nhìn về camera
+            }
 
             void Tri(int i0, int i1, int i2, Vector3 outward)
             {

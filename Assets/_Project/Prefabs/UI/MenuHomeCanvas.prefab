@@ -59,6 +59,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 11731}
+  - component: {fileID: 3851981303463082799}
+  - component: {fileID: 5399657634850346940}
   m_Layer: 5
   m_Name: PlayButtons
   m_TagString: Untagged
@@ -88,6 +90,37 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -799.6957}
   m_SizeDelta: {x: 0, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &3851981303463082799
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &5399657634850346940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b89871cdacc54b45915ad6a52a4ef87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 0.4
+  extraDelay: 0
+  fromOffset: {x: 0, y: 0}
+  fromScale: 0.2
+  fade: 1
+  overshoot: 1
+  followDirection: 0
 --- !u!1 &927
 GameObject:
   m_ObjectHideFlags: 0
@@ -500,6 +533,7 @@ GameObject:
   m_Component:
   - component: {fileID: 12751}
   - component: {fileID: 14354}
+  - component: {fileID: 6574946625180122876}
   m_Layer: 5
   m_Name: Hearts
   m_TagString: Untagged
@@ -542,6 +576,25 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &6574946625180122876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b89871cdacc54b45915ad6a52a4ef87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 0.4
+  extraDelay: 0
+  fromOffset: {x: 0, y: 0}
+  fromScale: 0.2
+  fade: 1
+  overshoot: 1
+  followDirection: 0
 --- !u!1 &1250
 GameObject:
   m_ObjectHideFlags: 0
@@ -1044,6 +1097,8 @@ GameObject:
   m_Component:
   - component: {fileID: 11646}
   - component: {fileID: 8302}
+  - component: {fileID: 3709241343309107098}
+  - component: {fileID: 6917473213043730312}
   m_Layer: 5
   m_Name: Coins
   m_TagString: Untagged
@@ -1082,6 +1137,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1505}
   m_CullTransparentMesh: 1
+--- !u!225 &3709241343309107098
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &6917473213043730312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b89871cdacc54b45915ad6a52a4ef87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 0.4
+  extraDelay: 0
+  fromOffset: {x: 0, y: 0}
+  fromScale: 0.2
+  fade: 1
+  overshoot: 1
+  followDirection: 0
 --- !u!1 &1598
 GameObject:
   m_ObjectHideFlags: 0
@@ -1455,6 +1541,7 @@ GameObject:
   - component: {fileID: 16938}
   - component: {fileID: 14336}
   - component: {fileID: 3057485265565910068}
+  - component: {fileID: 323845387094856162}
   m_Layer: 5
   m_Name: MenuHomeCanvas
   m_TagString: Untagged
@@ -1586,6 +1673,27 @@ MonoBehaviour:
   profileButton: {fileID: 17832}
   avatarImage: {fileID: 16743}
   streak: {fileID: 6649131342947954883}
+--- !u!114 &323845387094856162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d88b0dc93e5ad9c4f84616e85333758a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  items:
+  - {fileID: 1425332660260398170}
+  - {fileID: 6917473213043730312}
+  - {fileID: 6574946625180122876}
+  - {fileID: 8913054124286119016}
+  - {fileID: 5399657634850346940}
+  stagger: 0.05
+  startDelay: 0
+  playOnEnter: 1
 --- !u!1 &1904
 GameObject:
   m_ObjectHideFlags: 0
@@ -2664,6 +2772,8 @@ GameObject:
   - component: {fileID: 19488}
   - component: {fileID: 17832}
   - component: {fileID: 6188694472272311414}
+  - component: {fileID: 1924183338666285684}
+  - component: {fileID: 1425332660260398170}
   m_Layer: 5
   m_Name: ProfileButton
   m_TagString: Untagged
@@ -2802,6 +2912,37 @@ MonoBehaviour:
   bounceScale: 1.12
   stiffness: 260
   damping: 16
+--- !u!225 &1924183338666285684
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3046}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &1425332660260398170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b89871cdacc54b45915ad6a52a4ef87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 0.4
+  extraDelay: 0
+  fromOffset: {x: 0, y: 0}
+  fromScale: 0.2
+  fade: 1
+  overshoot: 1
+  followDirection: 0
 --- !u!1 &3148
 GameObject:
   m_ObjectHideFlags: 0
@@ -3802,5 +3943,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cfc56a7b32b4b194286e16f6117ad72a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8913054124286119016 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4191405729313151167, guid: ba4ce98c1fb78db40b342679b4b4f378, type: 3}
+  m_PrefabInstance: {fileID: 4727472072129303767}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b89871cdacc54b45915ad6a52a4ef87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

@@ -25,7 +25,17 @@ namespace BounceBlast.Gameplay
         readonly AmmoPathRules _paths = new AmmoPathRules();
         AmmoTrayView _tray;
         float _cell;
+        float[] _rowZ;   // khay gốc: độ sâu miệng hố theo hàng (null = khay tự sinh, mặt hộp z = -0.6)
+        float _pitchY;   // bước hàng trên màn hình (khay tự sinh = _cell; khay gốc HoleAll = bước hố × hệ số nghiêng 20°)
         Vector2 _origin; // tâm ô (0,0)
+
+        [Tooltip("Mesh khay gốc HoleAll (Hole.asset, đặt ở đúng transform của game gốc). Dùng khi GameConfig.trayProcedural tắt: mỗi level dựng một bản là phẳng theo góc nhìn gốc, hộp đặt đúng tâm hố")]
+        [SerializeField] MeshRenderer originalTray;
+        Vector3 _trayBaseScale, _trayBasePos;   // transform khay gốc đặt tay trong scene (đọc 1 lần)
+        const float WallSlide = 0.15f;   // tỉ lệ bù trượt khối tường để miệng hố trùng hộp (chỉnh bằng mắt theo ảnh gốc)
+        const float WallLift = 0.05f;   // khối tường nhô khỏi mặt khay (theo ô) – miệng hố che thân hộp
+        const float HolePitch = 1.5746125f;   // bước hố của Hole.asset (8 cột × 7 hàng, tâm lưới ở gốc mesh)
+        const float HolePlateZ = 0.71425885f; // mặt khay phẳng của Hole.asset (ống đi về -z)
         Transform _boxRoot;
         Transform _trayRoot;
 
@@ -80,14 +90,21 @@ namespace BounceBlast.Gameplay
             float centerX = config.arena.center.x;
             // ammoAreaTop đo theo góc nhìn cũ ở mặt hộp z = -0.6 → chuyển sang camera thẳng
             _origin = new Vector2(centerX - (cMin + cMax) * 0.5f * _cell, config.ammoAreaTop - _cell * 0.5f + ViewSpace.LegacyShift(-0.6f));
+            _pitchY = _cell;
+            _rowZ = null;
 
             _boxRoot = new GameObject("Boxes").transform;
             _boxRoot.SetParent(transform, false);
             _trayRoot = new GameObject("Tray").transform;
             _trayRoot.SetParent(transform, false);
 
-            _tray = new AmmoTrayView(config, _theme, colors, _kind, _cell, _origin, _trayRoot);
+            bool useOriginalTray = !config.trayProcedural && originalTray != null;
+            if (useOriginalTray) BuildOriginalTray(cMin, cMax, centerX, visRows);
+            _tray = new AmmoTrayView(config, _theme, colors, _kind, _cell, _origin, _trayRoot, _pitchY, _rowZ);
+            // mặt khay gốc: local +Z = mặt trên (về camera), +Y = hàng tăng (xuống màn hình) → lật 180° quanh X cho +Y lên, −Z về camera
+            if (useOriginalTray) _tray.PlateRotation = originalTray.transform.rotation * Quaternion.Euler(180f, 0f, 0f);
             _tray.Build();
+            if (useOriginalTray) _tray.BuildCover(config.wallKit, WallPiece);   // tường che ô ngoài level
 
             for (int r = 0; r < _rows; r++)
                 for (int c = 0; c < _cols; c++)
@@ -101,7 +118,64 @@ namespace BounceBlast.Gameplay
             Recompute(true);
         }
 
-        public Vector3 CellWorld(Vector2Int c) => new Vector3(_origin.x + c.x * _cell, _origin.y - c.y * _cell, -0.6f);
+        public Vector3 CellWorld(Vector2Int c) => new Vector3(_origin.x + c.x * _cell, _origin.y - c.y * _pitchY, BoxZ(c.y));
+
+        /// <summary>Độ sâu đặt hộp: khay tự sinh = mặt hộp -0.6; khay gốc = miệng hố của hàng (mặt khay nghiêng) + trayBoxDepth.</summary>
+        float BoxZ(int row)
+        {
+            if (_rowZ == null || _rowZ.Length == 0) return -0.6f;
+            return _rowZ[Mathf.Clamp(row, 0, _rowZ.Length - 1)] + _config.trayBoxDepth * _cell;
+        }
+
+        /// <summary>Điểm (mặt hộp z = -0.6) nằm trong khu khay đạn: từ mép trên hàng ô đầu (+ nửa ô) trở xuống.</summary>
+        public bool IsInAmmoArea(Vector2 world) => _boxes != null && world.y <= _origin.y + _cell;
+
+        /// <summary>
+        /// Khay đúng mesh gốc HoleAll (Hole.asset: lưới 8 cột × 7 hàng hố, tâm lưới ở gốc mesh, mặt khay z = 0.714).
+        /// Object đặt sẵn trong scene và chỉnh tay được (xoay −155° quanh X = góc gốc −135° + camera gốc nghiêng 20° → nhìn thẳng
+        /// thấy y như game gốc, Edit mode = Play mode). Code chỉ phóng khay theo số ô của level (so với cỡ đặt tay) và dời x, rồi đọc tâm hố:
+        /// dữ liệu level luôn 8 cột → hộp cột c, hàng r nằm đúng tâm hố (c, r); đổi vật liệu theo độ khó (Hole-1/2/3).
+        /// Như game gốc, mỗi level dời khay theo x cho cụm cột chơi được (cMin..cMax) nằm giữa màn – bảng không bị lệch.
+        /// </summary>
+        /// <summary>
+        /// Ma trận đặt khối tường module (mesh quanh gốc, mặt phẳng XZ, cao 1 đơn vị) vào ô (c, r) của lưới hố. Mặt trên khối nhô WallLift khỏi mặt khay,
+        /// nên trượt khối dọc mặt khay để miệng hố trên màn hình vẫn trùng miệng hố của HoleAll (hộp nằm đúng giữa miệng).
+        /// </summary>
+        Matrix4x4 WallPiece(int c, int r)
+        {
+            Transform t = originalTray.transform;
+            float lift = WallLift * HolePitch;
+            float slide = -WallSlide * lift * t.TransformDirection(Vector3.forward).y / t.TransformDirection(Vector3.up).y;   // bù phần nhô theo trục dọc màn hình
+            return t.localToWorldMatrix * Matrix4x4.TRS(new Vector3((c - 3.5f) * HolePitch, (r - 3f) * HolePitch + slide, HolePlateZ + lift - 0.5f * HolePitch),
+                                                        Quaternion.Euler(90f, 0f, 0f), Vector3.one * HolePitch);
+        }
+
+        void BuildOriginalTray(int cMin, int cMax, float centerX, int visRows)
+        {
+            Transform t = originalTray.transform;
+            // Như game gốc: level ít cột/hàng thì ô khay to ra cho vừa khung khay (gốc: Lv44 7×6 ô ≈ 0.12 bề ngang màn, Lv40 5×5 ≈ 0.14).
+            // Cỡ đặt tay trong scene = cỡ cho level chuẩn trayRefCols × trayRefRows; phóng quanh mép trên hàng 0 (ngay dưới thanh capacity).
+            if (_trayBaseScale == Vector3.zero) { _trayBaseScale = t.localScale; _trayBasePos = t.position; }
+            float grow = Mathf.Min(_config.trayRefCols / (float)(cMax - cMin + 1), _config.trayRefRows / (float)visRows);
+            grow = Mathf.Clamp(grow, 1f / _config.trayMaxGrow, _config.trayMaxGrow);
+            t.localScale = _trayBaseScale;
+            t.position = _trayBasePos;
+            Vector3 topEdge = new Vector3(0f, -3.5f * HolePitch, HolePlateZ);
+            float topY = t.TransformPoint(topEdge).y;
+            t.localScale = _trayBaseScale * grow;
+            t.position += new Vector3(0f, topY - t.TransformPoint(topEdge).y, 0f);
+            Vector3 pos = t.position;
+            pos.x += centerX - (t.TransformPoint(new Vector3(((cMin + cMax) * 0.5f - 3.5f) * HolePitch, 0f, 0f)).x);   // tâm cụm cột → centerX
+            t.position = pos;
+            Vector3 Hole(int c, int r) => t.TransformPoint(new Vector3((c - 3.5f) * HolePitch, (r - 3f) * HolePitch, HolePlateZ));
+            Vector3 h00 = Hole(0, 0), h10 = Hole(1, 0), h01 = Hole(0, 1);
+            _origin = new Vector2(h00.x, h00.y);   // camera thẳng (ortho): vị trí màn hình = (x, y)
+            _cell = Mathf.Abs(h10.x - h00.x);
+            _pitchY = Mathf.Abs(h00.y - h01.y);
+            _rowZ = new float[_rows];
+            for (int r = 0; r < _rows; r++) _rowZ[r] = Hole(0, r).z;   // quay quanh X → độ sâu chỉ đổi theo hàng
+            if (_theme != null && _theme.trayHole != null) originalTray.sharedMaterial = _theme.trayHole;
+        }
 
         AmmoBox PlaceBox(AmmoBoxData data, Vector2Int cell, bool fromTunnel)
         {
@@ -141,7 +215,7 @@ namespace BounceBlast.Gameplay
                     if (box == null) continue;
                     bool open = _paths.IsOpen(new Vector2Int(c, r));
                     if (open && box.IsHidden) box.Reveal();
-                    box.SetClickable(open && !box.IsFrozen && !box.IsDoorClosed, instant);
+                    box.SetClickable(open && !box.IsFrozen && !box.IsDoorClosed, open && !box.IsDoorClosed, instant);
                 }
         }
 
@@ -230,36 +304,6 @@ namespace BounceBlast.Gameplay
             return false;
         }
 
-        public int RemainingBoxes()
-        {
-            int n = 0;
-            if (_boxes != null)
-            {
-                foreach (AmmoBox b in _boxes) if (b != null) n++;
-            }
-            if (_tunnels != null)
-            {
-                foreach (AmmoTunnel t in _tunnels) if (t != null) n += t.Remaining;
-            }
-            return n;
-        }
-
-        public bool AnyRemainingOfColorsNeeded(Func<string, bool> needed)
-        {
-            if (_boxes != null)
-            {
-                foreach (AmmoBox b in _boxes) if (b != null && b.Data != null && needed != null && needed(b.Data.ColorCode)) return true;
-            }
-            if (_tunnels != null)
-            {
-                foreach (AmmoTunnel t in _tunnels)
-                    if (t != null && t.Data != null && t.Data.Queue != null && needed != null)
-                        foreach (AmmoBoxData d in t.Data.Queue) if (d != null && needed(d.ColorCode)) return true;
-            }
-            return false;
-        }
-
-        /// <summary>Booster Shuffle: xáo màu/số bi giữa các hộp còn trong khay (giữ nguyên vị trí, băng, "?").</summary>
         public void ShuffleColors()
         {
             if (_boxes == null) return;

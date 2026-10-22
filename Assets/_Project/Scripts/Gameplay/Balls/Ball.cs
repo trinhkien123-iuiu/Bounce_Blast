@@ -149,8 +149,6 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        public void SetLanePosition(Vector3 pos) => transform.position = pos;
-
         public void EnterArena(Vector2 pos, Vector2 velocity)
         {
             InArena = true;

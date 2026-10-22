@@ -38,9 +38,12 @@ namespace BounceBlast.Gameplay
                     smf.sharedMesh = ShearForView(smf.sharedMesh);
         }
 
-        const int ShadeBuckets = 4;
+        const int ShadeBuckets = 6;
 
         static readonly Dictionary<(Material, int), Material> ShadeMats = new Dictionary<(Material, int), Material>();
+        // Project tắt domain reload khi vào Play → cache tĩnh sống qua nhiều lần Play; xoá để đổi màu/vân trong vật liệu có hiệu lực ngay
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetCache() => ShadeMats.Clear();
 
         static Material ShadeVariant(Material baseMat, Vector2 range, int bucket)
         {
@@ -175,14 +178,14 @@ namespace BounceBlast.Gameplay
             tmp.color = Color.white;
             tmp.rectTransform.sizeDelta = size;
             float minSide = Mathf.Min(size.x, size.y);
-            tmp.fontSize = Mathf.Clamp(minSide * 5.5f, 1.6f, 9f);
+            tmp.fontSize = Mathf.Clamp(minSide * 4.3f, 1.6f, 7f);   // ảnh gốc Lv44: số "80" cao ~1/3 khối 3 ô
             tmp.sortingOrder = 5;
             // viền tối để số vẫn đọc được trên khối trắng / vàng
             if (_labelMaterial == null && tmp.fontSharedMaterial != null)
             {
                 _labelMaterial = new Material(tmp.fontSharedMaterial);
-                _labelMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.18f);                 // chữ đậm hơn
-                _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+                _labelMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.05f);                 // nét vừa như gốc
+                _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.15f);
                 _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0f);                // viền sắc, không nhoè
                 _labelMaterial.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0.1f, 0.1f, 0.14f, 1f));
                 _labelMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);

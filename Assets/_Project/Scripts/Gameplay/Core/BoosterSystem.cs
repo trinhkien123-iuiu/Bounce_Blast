@@ -19,15 +19,6 @@ namespace BounceBlast.Gameplay
 
         public int Count(BoosterType t) => PlayerPrefs.GetInt("bb_booster_" + t, 2);
 
-        public bool HasAny
-        {
-            get
-            {
-                foreach (BoosterType t in Enum.GetValues(typeof(BoosterType))) if (Count(t) > 0) return true;
-                return false;
-            }
-        }
-
         public void Add(BoosterType t, int n)
         {
             PlayerPrefs.SetInt("bb_booster_" + t, Count(t) + n);

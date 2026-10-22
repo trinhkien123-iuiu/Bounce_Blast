@@ -118,7 +118,7 @@ namespace BounceBlast.Gameplay
             levelManager.Init(config, colors, _ui, board, ammoGrid, conveyor, balls, theme, cameraFitter);
             boosterManager.Init(_ui, board, ammoGrid, launchManager, levelManager);
             launchManager.Init(_ui, board, ammoGrid, conveyor, balls, boosterManager, levelManager);
-            inputManager.Init(gameCamera, _ui, board, ammoGrid, boosterManager, launchManager);
+            inputManager.Init(gameCamera, _ui, board, ammoGrid, boosterManager, launchManager, balls);
             debugManager.Init(_ui, board, launchManager);
 
             // ---- Observer: ai báo gì thì ai nghe

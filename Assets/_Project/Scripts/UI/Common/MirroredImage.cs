@@ -6,7 +6,8 @@ using UnityEngine.UI;
 /// Khôi phục component "MirroredImage" của game gốc (cùng GUID 9ca8d92f… để prefab/scene rip tự nhận lại script).
 /// Sprite đuôi "_mir" chỉ chứa 1/2 (hoặc 1/4) hình; component này vẽ thêm phần đối xứng bằng cách lật UV:
 ///  - MirrorHorizontally: nửa trái = sprite, nửa phải = sprite lật ngang.
-///  - MirrorVertically  : nửa trên = sprite, nửa dưới = sprite lật dọc (bật cả 2 → 4 góc).
+///  - MirrorVertically  : nửa dưới = sprite, nửa trên = sprite lật dọc (bật cả 2 → 4 góc; sprite gốc là góc DƯỚI-trái,
+///    VD LoadingBar_mir, off_mir – cạnh bo tròn nằm ở dưới).
 ///  - UseSlicing        : mỗi phần vẽ 9-slice theo border của sprite.
 /// Tên field serialize giữ đúng như bản gốc.
 /// </summary>
@@ -22,13 +23,6 @@ public class MirroredImage : Image
     public bool UseSlicing { get => m_UseSlicing; set { m_UseSlicing = value; SetVerticesDirty(); } }
 
     Sprite ActiveSprite => overrideSprite != null ? overrideSprite : sprite;
-
-    public void SetMirrorMode(bool horizontal, bool vertical)
-    {
-        m_MirrorHorizontally = horizontal;
-        m_MirrorVertically = vertical;
-        SetVerticesDirty();
-    }
 
     protected override void OnPopulateMesh(VertexHelper vh)
     {
@@ -54,24 +48,24 @@ public class MirroredImage : Image
     {
         float hw = m_MirrorHorizontally ? rect.width * 0.5f : rect.width;
         float hh = m_MirrorVertically ? rect.height * 0.5f : rect.height;
-        // nửa trên dùng sprite gốc (sprite gốc vẽ phần trên-trái), các phần còn lại lật gương
-        draw(new Rect(rect.x, rect.yMax - hh, hw, hh), false, false);
-        if (m_MirrorHorizontally) draw(new Rect(rect.x + hw, rect.yMax - hh, hw, hh), true, false);
+        // góc dưới-trái dùng sprite gốc (sprite gốc vẽ phần dưới-trái), các phần còn lại lật gương
+        draw(new Rect(rect.x, rect.y, hw, hh), false, false);
+        if (m_MirrorHorizontally) draw(new Rect(rect.x + hw, rect.y, hw, hh), true, false);
         if (m_MirrorVertically)
         {
-            draw(new Rect(rect.x, rect.y, hw, hh), false, true);
-            if (m_MirrorHorizontally) draw(new Rect(rect.x + hw, rect.y, hw, hh), true, true);
+            draw(new Rect(rect.x, rect.y + hh, hw, hh), false, true);
+            if (m_MirrorHorizontally) draw(new Rect(rect.x + hw, rect.y + hh, hw, hh), true, true);
         }
     }
 
-    /// <summary>Lùi UV mép nối (cạnh phải khi lật ngang, cạnh dưới khi lật dọc) vào nửa texel để không ăn
+    /// <summary>Lùi UV mép nối (cạnh phải khi lật ngang, cạnh trên khi lật dọc) vào nửa texel để không ăn
     /// pixel của sprite kế bên trong atlas → hết vạch mảnh giữa hình.</summary>
     Vector4 SeamInset(Vector4 uv, Sprite sp)
     {
         Texture t = sp.texture;
         if (t == null) return uv;
         if (m_MirrorHorizontally) uv.z -= 0.5f / t.width;
-        if (m_MirrorVertically) uv.y += 0.5f / t.height;
+        if (m_MirrorVertically) uv.w -= 0.5f / t.height;
         return uv;
     }
 
@@ -97,8 +91,7 @@ public class MirroredImage : Image
         // Lưới 9-slice của phần gốc (toạ độ local 0..w, 0..h). Cạnh nối giữa hình (seam) không có viền.
         float bl = border.x, bb = border.y;
         float br = m_MirrorHorizontally ? 0f : border.z;
-        float bt = border.w;
-        if (m_MirrorVertically) bb = 0f; // phần gốc ở nửa trên → seam ở cạnh dưới
+        float bt = m_MirrorVertically ? 0f : border.w; // phần gốc ở nửa dưới → seam ở cạnh trên
 
         ForEachPart(rect, (r, fx, fy) =>
         {

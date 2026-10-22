@@ -49,13 +49,14 @@ namespace BounceBlast.Gameplay
             Transform tube = _visual.Find("Model/Tunnel");
             if (tube != null) { _tube = tube.GetComponent<Renderer>(); _tubeMat = _tube.sharedMaterials.Length > RimSlot ? _tube.sharedMaterials[RimSlot] : null; }
 
-            // Mesh "Tunnel" gốc là ống hở 1 đầu; nghiêng -62° thì miệng ống hướng lên màn hình (= U, về phía lối ra).
+            // Mesh "Tunnel" gốc là ống hở 1 đầu; nghiêng tunnelTiltX thì miệng ống hướng lên màn hình (= U, về phía lối ra).
             // Xoay quanh trục nhìn cho miệng ống quay đúng hướng nhả hộp (/tu-XR → phải, /tu-XL → trái…).
             // (Direction tính trong lưới đạn: y tăng xuống dưới.)
-            float angle = data.Direction.x < 0 ? 90f : data.Direction.x > 0 ? -90f : data.Direction.y < 0 ? 0f : 180f;
-            _visual.localRotation = Quaternion.Euler(0f, 0f, angle) * Quaternion.Euler(-82f, 0f, 0f);
-            // Giữ đúng tỉ lệ mesh (FitVisual khối vuông làm ống nằm ngang bị bẹp) – cạnh lớn nhất trên màn hình ≈ 0.95 ô
-            FitMaxExtent(_visual, cellSize * 0.95f);
+            float angle = data.Direction.x < 0 ? config.tunnelAngleLeft : data.Direction.x > 0 ? config.tunnelAngleRight
+                        : data.Direction.y < 0 ? config.tunnelAngleUp : config.tunnelAngleDown;
+            _visual.localRotation = Quaternion.Euler(0f, 0f, angle) * Quaternion.Euler(config.tunnelTiltX, 0f, 0f);
+            // Giữ đúng tỉ lệ mesh (FitVisual khối vuông làm ống nằm ngang bị bẹp) – cạnh lớn nhất trên màn hình = tunnelSize ô
+            FitMaxExtent(_visual, cellSize * config.tunnelSize);
 
             var labelGo = new GameObject("Count");
             labelGo.transform.SetParent(transform, false);
@@ -63,7 +64,7 @@ namespace BounceBlast.Gameplay
             _label = labelGo.AddComponent<TextMeshPro>();
             if (config.worldFont != null) _label.font = config.worldFont;
             _label.alignment = TextAlignmentOptions.Center;
-            _label.fontSize = cellSize * 4.2f;
+            _label.fontSize = cellSize * 6f;   // ảnh gốc Lv19: số cao ~0.45 ô
             _label.rectTransform.sizeDelta = new Vector2(cellSize, cellSize);
             _label.sortingOrder = 6;
             Refresh();

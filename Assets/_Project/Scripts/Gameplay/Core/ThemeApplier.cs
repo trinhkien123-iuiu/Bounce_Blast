@@ -8,6 +8,7 @@ namespace BounceBlast.Gameplay
     /// </summary>
     public class ThemeApplier : MonoBehaviour
     {
+        const float BackdropZ = 8f;   // độ sâu đặt nền chuyển màu (sau khay/hộp, trước Environment Base)
         Renderer _conveyor;
         Renderer _plane;
         SpriteRenderer _gradient;
@@ -52,7 +53,13 @@ namespace BounceBlast.Gameplay
                     _housings.Add(new CrusherHousing { renderer = r, original = sm, slots = 1 });
             }
             Transform grad = boardRoot.Find("Gradient_Back/Mask NORMAL");
-            if (grad != null) { _gradient = grad.GetComponent<SpriteRenderer>(); _origGradient = _gradient.color; }
+            if (grad != null)
+            {
+                _gradient = grad.GetComponent<SpriteRenderer>(); _origGradient = _gradient.color;
+                // Nền chuyển màu chỉ là phông: đẩy ra SAU mọi vật chơi (camera ortho nhìn thẳng → hình không đổi). Nằm ở z ≈ 0 thì nó che
+                // hộp đạn đặt sâu trong hố của khay gốc (hàng trên z ≈ 3.6). Vẫn trước tấm nền xa nhất (Environment Base, z ≈ 9.8).
+                grad.position += new Vector3(0f, 0f, BackdropZ - _gradient.bounds.center.z);
+            }
         }
 
         public void SetConveyor(ConveyorSystem conveyor) => _conveyorSystem = conveyor;
@@ -150,10 +157,12 @@ namespace BounceBlast.Gameplay
                 var mats = (Material[])_origConveyor.Clone();
                 if (theme != null && mats.Length >= 4)
                 {
-                    if (theme.conveyorSurface) { mats[0] = theme.conveyorSurface; mats[2] = theme.conveyorSurface; }
+                    if (theme.conveyorSurface) mats[0] = theme.conveyorSurface;
                     if (theme.conveyorSide) mats[1] = theme.conveyorSide;
                     if (theme.conveyorGround) mats[3] = theme.conveyorGround;
                 }
+                // slot 2 = dải mảnh dọc 2 mép khung: dùng vật liệu mặt trên thì hiện thành viền xám trắng nhìn như lỗi → cho trùng vật liệu thành bên
+                if (mats.Length >= 3) mats[2] = mats[1];
                 _conveyor.sharedMaterials = mats;
             }
             if (_plane != null) _plane.sharedMaterial = theme != null && theme.plane ? theme.plane : _origPlane;

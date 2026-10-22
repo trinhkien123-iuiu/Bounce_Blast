@@ -23,6 +23,7 @@ namespace BounceBlast.UI
             [Tooltip("Gốc trang (Canvas) – bật/tắt cả trang. Để TRỐNG nếu tab chưa có trang")] public GameObject root;
             [Tooltip("Con phủ kín màn hình được trượt khi vuốt (Home: MenuCanvas, Shop: IN APP PURCHASE, Settings: Content)")] public RectTransform content;
             [Tooltip("Chặn bấm nút trong trang khi đang vuốt – CanvasGroup trên gốc trang")] public CanvasGroup group;
+            [Tooltip("Hiệu ứng các thành phần xuất hiện khi tới trang – để trống = không hiệu ứng")] public PageTransition transition;
         }
 
         [Tooltip("Cùng thứ tự với tab dưới đáy: Shop, Journey, Home, Collection, Settings")] [SerializeField] Page[] pages = new Page[0];
@@ -35,7 +36,6 @@ namespace BounceBlast.UI
         /// <summary>Trang hiện tại đổi (do vuốt hoặc do <see cref="Show"/>) – nhận chỉ số tab.</summary>
         public event Action<int> OnPageChanged;
 
-        public int Current => _current;
         public int Count => pages.Length;
         public bool HasPage(int i) => i >= 0 && i < pages.Length && pages[i].root != null;
 
@@ -85,16 +85,26 @@ namespace BounceBlast.UI
             _settling = false;
             _dragging = false;
             _offset = 0f;
+            bool changed = _current != index;
             for (int i = 0; i < pages.Length; i++)
             {
                 if (pages[i].root == null) continue;
-                pages[i].root.SetActive(i == index);
+                bool on = i == index;
+                if (on && !pages[i].root.activeSelf && pages[i].transition != null) pages[i].transition.Prepare(EnterDir(index));   // bật thẳng (không trượt) – ẩn trước rồi mới hiện
+                pages[i].root.SetActive(on);
                 if (pages[i].content != null) SetX(pages[i].content, 0f);
             }
-            bool changed = _current != index;
+            int enter = EnterDir(index);
             _current = index;
-            if (changed) OnPageChanged?.Invoke(index);
+            if (changed)
+            {
+                if (pages[index].transition != null) pages[index].transition.Play(enter);   // tới trang mới: các thành phần lần lượt hiện ra
+                OnPageChanged?.Invoke(index);
+            }
         }
+
+        /// <summary>+1 = trang <paramref name="index"/> nằm bên phải trang hiện tại, −1 = bên trái, 0 = cùng trang / chưa có.</summary>
+        int EnterDir(int index) => _current < 0 || index == _current ? 0 : (index > _current ? 1 : -1);
 
         int Neighbour(int from, int dir)
         {
@@ -129,6 +139,7 @@ namespace BounceBlast.UI
                 Page p = pages[i];
                 if (p.root == null) continue;
                 bool show = i == cur || i == next;
+                if (show && !p.root.activeSelf && p.transition != null) p.transition.Prepare(i == cur ? 0 : dir);   // trang vừa lộ ra khi vuốt / trượt: thành phần ẩn, chờ tới nơi
                 if (p.root.activeSelf != show) p.root.SetActive(show);
                 if (!show || p.content == null) continue;
                 float w = Width(i);

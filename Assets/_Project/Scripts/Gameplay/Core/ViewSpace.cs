@@ -21,9 +21,6 @@ namespace BounceBlast.Gameplay
         /// <summary>Độ dời y mà góc nhìn cũ gây ra cho một điểm ở độ sâu z.</summary>
         public static float LegacyShift(float z) => z * LegacyTan;
 
-        /// <summary>Chuyển toạ độ đo theo góc nhìn cũ sang toạ độ hiển thị đúng chỗ trên camera thẳng.</summary>
-        public static Vector3 FromLegacy(Vector3 p) => new Vector3(p.x, p.y + LegacyShift(p.z), p.z);
-
         static readonly HashSet<int> Flattened = new HashSet<int>(); // theo instance: scene nạp lại thì là phẳng lại
 
         /// <summary>
@@ -70,23 +67,6 @@ namespace BounceBlast.Gameplay
                 if (!UnderAny(sr.transform, animatedRoots))
                     sr.transform.position += new Vector3(0f, LegacyShift(sr.transform.position.z), 0f);
         }
-
-        /// <summary>
-        /// Hộp thạch đã xoay thêm -20° để quay mặt về camera thẳng → xoay đèn RIÊNG của thạch (chỉ chiếu layer Ammunation)
-        /// cùng -20° để sáng-tối trên hộp y như góc nhìn cũ. Đèn chung (cube + khung bàn tĩnh) giữ nguyên: khung bàn chỉ được
-        /// là phẳng (pháp tuyến không đổi), cube vốn đổ bóng theo toon riêng nên lệch 20° không thấy khác.
-        /// </summary>
-        public static void AlignLights(Transform root)
-        {
-            if (root == null || !LightsAligned.Add(root.GetInstanceID())) return;
-            int ammo = LayerMask.NameToLayer("Ammunation");
-            if (ammo < 0) return;
-            foreach (Light l in root.GetComponentsInChildren<Light>(true))
-                if (l.type == LightType.Directional && l.cullingMask == 1 << ammo)
-                    l.transform.rotation = Quaternion.Euler(-LegacyPitch, 0f, 0f) * l.transform.rotation;
-        }
-
-        static readonly HashSet<int> LightsAligned = new HashSet<int>();
 
         static bool UnderAny(Transform t, List<Transform> roots)
         {

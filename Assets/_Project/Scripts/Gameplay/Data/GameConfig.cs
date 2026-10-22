@@ -128,6 +128,18 @@ namespace BounceBlast.Gameplay
         [Tooltip("Độ lún của hộp chưa tới lượt (theo ô, ra xa camera). Lớn = chìm sau mặt khay, nhỏ = nổi ngang mặt khay")]
         [Range(0f, 2f)] public float ammoSinkDepth = 1.1f;
 
+        [Header("Ammo tunnel (/tu-XD) – áp dụng khi nạp level")]
+        [Tooltip("Cạnh lớn nhất của tunnel trên màn hình (theo ô khay)")]
+        [Range(0.3f, 1.5f)] public float tunnelSize = 0.95f;
+        [Tooltip("Độ nghiêng của mesh tunnel quanh trục X (độ). Mesh gốc là ống hở một đầu: −82° thì miệng ống hướng lên màn hình")]
+        public float tunnelTiltX = -82f;
+        [Tooltip("Xoay quanh trục nhìn (độ) cho miệng ống quay về hướng nhả hộp: lên / xuống / trái / phải. Gốc: 0 / 180 / 90 / −90")]
+        public float tunnelAngleUp = 0f, tunnelAngleDown = 180f, tunnelAngleLeft = 90f, tunnelAngleRight = -90f;
+
+        [Header("Hộp đạn – bay lên máng")]
+        [Tooltip("Chiều dài ống thạch lúc rời hố (theo bề ngang hộp). Mesh gốc Cube_1 dài 2.5 lần bề ngang, ống bay giãn thêm → video gốc đo được ~3.4–3.5 lần. 0.9 = như bản cũ (ngắn, hình khối)")]
+        [Range(0.9f, 4.5f)] public float ammoFlightLength = 3.4f;
+
         [Header("Hộp đạn – đậu trong máy xay")]
         [Tooltip("Chiều cao thanh đậu = tỉ lệ này × bề ngang lòng máy xay. Lớn hơn = thanh dài hơn, nhìn như xay lâu hơn")]
         public float dockHeightRatio = 2.6f;
@@ -141,6 +153,19 @@ namespace BounceBlast.Gameplay
         public float doorExtraSink = 1.6f;
 
         [Header("Khay đạn – hình khối")]
+        [Tooltip("Bật: khay (nền tường, mặt khay, hố, nắp) dựng bằng code theo LevelData. Tắt: không dựng – dùng mesh khay gốc HoleAll đặt sẵn trong scene (World/Level/Board - Default/HoleAll)")]
+        public bool trayProcedural = true;
+        [Tooltip("Bộ khối tường module gốc dùng che ô ngoài level của khay gốc (trống = tấm phẳng tự sinh)")]
+        public WallKit wallKit;
+        [Tooltip("Khay gốc: số cột × hàng ô chơi được ứng với cỡ HoleAll đặt trong scene (Lv44). Level ít ô hơn thì khay phóng to cho vừa, nhiều hơn thì thu nhỏ")]
+        public int trayRefCols = 7;
+        public int trayRefRows = 6;
+        [Tooltip("Giới hạn phóng to / thu nhỏ khay gốc theo level")]
+        public float trayMaxGrow = 1.3f;
+        [Tooltip("Vật liệu Unlit/Transparent cho viền khay (texture viền tô màu Theme.trayOutline do code vẽ)")]
+        public Material trayOutlineMaterial;
+        [Tooltip("Khay gốc: hộp đặt ở độ sâu miệng hố của hàng mình (mặt khay gốc nghiêng → mép dưới miệng hố che phần dưới thân hộp như game gốc). Số này dời thêm (theo ô): âm = nhô ra phía camera, dương = lún vào ống")]
+        public float trayBoxDepth = 0f;
         [Tooltip("Viền mặt khay chìa ra ngoài ô (theo ô)")]
         public float trayPanelPad = 0.10f;
         [Tooltip("Bo góc ngoài của mặt khay (theo ô)")]
@@ -204,6 +229,10 @@ namespace BounceBlast.Gameplay
         public float crusherShakeDamping = 6f;
 
         [Header("Nắp hố (sau khi hộp bay khỏi khay)")]
+        [Tooltip("Cỡ miệng hố (theo ô) – vành trên cùng của mesh Hole gốc rộng ~0.96 ô")]
+        [Range(0.3f, 1f)] public float holeLidSize = 0.96f;
+        [Tooltip("Bo góc miệng hố (theo ô) – vành trên mesh Hole gốc ≈ 0.30 ô")]
+        [Range(0f, 0.5f)] public float holeLidRadius = 0.30f;
         [Tooltip("Bề dày dải thạch đọng ở mép trên hố (theo ô)")]
         public float holeLidBand = 0.09f;
         [Tooltip("Thời gian các sợi thạch chảy dài xuống (giây)")]
@@ -266,6 +295,8 @@ namespace BounceBlast.Gameplay
             public Material trayWall;   // type 8: t4/t6/t3-wall
             public Material trayPanel;  // type 7: t4-bg / t6-bg 2 / t3-bg2
             public Material trayHole;   // type 5: Hole-1/2/3
+            [Tooltip("Màu đường viền sáng quanh vùng ô chơi của khay (đo từ ảnh gốc)")]
+            public Color trayOutline = new Color(0.40f, 0.44f, 0.86f);
         }
 
         public Theme ThemeFor(LevelDifficulty d) =>

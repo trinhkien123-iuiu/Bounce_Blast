@@ -785,3 +785,101 @@ Kiểm chứng: Edit mode – Nút Settings, Badge Level, Thanh booster đều "
 - Kiểm Play: hết Hammer/Capacity → popup đúng tên/icon/giá; bấm mua Capacity 0 → 3, popup đóng, game chạy tiếp; console sạch. Chưa kiểm: popup ở độ khó Hard/Super Hard (khung xanh dùng chung, chưa có ảnh gốc đổi tông), bấm bằng chuột thật.
 - (tiếp mục 22, chỉnh sau góp ý) Quầng sáng giờ XOAY: `Scripts/UI/UiSpin.cs` (xoay theo `unscaledDeltaTime` vì game đang tạm dừng) trên 2 lớp `Glow` (22°/s) và `Glow 2` (−35°/s, nhỏ hơn) đặt trong `GlowArea` có `RectMask2D` để tia không tràn ra ngoài ô kem (sprite ô kem có đệm trong suốt ~90 đơn vị trên/dưới nên khung cắt thụt 100). Nút mua phóng ×1,2 (`KPIAP Currency Spend Button`) cho khớp tỉ lệ ảnh gốc (đo ở 858×1908: nút ~48% bề ngang khung). Đối chiếu khung, ruy-băng, ô kem, nút với ảnh gốc ở cùng tỉ lệ: khớp.
 - (tiếp mục 22, lần 2) Nguyên nhân "méo": icon booster `boosterImage` bị kéo giãn ngang (ô 250×250 nhưng sprite không vuông, chưa bật Preserve Aspect) → bật `preserveAspect`, ô 245. Chỉ giữ MỘT nguồn sáng (`Glow`, xoay, alpha 0,6, cỡ 520) – bỏ lớp `Glow 2`. Đồng xu ×0,9 và nhãn ×3 ×0,92 (khi phóng nút ×1,2 hai thứ này to hơn gốc ~10%); chữ mô tả tối đa 56, nâng lên 14 đơn vị. Đối chiếu cạnh nhau với `Booster/4.jpg` (858×1908): khung, ruy-băng, ô kem, nút khớp.
+
+## 23. Mesh hố khay đạn gốc (Hole.asset) từ bản rip mới
+- **Nguồn:** `D:\GitHub\Bounce_Blast_duclai\ExportedProject\Assets\Mesh\Hole.asset`. Bản rip cũ không có mesh này.
+- **Đã thêm** vào `Art/Ammo/Meshes/Hole.asset`, chép nguyên bản (giữ GUID `7644a00f…`, 6520 đỉnh, 9930 tam giác). **Chưa dùng trong game**: khay vẫn dựng như mục 20–21.
+- **Giải mã (ManagerScene, `KP Grid Manager - Ammo`):**
+  - Lưới 10×9 `GridPoint` bước 1.8, cha scale 0.88 → bước 1.584; vùng chơi 8×7.
+  - `HoleAll` dùng `Hole.asset`: lưới 8×7 hố bo tròn, mỗi hố là một ống sâu ~9 ô (bước hố 1.5746, miệng 0.96 bước, ống 0.85 bước). Vật liệu `Hole_1`, đổi theo theme bằng `Hole-1/2/3`.
+  - Nắp từng ô: `Hole.007`. Tấm tường quanh khay: `OutsideWall` + 2 `Quad`. Cửa nắp của Blocker: `Manhole_L/R`.
+- **Đã thử rồi hoàn tác (theo yêu cầu):**
+  - Nhân một hố cho từng ô, kèm nghiêng theo góc nhìn gốc.
+  - Cỡ ô khay theo số hàng (`ammoAreaHeight`).
+  - Gờ tường che đáy hộp hàng cuối.
+- **Ghi nhận khi đối chiếu Lv40 với video gốc (để dùng sau):**
+  - Màu mặt khay và tường đã khớp.
+  - Cỡ ô ở Lv40 nhỏ hơn gốc ~15%. Ở gốc, ô co theo số hàng: cỡ ô ≈ 8.9 / số hàng, tối đa 1.78.
+  - Hộp hàng cuối (ô bên dưới là tường) bị cắt phẳng ~24% ở đáy.
+- **(tiếp mục 23) Thử khay gốc thay khay tự sinh:**
+  - `GameConfig.trayProcedural` = **false** (tạm): `AmmoTrayView.Build` bỏ qua, không dựng nền tường, mặt khay, giếng, nắp.
+  - Object `World/HoleAll` (MeshRenderer `Hole.asset` + `Hole-1`) đặt đúng transform gốc: `KP Grid Manager - Ammo` (6.13, −14.32, −5.02, Rx −45°) ∘ `HoleAll` (0, −0.53, −0.59, Rx −90°), cộng thêm độ lệch của `Board - Default` (0, 3.33, 0) để khớp với bàn của project.
+  - **Không dựng mesh lúc chạy (user hỏi "chỉnh thủ công được không"):** `World/HoleAll` đặt sẵn transform nhìn thẳng, chỉnh tay được, Edit mode = Play mode.
+    - Xoay **−155° quanh X** = góc gốc −135° cộng camera gốc nghiêng 20° (nhìn bằng camera nghiêng = xoay vật ngược lại rồi nhìn thẳng). Tỉ lệ dọc/ngang của hố là 0.906, khớp video gốc (59/65 px).
+    - Vị trí (5.30, −13.33, 2.244): lưới cân giữa; hàng đầu ở y −8.75 (ngay dưới Capacity); hàng gần camera nhất của mặt khay ở z −0.4, sau lưng hộp.
+    - `AmmoGridController.originalTray` → `BuildOriginalTray` chỉ đọc tâm hố từ transform hiện tại (`TransformPoint`), lấy bước ô ngang 1.5746, dọc 1.427. Hộp cột c, hàng r nằm đúng hố (c, r). Vật liệu đổi theo độ khó (`theme.trayHole`).
+  - Kiểm Play Lv45: hộp nằm đúng trong hố; khay nằm ngay dưới thanh Capacity như ảnh gốc; console sạch.
+  - **Tường che ô ngoài level** (`AmmoTrayView.BuildCover`, gọi khi dùng khay gốc):
+    - Mesh `TrayCoverWall` (vật liệu `theme.trayWall`, t4-wall gốc) ở z −0.5, nằm trước mặt khay gốc và sau lưng hộp. Phủ các ô tường và vùng ngoài lưới; ô tường thụt `trayPanelPad` ở cạnh giáp ô chơi được, nên mặt khay chừa viền mảnh quanh hố.
+    - Góc lồi của mặt khay bo bằng màu tường (`trayPanelRadius`). Góc lõm bo bằng màu mặt khay (`TrayCoverFill`, vật liệu của HoleAll, z −0.52).
+    - `AmmoTrayView` nhận thêm bước hàng `pitchY` (khay gốc 1.427).
+  - Đối chiếu Lv40 với `video_game.mp4`: khớp hình khay, rãnh ô trống, tường, góc bo. Khay hẹp hơn gốc ~8% (camera của project zoom khác camera gốc).
+  - Bật lại khay cũ: `trayProcedural` = true.
+- **Hộp nằm trong hố (khay gốc):**
+  - `AmmoGridController.CellWorld` trả z = độ sâu miệng hố của hàng (hàng 0 → 6: 3.59 … −0.40) + `GameConfig.trayBoxDepth` (−0.6 ô). Mép dưới miệng hố nghiêng tự che phần dưới thân hộp như gốc.
+  - `ThemeApplier` đẩy nền `Gradient_Back/Mask NORMAL` ra z ≈ 8 (trước đây nó ở z ≈ 0 và cắt mất đỉnh hộp hàng trên).
+  - Chưa kiểm: hộp bay lên máng có bị mặt khay che đoạn đầu không.
+
+## 24. Ống thạch bay lên máng dài như gốc
+- User: "không cần rig xương, chỉ cần 3–4 điểm rồi uốn mesh gốc theo, mesh gốc Ammo dài hơn".
+- Kiểm: `AmmoFlightTube` ĐÃ làm đúng cách đó – mesh gốc `Cube_1` (1.9 × 4.8, tỉ lệ 2.5:1; cả bản rip mới cũng chỉ có Cube_1 tĩnh, `RiggedCube` bị rip thành mesh không xương), đường bay 4 điểm (miệng hố → lên → trên máng → chân máng) bo cung tròn, 12 "xương" chỉ là 12 điểm lấy mẫu dọc đường rồi Unity skin trên GPU (không có rig vẽ tay).
+- Cái ngắn là **độ dài lúc rời hố**: `h0 = 0.9 × bề ngang` (gần như khối vuông). Video gốc (Play4, khung 596–604): ống rời hố đã dài ~3.4–3.5 lần bề ngang.
+- Sửa: `GameConfig.ammoFlightLength` (mặc định **3.4**, 0.9 = như cũ) dùng cho `h0` trong `AmmoBoxFlight.FlyRoutine`. Kiểm Play chậm 0.03×: ống dài, rời hố và uốn vào máng như gốc, console sạch.
+
+## 25. Dọn code thừa
+- Quét toàn bộ `Scripts` + `Editor` tìm thành viên khai báo mà không nơi nào dùng, rồi bỏ những cái chắc chắn thừa (không đụng menu Editor, interface Unity, trường dữ liệu serialize):
+  - `AmmoFlightTube.SetVisible` + field `_smr`
+  - `AmmoGridController.RemainingBoxes`, `AnyRemainingOfColorsNeeded`
+  - `Ball.SetLanePosition`, `BoardGrid.Cols`, `BoosterSystem.HasAny`
+  - `ViewSpace.FromLegacy`, `AlignLights` (+ tập `LightsAligned`)
+  - `MirroredImage.SetMirrorMode`, `MenuPager.Current`, `ProfilePopupView.AvatarCount`
+- Biến chết trong code đã có: `dyz` (`AmmoBox`), `tan` / `dyTop` / `dyBot` (vách giếng `AmmoTrayView`, luôn bằng 0).
+- Nhánh khay gốc ở `AmmoGridController.Build` dùng một cờ `useOriginalTray` thay vì lặp điều kiện hai lần.
+- Còn nguyên (chỉ liệt kê, không phải code chết): trường dữ liệu chưa ai đọc `GameConfig.homingStrength` / `fallSpeed` / `Theme.hudTint`, `LevelData.sourceImage`, `LevelPack.packName`, `UiSkin.boosterBuyPrefab`.
+- Kiểm Play Lv45: bắn hộp ra bi, Shuffle giữ nguyên số hộp, console sạch.
+
+## 26. Thông số Ammo tunnel trong GameConfig
+- Mục mới **"Ammo tunnel (/tu-XD)"** trong `GameConfig` (áp dụng khi nạp level): `tunnelSize` 0.95 (cạnh lớn nhất theo ô khay), `tunnelTiltX` −82° (nghiêng quanh X), `tunnelAngleUp/Down/Left/Right` = 0 / 180 / 90 / −90° (xoay quanh trục nhìn cho miệng ống hướng về lối nhả hộp). Trước đó các số này nằm cứng trong `AmmoTunnel.Init`; mặc định giữ y như cũ.
+- Kiểm Lv13 (2 tunnel): mặc định xoay 90° / 270°, cỡ 0.61; đổi `tunnelSize` 1.3 và `tunnelAngleLeft` 45 rồi nạp lại level → cỡ và góc đổi theo. Đã trả về mặc định.
+- **(tiếp mục 23) Căn giữa cụm cột chơi được:** khi mới có tường che ô ngoài level thì chỉ còn thấy cụm cột có hộp, nên level dùng cột lệch (Lv13: cột 0–4) bị lệch trái. `AmmoGridController.BuildOriginalTray(cMin, cMax, centerX)` dời `HoleAll` theo x mỗi level cho tâm cụm cột nằm đúng giữa màn (tâm hộp Lv13 = 5.30, camera 5.31), như game gốc dời lưới. Hệ quả: vị trí x của `HoleAll` lúc Play do code đặt; lúc chưa Play nó đứng ở chỗ đã lưu (8 cột cân giữa).
+- **(tiếp mục 23) Tấm che nhem nhuốc → sạch:**
+  - Nguyên nhân: góc lõm của mặt khay (như chỗ khuyết dưới Lv13) trước đây được bo bằng mảnh `TrayCoverFill` tô màu mặt khay bằng vật liệu khác, nên lệch tông với mặt khay gốc → viền xanh nhạt loang. Nay bỏ hẳn mảnh đó: ô tường ở góc lõm được **cắt tròn góc** (`RoundedRect` trong `BuildCover`), hở ra đúng mặt khay gốc phía sau. Chỉ còn một vật liệu (`theme.trayWall`).
+  - Nắp hố trở lại: `AmmoTrayView.Build` luôn tạo vật liệu cho `SpawnHoleLid` (trước đó thoát sớm nên hộp rời ô để lại hố đen); nắp đặt ngay trước mặt khay của hàng (`rowZ − 0.05`).
+  - Mesh tấm che gốc: **không có mesh riêng**. Game gốc ghép lúc chạy từ prefab `ModularPrimitiveAmmoWall - Wallbase` (≈49 biến thể tên theo tập ô kề: `L-TL-T-TR-R`, `L-T-B-BL`…, mỗi biến thể gồm `Kub` / `Side` / `Corner` / `LCornerHalf` / `1xRoundedSide` là khối tường nổi có cạnh bo; vật liệu `standardSurface/lambert/c1 - Frame` + `t4-wall`) rồi gộp bằng `MeshCombinerManual`. Muốn y hệt thì phải dựng lại bộ chọn biến thể đó (xem mục 20).
+
+
+### Khối tường module gốc cho tấm che khay (ModularPrimitiveAmmoWall - Wallbase)
+- Thay các tấm phẳng tự sinh bằng bộ khối 3D gốc: 9 mesh (`Art/Ammo/Meshes/Wall/`, giữ GUID gốc) → `Tools/Bounce Blast/Bake Wall Kit` (đọc `Editor/WallKit/wall_variants.json` trích từ prefab gốc) gộp thành 49 biến thể trong `WallKit.asset`, đặt tên theo tập ô tường lân cận (L, TL, T, TR, R, BR, B, BL).
+- `AmmoTrayView.BuildWallBlocks`: mỗi ô không chơi được (ngoài lưới coi như tường) chọn biến thể theo 8 ô lân cận (thiếu tên thì lấy bản lệch ít nhất), đặt theo lưới hố của HoleAll, gộp 1 mesh (1 draw call), vật liệu `trayWall`. Khối nhô `WallLift` = 0.3 ô khỏi mặt khay.
+- `GameConfig.wallKit` trống = không che. Chưa so được độ đậm nhạt/bóng với ảnh gốc (vật liệu t4-wall tối, nhìn thẳng ít thấy mặt bên).
+
+### Đối chiếu toàn cảnh với ảnh gốc (Lv44 Hard, Lv40 Normal)
+- Ảnh so sánh lưu ở `Asset_MainGame_Bounce Blast/frames/cmp_lv44_*.png`.
+- Khối tường: nhô `WallLift` 0.05 ô (gần phẳng như gốc, không lộ vách), hàng phụ phía trên phủ kín tới thanh capacity; ô tường đứng một mình dùng `4xRounded` gốc.
+- Viền khay (làm lại vì bản phồng khối bị loang/nhem): `AmmoTrayView.BuildOutline` vẽ 1 texture theo khoảng cách tới vùng ô chơi (hợp ô vuông, bo góc lồi 0.12 / góc lõm 0.2 ô, mép thẳng không gợn), viền cách mép 0.05 ô rộng 0.065 ô, dán lên 1 tấm phẳng song song mặt khay trên mặt tường; màu `Theme.trayOutline` (Hard (252,171,155), Super Hard (117,117,117), Normal nhạt), vật liệu `TrayOutline.mat` (Unlit/Transparent). Phía trên hàng 0 để hở như gốc.
+- Cỡ khay: HoleAll scale 0.89 cho level chuẩn 7×6 ô (Lv44); level ít ô hơn khay phóng to (`trayRefCols/Rows`, `trayMaxGrow`) như gốc (Lv40 5×5 ô to hơn ~20%). `ammoTargetCell` 1.2 → camera không thu nhỏ cảnh thừa (bảng chơi đúng cỡ gốc).
+- Số trên khối gộp nhỏ & nét mảnh hơn; "Black" đổi sang xám trung tính (gốc đo (51,51,51), bản rip là xanh navy).
+- Còn khác: khối gộp trắng sáng hơn gốc (255 vs 219); khay hẹp hơn gốc ~3%.
+- Soát nhiều màn so với ảnh gốc: Lv2 (`PLay2.jpg`), Lv19 Super Hard (`MainPlay.jpg`), Lv24 Hard (`Play3.jpg`), Lv40 Normal, Lv44 Hard.
+  - Gốc phóng ô khay tối đa ~1.16 lần (Lv2 3×3 ô và Lv40 5×5 ô cùng cỡ ô ≈ 0.14 bề ngang màn) → `trayMaxGrow` 1.16 (trước 1.3 làm Lv2 quá to, hàng đầu đè thanh capacity).
+  - Ống tunnel: `tunnelTiltX` −70, `tunnelSize` 1.15 (gốc nhìn gần chính diện, rộng gần bằng ô); số đếm to hơn (`cellSize * 6`).
+  - Viền khay theme Normal gần màu vùng ô chơi (74,82,173) – gốc gần như không thấy đường viền ở theme xanh.
+- Viền ngăn cách bảng chơi – khay: vùng "hở" của viền gồm cả toàn bộ phía trên hàng 0 → đường viền chạy ngang hết bề rộng màn ở mép trên khay, nối vòng quanh các ô (bo góc ở chỗ nối) như ảnh gốc. HoleAll nâng thêm 0.38 cho đường này trùng vị trí gốc (Lv44); hộp hàng đầu hạ `ammoActivePose.offset.y` 0.39 → 0.15 để không chui dưới thanh Capacity.
+- Gạch 1 ô trên bảng chơi bo quá tròn (góc 0.25, hở nền ở chỗ 4 viên gặp nhau). Đo cận cảnh ảnh gốc Lv44 → `cubeCornerRadius` 0.18, `cubeEdgeRound` 0.16, `cubeOverlap` 1.06: góc bo nhẹ, các viên khít nhau như gốc. Nắp hố bo nhẹ riêng: `holeLidRadius` 0.06.
+- Bỏ tấm che phía trên đường viền ngang: không dựng hàng tường phụ phía trên hàng 0 nữa; khi chọn biến thể khối, phía trên hàng 0 coi như hở → khối hàng 0 bo mép trên, tấm che dừng đúng ở đường viền, phía trên lộ nền như gốc.
+- Nắp hố khớp miệng hố gốc: đo mesh Hole – miệng rộng 0.88 ô, bo góc ≈0.27 ô (`holeLidSize`, `holeLidRadius`); bề dọc co theo bước hàng trên màn hình. Dải thạch đổi từ thanh thẳng sang dải cong bám mép trên + 2 góc bo của miệng hố (mỏng dần 2 đầu), các sợi nhỏ giọt treo đúng dưới mép cong tại vị trí của chúng.
+- Cửa kính (hộp đóng mở) khớp miệng hố gốc: `HoleRect` của khay gốc dùng đúng cỡ miệng hố (0.88 ô, co dọc theo bước hàng), mặt cửa ngay trước mặt khay của hàng; mesh Cover co dọc theo tỉ lệ miệng hố.
+- Hộp đóng băng đã thông đường: nhô khỏi hố như hộp active (vẫn chưa bấm được) – `AmmoBox.SetClickable(clickable, raised)`.
+- Nắp hố & cửa kính nằm TRONG mặt khay nghiêng của HoleAll (`AmmoTrayView.PlateRotation`, nổi 0.02 ô) thay vì tấm phẳng hướng camera → trùng khít vành miệng hố, hết vệt tối lệch ở mép dưới. Cỡ theo vành trên cùng của mesh Hole: `holeLidSize` 0.96, `holeLidRadius` 0.30.
+- Gạch bảng chơi bớt "nhựa": shader gốc `BounceBlast/CubeIsolatedOptimized` có specular trắng, nhám 0.4 → trên mép bo mịn thành vạch trắng bóng. Đổi trên 16 vật liệu gạch (ColorLibrary.cubeMaterial): `_SpecularRoughness` 0.55, `_SpecularColor` xám 0.55 → ánh sáng mép mềm, mờ như gốc. Mesh gạch bo mịn hơn (`RoundedCubeMesh` 4 nấc góc / 3 nấc mép), bo góc & mép 0.2, `cubeOverlap` 1.08 (hết chấm nền lọt ở chỗ 4 viên gặp nhau).
+- Vệt sáng ôm sát mép trên & uốn theo góc như gốc: nguyên nhân là thân gạch dày (0.97) nên góc nghiêng làm lộ mặt trên thành dải phía trên vệt sáng. `cubeBodyDepth` 0.5, bo góc 0.2 / mép 0.14, `cubeOverlap` 1.12. Mesh gạch thêm tấm lót vuông phía sau (pháp tuyến quay vào trong → tô màu bóng) để chỗ 4 góc bo gặp nhau thành khe tối như gốc, không lộ nền.
+- Bảng màu "candy pop" 9 màu (đo bám ảnh gốc): cyan #24D3F2, xanh lá #1FCF5A, vàng #FFD60A, cam #FD7400, đỏ #FF4B5C, hồng #E33FAF, tím #7A3EEB, xám trắng #DCDCDE, đen #353638. Áp vào `ColorLibrary.color` + vật liệu gạch bảng chơi: `_BaseColor` = màu bảng, `_HColor` sáng hơn 12% (trắng 5%), `_SColor` cùng tông tối ~72% (khe/viền tối giữa các viên), specular xám 0.7 cho viền bóng mép trên. Mặt gạch đo lệch gốc ≤ 15 đơn vị. Vật liệu hộp đạn GIỮ màu cũ (jelly gốc sáng hơn gạch; áp bảng mới làm hộp xỉn). Bản lưu màu cũ: `Docs/lich-su/bang-mau-cu-truoc-palette.txt`.
+- Lưu ý: vật liệu gạch được nhân bản vào cache tĩnh `ShadeVariant` lúc nạp level đầu → đổi màu vật liệu phải chạy lại Play mới thấy.
+- Gạch: góc VÁT CHÉO như gốc (RoundedCubeMesh `CornerSegs` = 1, cạnh vát `cubeCornerRadius` 0.14), mép mặt trước vẫn bo mịn. Vân sáng/tối từng viên (đo gốc ±8%): `ColorLibrary.shadeOffset` (−0.07, 0.05) – âm = sáng hơn, dương = tối hơn (shader pha về trắng/đen) – chia 6 mức (`ShadeBuckets`).
+- Sửa lỗi: project tắt domain reload khi vào Play nên cache tĩnh (`BlockVisualFactory.ShadeMats`, `RoundedCubeMesh.Cache`) giữ vật liệu/mesh cũ giữa các lần Play → thêm reset `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]`.
+- Góc gạch theo phác thảo của user: chỉ "vót" nhỏ ở 4 đầu nhọn rồi làm mịn nhẹ (`CornerSegs` 2, `cubeCornerRadius` 0.09), cạnh gần thẳng (`cubeEdgeRound` 0.06).
+- Gạch 1 ô không ngả −20° từng viên nữa (mỗi hàng đều lộ dải mặt trên + khe hở). Game gốc nghiêng CẢ bàn (camera 20°): các viên nằm phẳng sát nhau nên mặt trên viên dưới bị viên trên che, chỉ hàng đầu lộ mặt trên. Làm lại bằng cách XIÊN mesh gạch (`ShearForView`, như khối gộp): mặt trước nằm đúng lưới, phần sâu đẩy lên sau viên phía trên. Góc gạch: vót nhỏ 0.12, bo mép 0.1, `cubeOverlap` 1.05.
+- Phân cấp mặt trước / mặt trên gạch: sau khi xiên cả bàn, độ dày thân chỉ ảnh hưởng hàng đầu → trả `cubeBodyDepth` 0.97 (dải mặt trên hàng đầu cao ~1/3 ô như gốc). Mép vát rộng hơn `cubeCornerRadius`/`cubeEdgeRound` 0.16 để viền vát lộ đủ 4 cạnh; `_SColor` gạch tối hơn (~62% độ sáng, đậm hơn chút) → viền ngoài từng viên rõ như gốc.
+- HOÀN TÁC cách xiên cả bàn (user thấy khối gộp nằm trước, nhìn lệch): trở lại ngả −20° từng viên gạch 1 ô; `blockFrontZ` −0.36, `blockDepth` 0.2, `cubeBodyDepth` 0.5, góc vót 0.12 / bo mép 0.1, `cubeOverlap` 1.05. Giữ bảng màu, vân sáng/tối, góc vót 2 nấc và màu bóng `_SColor` đậm hơn.
+- Bỏ viền xám trắng quanh khung máng: do slot vật liệu 2 của mesh `Conveyor` (dải mảnh dọc 2 mép khung) dùng vật liệu mặt trên (`conveyorSurface`) → hiện thành vạch (212,212,212). `ThemeApplier` giờ cho slot 2 trùng vật liệu thành bên (slot 1), áp cho mọi theme.
+- Viền khay bị "hở": giữa vùng ô chơi và đường viền lộ mép bo (tối) của khối tường → viền trông tách rời, như hở màu. `OutlineGap` 0.05 → 0, `OutlineWidth` 0.065 → 0.1: viền ôm sát mép vùng hở, phủ luôn mép bo.

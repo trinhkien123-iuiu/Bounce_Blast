@@ -31,6 +31,7 @@ namespace BounceBlast.UI
         [SerializeField] SettingsPopupView _settings;
         [SerializeField] OutOfCapacityPopupView _outOfCapacity;
         [SerializeField] BoosterBuyPopupView _boosterBuy;
+        [Tooltip("Viền trắng khi nhấn giữ tăng tốc (prefab SpeedUpCanvas)")] [SerializeField] SpeedUpView _speedUp;
 
         Camera _cam;
         GameConfig _config;
@@ -93,6 +94,13 @@ namespace BounceBlast.UI
             if (_overlayView == null) return;
             _overlayView.gameObject.SetActive(true);
             BindBoosters();
+            _speedUp = GetView(_speedUp, "SpeedUpCanvas", v => v.Validate());
+        }
+
+        /// <summary>Hiện / ẩn viền trắng tăng tốc (InputManager gọi khi bắt đầu / thôi nhấn giữ).</summary>
+        public void SetSpeedUp(bool on, float speed = 1.5f)
+        {
+            if (_speedUp != null) _speedUp.SetOn(on, speed);
         }
 
         //HUD

@@ -98,6 +98,7 @@ namespace BounceBlast.Gameplay
             Debug.Log($"[BounceBlast] Level {id} ({Level.Difficulty}) – board {Level.BoardCols}x{Level.BoardRows} x{Level.Multiplier}, " +
                       $"capacity {Level.Capacity}, tổng bi {Level.TotalBalls}, khối {_board.DestructibleCount}");
             OnLevelLoaded?.Invoke(Level);
+            SceneFlow.MarkLevelReady();
         }
 
         public void Restart() => LoadLevel(currentLevel);

@@ -39,7 +39,6 @@ namespace BounceBlast.UI
         public event Action<string, int> OnSave;
         public event Action OnClose;
 
-        public int AvatarCount => slots.Length;
         int _avatar;
         Vector3[] _slotScale;   // cỡ từng ô trong prefab
 

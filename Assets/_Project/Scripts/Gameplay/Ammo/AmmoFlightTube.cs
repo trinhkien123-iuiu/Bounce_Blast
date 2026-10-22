@@ -21,7 +21,6 @@ namespace BounceBlast.Gameplay
         float _yMin, _yMax, _cross;
         Vector3[] _path;
         float[] _cum;
-        SkinnedMeshRenderer _smr;
 
         public float Length => _cum != null ? _cum[_cum.Length - 1] : 0f;
 
@@ -57,7 +56,6 @@ namespace BounceBlast.Gameplay
             smr.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
             go.layer = source.gameObject.layer;
             if (mpb != null) smr.SetPropertyBlock(mpb);
-            tube._smr = smr;
             return tube;
         }
 
@@ -285,11 +283,6 @@ namespace BounceBlast.Gameplay
         public void PoseStraight(Vector3 bottom, float height, float width)
         {
             PoseStraight(bottom, height, width, Quaternion.identity);
-        }
-
-        public void SetVisible(bool on)
-        {
-            if (_smr != null) _smr.enabled = on;
         }
     }
 }

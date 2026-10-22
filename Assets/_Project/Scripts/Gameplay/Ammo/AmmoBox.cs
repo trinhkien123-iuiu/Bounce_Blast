@@ -125,7 +125,7 @@ namespace BounceBlast.Gameplay
         }
 
         /// <summary>Đặt cửa lên miệng hố: tâm world, kích thước ô hố (bán kính bo góc không dùng – mesh gốc đã bo).</summary>
-        public void SetCoverPlacement(Vector3 worldCenter, Vector2 size, float radius) => _door?.Place(worldCenter, size);
+        public void SetCoverPlacement(Vector3 worldCenter, Vector2 size, Quaternion plate) => _door?.Place(worldCenter, size, plate);
 
         /// <summary>Tâm mặt nắp của cột jelly: trung bình các đỉnh ở đầu cột (trục dài nhất của mesh) quay về phía camera.</summary>
         void ComputeCapPoint()
@@ -199,12 +199,14 @@ namespace BounceBlast.Gameplay
         }
 
         // ------------------------------------------------------------------ Trạng thái trong khay
-        public void SetClickable(bool value, bool instant = false)
+        /// <param name="value">bấm được</param>
+        /// <param name="raised">nhô khỏi hố (tư thế active). Hộp đóng băng đã thông đường: nhô như hộp active nhưng chưa bấm được (như gốc)</param>
+        public void SetClickable(bool value, bool raised, bool instant = false)
         {
             IsClickable = value;
-            _scaleTarget = value ? _config.ammoActiveScale : _config.ammoInactiveScale;
-            _tintTarget = value ? 1f : 0.92f; // Tươi sáng, phân biệt active qua độ nhô & scale
-            _sinkTarget = value ? 0f : 1f;
+            _scaleTarget = raised ? _config.ammoActiveScale : _config.ammoInactiveScale;
+            _tintTarget = raised ? 1f : 0.92f; // Tươi sáng, phân biệt active qua độ nhô & scale
+            _sinkTarget = raised ? 0f : 1f;
             if (instant) { _scaleNow = _scaleTarget; _tint = _tintTarget; _sink = _sinkTarget; ApplyScale(); ApplyTint(); }
         }
 
@@ -309,8 +311,6 @@ namespace BounceBlast.Gameplay
                 float k = Mathf.SmoothStep(0f, 1f, _sink);
                 // cửa đóng: hộp tụt sâu hẳn sau mặt khay như buồng thang máy, cửa 2 cánh khép trên miệng hố
                 float dz = (SinkDepth + _doorSink * _config.doorExtraSink) * _cell * k;
-                // xuống tới mặt khay thì bám theo độ lệch y của miệng hố, sâu hơn nữa thì tụt THẲNG theo trục giếng (không trôi sang giếng dưới)
-                float dyz = Mathf.Min(dz, 0.8f * _cell * k); // bù 80% → hộp hơi thấp hơn tâm hố, gờ dưới của hố che mép dưới như ảnh gốc
                 _visual.localPosition += new Vector3(0f, 0f, dz);
             }
             CenterCapOnHole();

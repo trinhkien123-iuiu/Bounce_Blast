@@ -177,6 +177,7 @@ MonoBehaviour:
   sweep: 0.55
   startDelay: 0.25
   travel: 0.75
+  playOnEnable: 0
 --- !u!1 &256
 GameObject:
   m_ObjectHideFlags: 0
@@ -16504,6 +16505,7 @@ MonoBehaviour:
   sweep: 0.55
   startDelay: 0
   travel: 0.75
+  playOnEnable: 0
 --- !u!1 &2661
 GameObject:
   m_ObjectHideFlags: 0
@@ -19157,30 +19159,24 @@ MonoBehaviour:
   dim: {fileID: 3889373291025666214}
   logoArea: {fileID: 13774}
   logo: {fileID: 12412}
-  logoAnimation: {fileID: 12867}
-  logoBadge: {fileID: 10540}
-  logoBlast: {fileID: 10559}
-  logoLetters:
-  - background: {fileID: 10996}
-    glyph: {fileID: 13109}
-  - background: {fileID: 14277}
-    glyph: {fileID: 12774}
-  - background: {fileID: 10744}
-    glyph: {fileID: 13396}
-  - background: {fileID: 11256}
-    glyph: {fileID: 10713}
-  - background: {fileID: 11570}
-    glyph: {fileID: 12272}
-  - background: {fileID: 11234}
-    glyph: {fileID: 13001}
+  logoAnimator: {fileID: 5960}
+  logoState: Banner Animation
+  letterSoundTimes:
+  - 0
+  - 0.1
+  - 0.217
+  - 0.317
+  - 0.417
+  - 0.517
+  blastSlamTime: 1.233
   confettiRoot: {fileID: 1999}
   confettiBursts:
   - {fileID: 7375036504430396085}
   - {fileID: 8888582071253596920}
-  burstDelay: 0.95
+  burstDelay: 1.35
   burstStep: 0.15
   confettiRain: {fileID: 2941065196436767470}
-  rainDelay: 1
+  rainDelay: 1.4
   rainHideAfter: 6
   fireworks: {fileID: 6402}
   areaGlow: {fileID: 887991364496154244}
@@ -19289,7 +19285,7 @@ Animator:
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 9100000, guid: 68ade6ccf9a418f45a89ccab4bb59240, type: 2}
   m_CullingMode: 0
-  m_UpdateMode: 0
+  m_UpdateMode: 2
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
@@ -27098,7 +27094,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 168.05
+  m_fontSize: 150.95
   m_fontSizeBase: 100
   m_fontWeight: 400
   m_enableAutoSizing: 1

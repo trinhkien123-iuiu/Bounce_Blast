@@ -27,14 +27,14 @@ RectTransform:
   m_GameObject: {fileID: 73261136624531258}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.61174524, y: 0.7552411, z: 0.7552411}
+  m_LocalScale: {x: 0.7588144, y: 0.936808, z: 0.936808}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7131112447372852989}
   m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -0.000014764}
+  m_AnchoredPosition: {x: 0, y: 4.4292e-10}
   m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8707279206597980425
@@ -513,8 +513,7 @@ MonoBehaviour:
     title: Settings
   hover: {fileID: 6262261638866423020}
   selectedIconScale: 1.2
-  selectedIconY: 68
-  iconY: 0
+  selectedIconLift: 68
   hoverSpeed: 14
 --- !u!1 &1898277991093734324
 GameObject:

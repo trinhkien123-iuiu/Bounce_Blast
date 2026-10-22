@@ -37,14 +37,16 @@ namespace BounceBlast.Gameplay
             _drips.SetParent(transform, false);
             _drips.localPosition = new Vector3(0f, yTop, -0.002f);
             float band = cell * (config != null ? config.holeLidBand : 0.09f);
-            Part("Band", RoundedRectMesh(-halfW, -band, halfW, 0f, 0f, radius, radius, 0f), jelly, 0f, _drips);
+            radius = Mathf.Min(radius, halfW, (yTop - yBottom) * 0.5f);
+            // dải thạch ôm theo mép trên miệng hố (cạnh trên + 2 góc bo), mỏng dần xuống 2 bên
+            Part("Band", TopRimMesh(halfW, radius, band), jelly, 0f, _drips);
             var rnd = new System.Random(GetInstanceID());
             float w = cell * 0.045f;
             for (float x = -halfW + cell * 0.08f; x < halfW - cell * 0.06f; x += cell * (0.07f + (float)rnd.NextDouble() * 0.05f))
             {
                 float len = cell * (0.06f + (float)rnd.NextDouble() * 0.24f);
                 Transform s = Part("Strand", RoundedRectMesh(x - w * 0.5f, -1f, x + w * 0.5f, 0f, w * 0.5f, 0f, 0f, w * 0.5f), jelly, 0f, _drips);
-                s.localPosition = new Vector3(0f, -band + 0.001f, 0f);
+                s.localPosition = new Vector3(0f, TopEdge(x, halfW, radius) - band + 0.001f, 0f);   // treo dưới mép thạch tại x đó
                 s.localScale = new Vector3(1f, 0.001f, 1f);
                 _strands.Add(s);
                 _strandLen.Add(len);
@@ -113,6 +115,44 @@ namespace BounceBlast.Gameplay
                 tri.Add(0); tri.Add(a); tri.Add(b);
             }
             var m = new Mesh { name = "HoleFx" };
+            m.SetVertices(v);
+            var n = new List<Vector3>(); for (int i = 0; i < v.Count; i++) n.Add(Vector3.back);
+            m.SetNormals(n);
+            m.SetTriangles(tri, 0);
+            m.RecalculateBounds();
+            return m;
+        }
+
+        /// <summary>Độ cao mép trên miệng hố tại x (so với mép trên, ≤ 0): phẳng ở giữa, cong xuống theo góc bo.</summary>
+        static float TopEdge(float x, float halfW, float r)
+        {
+            float d = Mathf.Abs(x) - (halfW - r);
+            return d <= 0f ? 0f : -r + Mathf.Sqrt(Mathf.Max(0f, r * r - d * d));
+        }
+
+        /// <summary>Dải cong dày "band" bám mép trên miệng hố: đường ngoài = mép trên + 2 cung góc, đường trong = đường ngoài dời xuống band.</summary>
+        static Mesh TopRimMesh(float halfW, float r, float band)
+        {
+            const int N = 24;
+            var v = new List<Vector3>(); var tri = new List<int>();
+            for (int i = 0; i <= N; i++)
+            {
+                // tham số theo cung: góc trái (180°→90°), cạnh thẳng, góc phải (90°→0°)
+                float t = i / (float)N, x, y;
+                float arc = Mathf.PI * 0.5f * r, flat = 2f * (halfW - r), len = 2f * arc + flat, u = t * len;
+                if (u < arc) { float a = Mathf.PI - u / r; x = -(halfW - r) + Mathf.Cos(a) * r; y = -r + Mathf.Sin(a) * r; }
+                else if (u < arc + flat) { x = -(halfW - r) + (u - arc); y = 0f; }
+                else { float a = Mathf.PI * 0.5f - (u - arc - flat) / r; x = (halfW - r) + Mathf.Cos(a) * r; y = -r + Mathf.Sin(a) * r; }
+                float k = Mathf.Clamp01(Mathf.Min(t, 1f - t) * 6f);   // 2 đầu mỏng dần
+                v.Add(new Vector3(x, y, 0f));
+                v.Add(new Vector3(x, y - band * k, 0f));
+                if (i > 0)
+                {
+                    int a0 = (i - 1) * 2, b0 = i * 2;
+                    tri.AddRange(new[] { a0, b0, a0 + 1, b0, b0 + 1, a0 + 1, a0, a0 + 1, b0, b0, a0 + 1, b0 + 1 });   // 2 mặt
+                }
+            }
+            var m = new Mesh { name = "HoleJellyRim" };
             m.SetVertices(v);
             var n = new List<Vector3>(); for (int i = 0; i < v.Count; i++) n.Add(Vector3.back);
             m.SetNormals(n);

@@ -10,7 +10,7 @@ namespace BounceBlast.UI
 {
     /// <summary>
     /// Script quản lý của popup THẮNG – gắn trên gốc SuccessCanvas.prefab. Nó SỞ HỮU toàn bộ chuỗi màn thắng:
-    ///   1) màn logo "BOUNCE BLAST" (chữ bật lên lần lượt) + pháo giấy + pháo hoa;
+    ///   1) màn logo "BOUNCE BLAST" (clip gốc Banner Animation: chữ bật lần lượt, BLAST nhảy lên rồi đập xuống) + pháo giấy + pháo hoa;
     ///   2) bảng thắng nảy lên, đống xu rơi xuống, chớp sáng + tia, chữ PERFECT!, sao lấp lánh, vệt sáng quét nút.
     /// Mọi node cần thiết giữ bằng [SerializeField] (không Find theo tên). GameUI chỉ gọi <see cref="Play"/> và nghe <see cref="OnContinue"/>.
     ///
@@ -21,14 +21,6 @@ namespace BounceBlast.UI
     [DisallowMultipleComponent]
     public class SuccessPopupView : PopupViewBase
     {
-        /// <summary>Một chữ của logo: nền + chữ chính (b, o, u, n, c, e).</summary>
-        [Serializable]
-        public class LogoLetter
-        {
-            public Transform background;
-            public Transform glyph;
-        }
-
         [Header("Bảng thắng")]
         [Tooltip("Bảng thắng (Container v2) – ẩn trong màn logo, nảy lên sau đó")] [SerializeField] Transform container;
         [SerializeField] TMP_Text levelText;
@@ -40,10 +32,11 @@ namespace BounceBlast.UI
         [Header("Màn logo BOUNCE BLAST")]
         [SerializeField] Transform logoArea;
         [SerializeField] Transform logo;
-        [Tooltip("Node chứa các chữ (Logo/Animation)")] [SerializeField] Transform logoAnimation;
-        [SerializeField] Transform logoBadge;
-        [SerializeField] Transform logoBlast;
-        [Tooltip("Theo thứ tự b, o, u, n, c, e")] [SerializeField] LogoLetter[] logoLetters = new LogoLetter[0];
+        [Tooltip("Animator gốc trên Logo (Banner.controller → clip \"Banner Animation\"): chữ bật lần lượt, BLAST nhảy lên rồi đập xuống")]
+        [SerializeField] Animator logoAnimator;
+        [Tooltip("Tên state trong Banner.controller")] [SerializeField] string logoState = "Banner Animation";
+        [Tooltip("Giây (theo clip) phát tiếng bật của từng chữ b o u n c e")] [SerializeField] float[] letterSoundTimes = { 0f, 0.1f, 0.217f, 0.317f, 0.417f, 0.517f };
+        [Tooltip("Giây (theo clip) BLAST đập xuống – phát tiếng pháo")] [SerializeField] float blastSlamTime = 1.233f;
 
         [Header("Pháo")]
         [Tooltip("Cha của các pháo nổ (LogoArea/Confetti)")] [SerializeField] GameObject confettiRoot;
@@ -74,7 +67,7 @@ namespace BounceBlast.UI
         public event Action OnContinue;
 
         Vector3 _coinPos, _coinScale = Vector3.one;   // chỗ dừng cuối của đống xu = giá trị trong prefab
-        // cỡ trong prefab của mọi thứ có hiệu ứng nảy (bảng, PERFECT!, chữ logo) – nảy quanh giá trị này, không về 1 cứng
+        // cỡ trong prefab của mọi thứ có hiệu ứng nảy (bảng, PERFECT!) – nảy quanh giá trị này, không về 1 cứng
         readonly Dictionary<Transform, Vector3> _baseScale = new Dictionary<Transform, Vector3>();
         Vector3 BaseScale(Transform t) { Vector3 v; if (!_baseScale.TryGetValue(t, out v)) _baseScale[t] = v = t.localScale; return v; }
 
@@ -85,8 +78,6 @@ namespace BounceBlast.UI
             if (coinIcon != null) { _coinPos = coinIcon.localPosition; _coinScale = coinIcon.localScale; }
             if (container != null) BaseScale(container);
             if (perfect != null) BaseScale(perfect);
-            Transform anim = logoAnimation != null ? logoAnimation : logo;
-            if (anim != null) foreach (Transform t in anim) BaseScale(t);
             if (continueButton != null) continueButton.onClick.AddListener(Continue);
             if (x2Button != null) x2Button.onClick.AddListener(Continue);
         }
@@ -166,6 +157,7 @@ namespace BounceBlast.UI
                 if (ps != null) { ps.Clear(true); ps.Play(true); }
             }
             if (perfect != null) perfect.localScale = Vector3.zero;
+            Time.timeScale = 0;
 
             // (video coin_panel) 1) đống xu rơi xuống: to & cao hơn rồi thu về đúng chỗ trên bục.
             // Tính theo THỜI GIAN TUYỆT ĐỐI: khung hình khựng chỉ làm hiện chậm một nhịp chứ không làm đống xu nhảy từng bước.
@@ -210,6 +202,7 @@ namespace BounceBlast.UI
             // 3) sao lấp lánh liên tục quanh xu  4) vệt sáng quét qua nút Continue / x2
             if (sparkles != null) sparkles.Play();
             foreach (UiShineSweep s in shines) if (s != null) s.Restart();
+
         }
 
         static void SetAlpha(Graphic g, float a) { Color c = g.color; c.a = a; g.color = c; }
@@ -251,35 +244,26 @@ namespace BounceBlast.UI
             if (go != null) go.SetActive(false);
         }
 
+        /// <summary>Chạy clip gốc "Banner Animation" (1.75s) trên Animator của Logo; code chỉ phát tiếng theo mốc thời gian của clip.
+        /// Nhanh / chậm chỉnh ở Speed của state trong Banner.controller – mốc tiếng tính theo thời gian clip nên tự khớp.</summary>
         IEnumerator AnimateLogo()
         {
-            Transform anim = logoAnimation != null ? logoAnimation : logo;
-            var all = new List<Transform>();
-            foreach (Transform t in anim) { all.Add(t); BaseScale(t); t.localScale = Vector3.zero; }
-            if (logoBadge != null) yield return Pop(logoBadge, 0.35f);
-            foreach (LogoLetter l in logoLetters)
+            if (logoAnimator == null) yield break;
+            logoAnimator.enabled = true;
+            logoAnimator.Play(logoState, 0, 0f);
+            logoAnimator.Update(0f);
+            AnimatorClipInfo[] clips = logoAnimator.GetCurrentAnimatorClipInfo(0);
+            float clipLength = clips.Length > 0 ? clips[0].clip.length : 0f;
+            int next = 0;
+            bool slammed = false;
+            // t = vị trí đang phát trong clip (giây của clip, không phải giây thực)
+            for (float t = 0f; t < clipLength; t = logoAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime * clipLength)
             {
-                if (l == null) continue;
-                if (l.background != null) StartCoroutine(Pop(l.background, 0.18f));
-                if (l.glyph != null) StartCoroutine(Pop(l.glyph, 0.18f));
-                AudioManager.Play(Sfx.QmarkReveal);
-                yield return new WaitForSecondsRealtime(0.12f);
-            }
-            if (logoBlast != null) yield return Pop(logoBlast, 0.3f);
-            AudioManager.Play(Sfx.Confetti);
-            foreach (Transform t in all) if (t.localScale == Vector3.zero) t.localScale = BaseScale(t);
-        }
-
-        IEnumerator Pop(Transform t, float dur)
-        {
-            Vector3 s = t != null ? BaseScale(t) : Vector3.one;
-            for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / dur)
-            {
-                if (t == null) yield break;
-                t.localScale = s * EaseOutBack(k);
+                while (next < letterSoundTimes.Length && t >= letterSoundTimes[next]) { AudioManager.Play(Sfx.QmarkReveal); next++; }
+                if (!slammed && t >= blastSlamTime) { AudioManager.Play(Sfx.Confetti); slammed = true; }
                 yield return null;
             }
-            if (t != null) t.localScale = s;
+            if (!slammed) AudioManager.Play(Sfx.Confetti);
         }
 
         protected override void CollectMissing(List<string> missing)
@@ -292,9 +276,7 @@ namespace BounceBlast.UI
             if (dim == null) missing.Add("dim");
             if (logoArea == null) missing.Add("logoArea");
             if (logo == null) missing.Add("logo");
-            if (logoBadge == null) missing.Add("logoBadge");
-            if (logoBlast == null) missing.Add("logoBlast");
-            if (logoLetters == null || logoLetters.Length != 6) missing.Add("logoLetters (cần đúng 6: b o u n c e)");
+            if (logoAnimator == null) missing.Add("logoAnimator");
             if (coinIcon == null) missing.Add("coinIcon");
             if (perfect == null) missing.Add("perfect");
             if (areaGlow == null) missing.Add("areaGlow");

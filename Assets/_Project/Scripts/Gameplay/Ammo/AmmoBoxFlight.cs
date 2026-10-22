@@ -6,7 +6,7 @@ using UnityEngine;
 namespace BounceBlast.Gameplay
 {
     /// <summary>
-    /// Phần BAY & ĐẬU của một hộp đạn (gắn cùng GameObject với <see cref="AmmoBox"/>, AmmoBox tự thêm lúc Init):
+    /// Phần BAY - ĐẬU của một hộp đạn (gắn cùng GameObject với <see cref="AmmoBox"/>, AmmoBox tự thêm lúc Init):
     /// bay lên máng như ống thạch dẻo (<see cref="AmmoFlightTube"/>), dừng giữa chuyến bay khi hết sức chứa, đậu trong
     /// máy xay và co dần khi nhả bi, nhãn số bi còn lại. Máng (ConveyorLane/ConveyorSystem) điều khiển qua box.Flight.
     /// </summary>
@@ -125,7 +125,7 @@ namespace BounceBlast.Gameplay
             // Lò xo (stretch & squash): nén lấy đà → ĐẦU phóng đi trước trong khi đuôi còn kẹt trong hố (kéo giãn từ đầu),
             // đuôi là khối lượng nối lò xo đuổi theo (giãn dần tới cuối); đầu dừng ở máng thì đuôi lao tới quá đà → ống nén
             // ngắn & phình, bật lại rồi yên. Bán kính giữ thể tích: r ~ sqrt(dài nghỉ / dài hiện tại).
-            float total = tube.Length, h0 = sBox * 0.9f;
+            float total = tube.Length, h0 = sBox * _config.ammoFlightLength;   // ống dài như mesh gốc (2.5× bề ngang), không phải khối ngắn
             const float Anticip = 0.035f, TailHold = 0.05f, K = 300f, Damp = 0.45f;
             // Pha LẮNG bắt đầu từ lúc đầu ống còn đang tiến vào (u = 0.6) và xong chỉ 0.1 s sau khi hết chuyến bay: ống được kéo MƯỢT về
             // đúng dáng + cỡ thanh đậu (khớp miệng máy xay) NGAY trong lúc máy xay bắt đầu chạy, thay vì còn nghiêng/phình ~0.4 s sau đó.

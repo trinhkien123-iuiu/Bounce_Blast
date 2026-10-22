@@ -256,7 +256,7 @@ Cách kiểm: chụp toàn bộ RectTransform của scene lúc Edit, lúc Play (
 - **CapacityBar**: camera game + thứ tự 4 của Canvas thế giới (scene), font/màu chữ, bù dẹt chữ scale y 1.33, icon vô hạn tắt (prefab).
 - **BoosterBar**: màu dải nền 3 độ khó vào `Style.stripColor` (trước viết cứng trong GameUI).
 - **BoosterBuyPopup**: nút quảng cáo `RV` tắt sẵn; Canvas như các popup khác.
-- **SuccessCanvas**: khối live-ops tắt sẵn, Dim xếp dưới cùng, Animator logo tắt, cỡ chữ logo (sprite × 1.29), AreaGlow bật / AreaShine tắt, chỗ dừng đống xu (+45, ×0.85), thứ tự vẽ hạt, `preserveAspect` cho sprite bị cắt, pháo nổ có `UiConfetti` + Canvas lồng, mưa pháo nằm ở gốc canvas, pháo hoa SF_Basic (World, scale 134.4, y −1150, duration 0.45, radius 3.5), 3 ảnh chớp sáng `CoinFlash / CoinFlashCore / CoinRays`, `Coin/SparkleLayer` + 10 sao, `ShineMask/ShineBand` dưới Continue và X2.
+- **SuccessCanvas**: khối live-ops tắt sẵn, Dim xếp dưới cùng, Animator logo (bật bởi code khi thắng, UnscaledTime), cỡ chữ logo (sprite × 1.29), AreaGlow bật / AreaShine tắt, chỗ dừng đống xu (+45, ×0.85), thứ tự vẽ hạt, `preserveAspect` cho sprite bị cắt, pháo nổ có `UiConfetti` + Canvas lồng, mưa pháo nằm ở gốc canvas, pháo hoa SF_Basic (World, scale 134.4, y −1150, duration 0.45, radius 3.5), 3 ảnh chớp sáng `CoinFlash / CoinFlashCore / CoinRays`, `Coin/SparkleLayer` + 10 sao, `ShineMask/ShineBand` dưới Continue và X2.
 - **CheatPanel**: `Panel` lưu tắt (mở bằng 5 chạm / 3 ngón / F1). Hàng nút cheat vẫn sinh từ `CheatRegistry` (danh sách viết bằng code) theo mẫu `buttonTemplate`/`stepperTemplate` đặt sẵn – đổi giao diện hàng thì sửa mẫu.
 - Thêm nút/hiệu ứng mới: `UiShineSweep` ▸ chuột phải "Tạo lớp vệt sáng", `UiSparkles` ▸ "Tạo sao" – dựng sẵn trong Editor, lưu vào prefab.
 
@@ -331,10 +331,67 @@ User chỉnh scale icon tab trong prefab, bấm Play thì bị trả về – v�
 | `ProfilePopupView` | ô chọn = 1.1, ô khác = 1 | cỡ prefab × `selectedScale` |
 | `BoosterBarView` | nút đang dùng = 1.12; mũi tên = (0, y) | cỡ prefab × 1.12; mũi tên = vị trí prefab + nhấp nhô |
 | `PopupViewBase` (mọi popup) | nảy 0 → 1 | nảy 0 → cỡ prefab của `content` |
-| `SuccessPopupView` | bảng, PERFECT!, chữ logo nảy về 1 | nảy về cỡ prefab |
+| `SuccessPopupView` | bảng, PERFECT! nảy về 1 | nảy về cỡ prefab (chữ logo nay do clip gốc lo) |
 | `MenuPager` | X trang = 0 khi đứng yên | X prefab + độ lệch khi vuốt |
 | `UiSpin` | bật lại = góc 0 | bật lại = góc prefab |
 | `UiShineSweep` | dải Y = 0 | dải giữ Y prefab |
 | `HudView` | badge / chữ đặt theo ô kiểu dáng kể cả Normal | Normal = đúng như prefab; Hard / Super Hard theo ô kiểu dáng trong Inspector |
 
 - **Bẫy thứ hai – override trong scene:** chỉnh trong Prefab Mode nhưng scene còn override cũ cho cùng thuộc tính (VD icon Journey scale 0.864 trong scene vs 0.612 trong prefab) thì Play dùng giá trị scene. Kiểm: chọn object trong scene, thuộc tính in đậm / vạch xanh bên trái = override → chuột phải ▸ Revert. Đã bỏ override đó.
+
+### Hiệu ứng chuyển trang (MenuGame – 2026-10-20)
+- `UiAppear` (Scripts/UI/Effects) gắn trên từng thành phần: mờ → rõ, nảy từ `fromScale` lên đúng cỡ (`overshoot` = nảy quá đà), trượt từ `fromOffset` về đúng chỗ, trong `duration` giây. `followDirection` = đổi chiều X của `fromOffset` theo hướng chuyển trang (sang trang bên phải → vào từ phải, sang trái → vào từ trái). Tính từ giá trị prefab (đứng yên = đúng như prefab). Cần CanvasGroup (tự thêm khi gắn).
+- `PageTransition` gắn trên gốc trang, giữ danh sách `UiAppear` theo thứ tự xuất hiện + `stagger` (giây giữa hai thành phần); chuột phải ▸ "Lấy các UiAppear con" để điền lại; bỏ tick `playOnEnter` để tắt hiệu ứng trang đó.
+- `MenuPager`: trang vừa lộ ra (kéo hoặc bấm tab) → `Prepare(hướng)` (thành phần ẩn); tới nơi → `Play(hướng)`. Mở Menu lần đầu cũng chạy cho Home. Kéo dở rồi trả về → thành phần về đúng prefab (OnDisable).
+- Đang đặt:
+  - **Shop – trượt ngang**: 2 nhãn + 13 thẻ gói (`Card`) trượt 500 đơn vị theo hướng chuyển trang, không nảy, 0.32 s, cách nhau 0.05 s. Thanh tiêu đề Shop đứng yên.
+  - **Home – popup bé → to**: avatar, xu, tim, thanh Streak, nút Play bật từ 20% lên đúng cỡ có nảy, 0.4 s, cách nhau 0.05 s.
+  - **Settings**: (bản thử đầu) thanh tiêu đề trượt xuống, khung công tắc nảy lên.
+- Không gắn `UiAppear` lên con trực tiếp của LayoutGroup (layout sẽ đè vị trí) – gắn lên con bên trong (như `Card` của gói Shop).
+
+### Sửa lỗi avatar mất sau khi chuyển trang + vệt sáng thẻ Shop (2026-10-20)
+- **Lỗi:** quay lại Home thì avatar biến mất. Nguyên nhân: `UiButtonFeedback` (lún / nảy khi bấm) ghi lại scale gốc MỖI LẦN object bật và đặt scale MỖI FRAME. Trang vừa lộ ra thì `UiAppear` đang thu avatar xuống 20% → `UiButtonFeedback` ghi nhầm 20% làm gốc và ép mãi. (Avatar là chỗ duy nhất hai script nằm trên cùng object.)
+- **Sửa:** `UiButtonFeedback` ghi cỡ gốc một lần ở Awake (lấy `UiAppear.BaseScale` nếu có) và chỉ đặt scale khi đang lún / nảy; đứng yên không đụng tới → không tranh với `UiAppear` hay code trạng thái khác (VD nút booster phóng ×1.12 khi đang dùng).
+- **Bài học:** hai script cùng chỉnh một thuộc tính trên cùng object phải phối hợp (một bên chỉ ghi khi đang hoạt động, cỡ gốc lấy từ prefab), không được ghi mỗi frame.
+- **Vệt sáng thẻ Shop:** `UiShineSweep` (thêm tuỳ chọn `playOnEnable`) gắn trên `Card/Background` của 13 gói, lớp `ShineMask/ShineBand` đặt sẵn dưới nền thẻ (trên nền, dưới chữ / nút). Loé lần lượt như làn sóng: trễ 0.6 s + 0.15 s mỗi thẻ, quét 0.7 s, 3.2 s một vòng; dải sáng `fx_glow` màu kem alpha 0.85. Chỉnh màu / độ rộng / góc trên `ShineBand`, nhịp trên `UiShineSweep`.
+
+### Hover cho nút Shop (2026-10-20)
+13 nút (12 `BuyButton` + `FreeCoins/ClaimButton`) có 3 lớp, đều đặt sẵn trên nút trong prefab:
+- `UiButtonFeedback` (hoverScale 1.08, pressScale 0.92): phóng khi rê chuột, lún / nảy khi bấm – như các nút khác trong game.
+- `UiHoverHighlight` (Scripts/UI/Effects, mới): rê chuột vào → nhấc nút lên `lift` (8) đơn vị + gọi vệt sáng lướt một lượt; rời chuột → hạ về vị trí prefab. Đứng yên không đụng vị trí.
+- `UiShineSweep` + `ShineMask/ShineBand` riêng của nút (`playOnEnable` tắt; `SweepOnce()` mới = quét đúng một lượt, 0.45 s).
+Hover chỉ có khi dùng chuột (Editor / PC); trên điện thoại còn lún / nảy khi chạm.
+
+## Logo thắng BOUNCE BLAST dùng hoạt ảnh gốc
+
+Video `win.mp4` cho thấy chữ BLAST nhảy vọt lên to rồi đập xuống. Game gốc đã có sẵn hoạt ảnh này: `Art/UI/Win/Animation/Banner Animation.anim` (1.75 s, `Banner.controller`) trên Animator của `Stage/LogoArea/Logo`, trước đây bị tắt và thay bằng code tự nảy chữ.
+- Nay `SuccessPopupView.AnimateLogo` chỉ bật Animator, `Play("Banner Animation", 0, 0)` rồi chờ hết clip. Code không còn tự đặt cỡ chữ.
+- Diễn biến của clip: b → e bật lần lượt (0 → 0.93 s), BLAST bật lên to 1.5 lần ở Y = 0 lúc 1.07 s, đập về Y = −94 lúc 1.23 s, sau đó BLAST nảy 1.2 (1.37 s).
+- Đáy tròn (badge) khi BLAST đập: **đã chỉnh trong clip** cho khớp video (frame 447–456). Clip gốc chỉ nảy 1.2 nên nhìn như rung nhẹ. Nay badge phồng 1.5 (1.37 s), co 0.92 (1.45 s), nảy 1.05 (1.55 s), về 1 (1.65 s). Chỉ đường cong `Animation/badge` scale x/y đổi; mọi keyframe khác giữ nguyên bản gốc.
+- Tiếng phát theo mốc thời gian của clip, chỉnh trong Inspector: `letterSoundTimes` (tiếng bật chữ) và `blastSlamTime` (tiếng pháo khi đập).
+- Animator chạy `UnscaledTime` nên vẫn chạy khi `timeScale = 0`.
+- **Tốc độ**: Speed của state `Banner Animation` trong `Banner.controller` = **0.7** (cả đoạn logo dài 2.5 s thực thay vì 1.75 s). Muốn nhanh hay chậm hơn thì chỉ đổi số này. Code đọc vị trí của clip (`normalizedTime`), nên mốc tiếng tự khớp. Riêng pháo nổ và mưa pháo hẹn theo giây thực, phải đổi theo cho khớp (hiện `burstDelay` 1.35 và `rainDelay` 1.4 trên SuccessPopupView, ứng với lúc BLAST bật lên).
+- Muốn chỉnh hoạt ảnh thì sửa clip trong cửa sổ Animation, không sửa code.
+
+## Màn loading (mở app + vào màn chơi)
+
+Lấy nguyên từ game gốc: `TSPreloadScene` / `LoadingCanvas Preload Scene Variant`, tách bằng `Tools/UnityYaml/ui_extract.py` thành `Prefabs/UI/LoadingCanvas.prefab`. Ảnh gốc giữ GUID trong `Art/UI/Loading/{Sprites,Textures}`: `Splash` (1920² gồm nền khối màu, logo và Garawell & Voodoo), `LoadingBar_mir` (nền thanh, MirroredImage), `LoadingFullBar (2)` (thanh đầy, Filled Horizontal).
+
+- **Scene `Loading.unity`** đứng đầu Build Settings. Gồm Main Camera (nền đen), `LoadingCanvas` (instance của prefab) và `LoadingController` (`LoadingSceneController`).
+- **Luồng**: mở app ▶ Loading ▶ MenuGame. Bấm Play ở Menu → `SceneFlow.GoToGameplay` nhớ đích rồi nạp Loading ▶ Gameplay. Về Menu vẫn nạp thẳng.
+- **`LoadingScreenView`** (Scripts/UI/Loading) chỉ đổ `fillAmount` + chữ `N%`, cùng chữ phiên bản (`versionFormat` "v{0}" + Application.version). Chữ build (`b1`) là chữ tĩnh trong prefab.
+- **`LoadingSceneController`**: nạp nền (`LoadSceneAsync`). Thanh hiện min(tiến độ thật, thời gian tối thiểu): `bootSeconds` 2 s khi mở app, `levelSeconds` 1 s khi vào màn. Hai số này chỉnh trên object `LoadingController`.
+- Hai dòng `UI Text - Trivial` ("DID YOU KNOW…") và `UI Text - Info` ("INITIALIZING VOODOO SDK…") có trong bản gốc nhưng tắt sẵn, vì ảnh game gốc không hiện chúng. Muốn dùng thì bật trong prefab.
+- Bấm Play thẳng MenuGame hoặc Gameplay trong Editor vẫn chạy như trước (không qua Loading).
+- **Không lộ bàn trống khi vào màn chơi** (video "lỗi loading"): `LevelManager.Start` cố ý đợi 1 khung rồi mới dựng level, nên trước đây có một khung bàn trống, kèm cú khựng lúc dựng level. Nay màn loading được giữ lại khi đổi scene (`DontDestroyOnLoad`) và đợi `SceneFlow.LevelReady`, cờ này do `LevelManager.LoadLevel` báo sau khi dựng xong. Sau đó đợi thêm 2 khung rồi mờ dần trong `fadeSeconds` (0.25 s) và tự huỷ. Nếu không ai báo thì tối đa chờ `readyTimeout` (5 s).
+- **Sửa `MirroredImage` (lật dọc)**: sprite `_mir` lật cả ngang lẫn dọc là **góc dưới-trái** của hình (`LoadingBar_mir`, `off_mir`). Bản khôi phục trước đặt nó ở nửa trên, làm nền thanh loading bị bóp nhọn hai đầu. Nay góc gốc nằm dưới, phần lật dọc nằm trên. Đã kiểm tra lại các nút tròn ở Settings (Support / Sound / Music / Vibration), cũng dùng `off_mir`.
+
+## Viền trắng khi tăng tốc (SpeedUpCanvas)
+
+Lấy từ game gốc: `ManagerScene/TapToSpeedUp`, tách bằng `ui_extract.py` thành `Prefabs/UI/SpeedUpCanvas.prefab`. Ảnh `Art/UI/SpeedUp/Textures/Vignette_mir.png` giữ GUID gốc.
+- `Canvas Base`: Canvas Overlay có CanvasGroup (alpha 0 lúc thường, không chặn chạm).
+- `Vignette Speed`: MirroredImage trắng, alpha 0.28 (đã giảm từ 0.47 của bản gốc cho đỡ gắt), lật ngang + dọc.
+- `Label` (thêm mới, cùng font và material chữ MenuToast): dòng "SPEED UP x1.5" cỡ nhỏ (46) ở góc trên-trái bàn chơi (anchor 0.185, 0.89, căn trái), không nháy, nảy nhẹ lúc bắt đầu giữ (`popSeconds`); mẫu chữ `labelFormat`, số lấy từ `holdSpeed`.
+- `UI Button + Text + Image`: dòng gốc "HOLD WALL TO SPEED UP!" kèm bàn tay. Bản gốc để tắt, mình cũng để tắt; bật lên nếu muốn làm hướng dẫn.
+- `SpeedUpView` làm mờ CanvasGroup 0 ↔ 1 trong `fadeSeconds` (0.15 s). Trong lúc giữ thì **viền nháy** (CanvasGroup của `Vignette Speed`, không nháy chữ): độ đậm dao động `blinkMin` (0.1) ↔ 1, `blinkPerSecond` (1) lần/giây, cùng nhịp viền đỏ cảnh báo capacity; mỗi lần giữ bắt đầu từ lúc sáng nhất. `GameUI.SetSpeedUp(bool)` do `InputManager` gọi khi bắt đầu hoặc thôi nhấn giữ chỗ trống trong khu khay đạn (tốc độ `holdSpeed` = 1.5, chỉ khi bàn đang có bi).
+- Instance đặt trong scene Gameplay tại `UI/HUD/SpeedUpCanvas`, cạnh `OverlayCanvas`.

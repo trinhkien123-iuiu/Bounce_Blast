@@ -19,13 +19,17 @@ namespace BounceBlast.Gameplay
         readonly AmmoCellKind[,] _kind;   // trạng thái ô LÚC DỰNG (khay không đổi hình trong màn)
         readonly int _cols, _rows;
         readonly float _cell;
+        readonly float _pitchY;           // bước hàng trên màn hình (khay tự sinh = _cell; khay gốc HoleAll nhìn nghiêng thấp hơn)
+        readonly float[] _rowZ;           // khay gốc: độ sâu mặt khay theo hàng (null = khay tự sinh)
         readonly Vector2 _origin;
         readonly Transform _trayRoot;
         readonly List<GameObject> _tiles = new List<GameObject>();
 
         public AmmoTrayView(GameConfig config, GameConfig.Theme theme, ColorLibrary colors, AmmoCellKind[,] kind,
-                            float cell, Vector2 origin, Transform root)
+                            float cell, Vector2 origin, Transform root, float pitchY = 0f, float[] rowZ = null)
         {
+            _pitchY = pitchY > 0f ? pitchY : cell;
+            _rowZ = rowZ;
             _config = config;
             _theme = theme;
             _colors = colors;
@@ -37,13 +41,149 @@ namespace BounceBlast.Gameplay
             _trayRoot = root;
         }
 
-        Vector3 CellWorld(Vector2Int c) => new Vector3(_origin.x + c.x * _cell, _origin.y - c.y * _cell, -0.6f);
+        Vector3 CellWorld(Vector2Int c) => new Vector3(_origin.x + c.x * _cell, _origin.y - c.y * _pitchY, -0.6f);
+
+        /// <summary>
+        /// Khay gốc (mesh HoleAll đặt sẵn trong scene, lộ đủ lưới 8×7 hố): che mọi ô không thuộc level (ô tường + ngoài lưới) bằng
+        /// bộ khối tường module gốc (WallKit). Khối nhô khỏi mặt khay, sau lưng hộp.
+        /// </summary>
+        public void BuildCover(WallKit kit, Func<int, int, Matrix4x4> wallPiece)
+        {
+            Material wallMat = _theme != null ? _theme.trayWall : null;
+            if (wallMat == null && _config.ammoTrayWallPrefab != null)
+                foreach (Renderer rend in _config.ammoTrayWallPrefab.GetComponentsInChildren<Renderer>(true))
+                    if (rend.name == "4xRounded") { wallMat = rend.sharedMaterial; break; }
+            if (kit == null || wallMat == null) return;
+            Func<int, int, bool> isSlot = (c, r) => c >= 0 && r >= 0 && c < _cols && r < _rows && _kind[c, r] != AmmoCellKind.Wall;
+            BuildWallBlocks(kit, wallPiece, wallMat, isSlot);
+        }
+
+        const int WallMarginX = 6, WallMarginBottom = 7;   // số ô tường dựng thêm quanh lưới cho phủ kín màn
+
+        /// <summary>
+        /// Che bằng bộ khối tường module gốc: mỗi ô tường chọn biến thể theo 8 ô lân cận (ngoài lưới coi như tường), tất cả gộp thành 1 mesh.
+        /// Phía trên hàng 0 (khu bảng chơi) coi như hở: không dựng tường, khối hàng 0 bo mép trên → tấm che dừng ngay đường viền ngang.
+        /// </summary>
+        void BuildWallBlocks(WallKit kit, Func<int, int, Matrix4x4> wallPiece, Material wallMat, Func<int, int, bool> isSlot)
+        {
+            // thứ tự bit = thứ tự trong WallKit (L, TL, T, TR, R, BR, B, BL); T = hàng phía trên
+            int[,] dir = { { -1, 0 }, { -1, -1 }, { 0, -1 }, { 1, -1 }, { 1, 0 }, { 1, 1 }, { 0, 1 }, { -1, 1 } };
+            var body = new List<CombineInstance>();
+            for (int r = 0; r < _rows + WallMarginBottom; r++)
+                for (int c = -WallMarginX; c < _cols + WallMarginX; c++)
+                {
+                    if (isSlot(c, r)) continue;
+                    int mask = 0;
+                    for (int i = 0; i < 8; i++) if (r + dir[i, 1] >= 0 && !isSlot(c + dir[i, 0], r + dir[i, 1])) mask |= 1 << i;
+                    body.Add(new CombineInstance { mesh = kit.Get(mask), transform = wallPiece(c, r) });
+                }
+            var mesh = new Mesh { name = "TrayWallBlocks", indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+            mesh.CombineMeshes(body.ToArray(), true, true);
+            var go = new GameObject("TrayWallBlocks");
+            go.transform.SetParent(_trayRoot, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = wallMat;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _tiles.Add(go);
+            BuildOutline(wallPiece, isSlot);
+        }
+
+        // Viền khay (đo ảnh gốc Lv44, theo ô): nằm trên mặt tường, cách mép vùng ô chơi OutlineGap, rộng OutlineWidth.
+        // Vùng ô chơi bo góc như khối tường gốc: góc lồi của vùng bán kính OutlineCornerOut, góc lõm (mũi khối tường) OutlineCornerIn
+        const float OutlineGap = 0f, OutlineWidth = 0.1f, OutlineCornerOut = 0.12f, OutlineCornerIn = 0.2f, OutlineHeight = 0.55f;
+        const int OutlinePx = 48;   // điểm ảnh mỗi ô của texture viền
+
+        /// <summary>
+        /// Viền sáng mảnh chạy quanh vùng ô chơi được như gốc: vẽ vào 1 texture theo khoảng cách tới vùng "hở" rồi dán lên 1 tấm phẳng
+        /// song song mặt khay, cao hơn mặt khối tường một chút. Vùng hở = các ô chơi được + toàn bộ phía trên hàng 0 (khu bảng chơi),
+        /// nên viền chạy ngang hết bề rộng màn ở mép trên khay – đường ngăn cách bảng chơi với khay như ảnh gốc – rồi nối vòng quanh các ô.
+        /// </summary>
+        void BuildOutline(Func<int, int, Matrix4x4> wallPiece, Func<int, int, bool> isSlot)
+        {
+            if (_config.trayOutlineMaterial == null) return;
+            var slots = new List<Vector2Int>();
+            for (int r = 0; r < _rows; r++)
+                for (int c = 0; c < _cols; c++)
+                    if (isSlot(c, r)) slots.Add(new Vector2Int(c, r));
+            if (slots.Count == 0) return;
+            // texture phủ lưới + PadX ô mỗi bên (viền ngang chạy tới mép màn) + 1 hàng trên/dưới; toạ độ ô: x = cột, y = hàng
+            const int PadX = WallMarginX, Pad = 1;
+            Func<int, int, bool> open = (c, r) => r < 0 || isSlot(c, r);
+            // góc lõm của vùng hở = ô tường có 2 ô hở vuông góc kề nhau: (ô tường, hướng góc)
+            var fillets = new List<(Vector2Int cell, int dx, int dy)>();
+            for (int r = 0; r <= _rows; r++)
+                for (int c = -PadX; c < _cols + PadX; c++)
+                    if (!open(c, r))
+                        for (int dx = -1; dx <= 1; dx += 2)
+                            for (int dy = -1; dy <= 1; dy += 2)
+                                if (open(c + dx, r) && open(c, r + dy)) fillets.Add((new Vector2Int(c, r), dx, dy));
+
+            int w = (_cols + 2 * PadX) * OutlinePx, h = (_rows + 2 * Pad) * OutlinePx;
+            var px = new Color32[w * h];
+            Color32 col = _theme != null ? (Color32)_theme.trayOutline : new Color32(255, 255, 255, 255);
+            float aa = 1f / OutlinePx;   // khử răng cưa ~1 điểm ảnh
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    float cx = (x + 0.5f) / OutlinePx - PadX - 0.5f, cy = (y + 0.5f) / OutlinePx - Pad - 0.5f;
+                    float d = OpenDistance(slots, fillets, open, cx, cy);
+                    float a = Mathf.Clamp01((d - OutlineGap) / aa + 0.5f) * Mathf.Clamp01((OutlineGap + OutlineWidth - d) / aa + 0.5f);
+                    if (a > 0f) px[(h - 1 - y) * w + x] = new Color32(col.r, col.g, col.b, (byte)(a * 255f));
+                }
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            tex.SetPixels32(px);
+            tex.Apply(false, true);
+
+            // tấm phẳng: 4 góc lấy từ ma trận khối tường ở ô góc (mặt phẳng XZ của khối, T = +Z = hàng trên)
+            Vector3 Corner(int c, int r, float sx, float sz) => wallPiece(c, r).MultiplyPoint3x4(new Vector3(sx * 0.5f, OutlineHeight, sz * 0.5f));
+            var mesh = new Mesh { name = "TrayOutline" };
+            mesh.SetVertices(new List<Vector3> {
+                Corner(-PadX, -Pad, -1f, 1f), Corner(_cols - 1 + PadX, -Pad, 1f, 1f),
+                Corner(_cols - 1 + PadX, _rows - 1 + Pad, 1f, -1f), Corner(-PadX, _rows - 1 + Pad, -1f, -1f) });
+            mesh.SetUVs(0, new List<Vector2> { new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(1f, 0f), new Vector2(0f, 0f) });
+            mesh.SetTriangles(new[] { 0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2 }, 0);   // 2 mặt
+            mesh.RecalculateBounds();
+            var go = new GameObject("TrayOutline");
+            go.transform.SetParent(_trayRoot, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = new Material(_config.trayOutlineMaterial) { mainTexture = tex };
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _tiles.Add(go);
+        }
+
+        /// <summary>
+        /// Khoảng cách (theo ô) từ điểm tới vùng hở đã bo góc: nửa mặt phẳng phía trên hàng 0 + mỗi ô chơi là hình vuông cạnh 1, góc nào
+        /// có 2 cạnh kề là tường thì bo OutlineCornerOut (góc nối giữa 2 ô hở giữ vuông → mép thẳng liền, không gợn); thêm phần "lấp góc"
+        /// bán kính OutlineCornerIn ở mũi các khối tường lồi vào vùng hở.
+        /// </summary>
+        static float OpenDistance(List<Vector2Int> slots, List<(Vector2Int cell, int dx, int dy)> fillets, Func<int, int, bool> isSlot, float x, float y)
+        {
+            float d = y + 0.5f;   // khu bảng chơi phía trên mép trên hàng 0
+            foreach (Vector2Int s in slots)
+            {
+                int sx = x >= s.x ? 1 : -1, sy = y >= s.y ? 1 : -1;   // góc gần điểm nhất
+                float rad = !isSlot(s.x + sx, s.y) && !isSlot(s.x, s.y + sy) ? OutlineCornerOut : 0f;
+                float qx = Mathf.Abs(x - s.x) - 0.5f + rad, qy = Mathf.Abs(y - s.y) - 0.5f + rad;
+                float box = new Vector2(Mathf.Max(qx, 0f), Mathf.Max(qy, 0f)).magnitude + Mathf.Min(Mathf.Max(qx, qy), 0f) - rad;
+                d = Mathf.Min(d, box);
+            }
+            foreach (var f in fillets)
+            {
+                // tâm cung nằm trong ô tường, cách góc OutlineCornerIn theo cả 2 trục; phần giữa cung và góc ô thuộc vùng ô chơi
+                float ox = f.cell.x + f.dx * (0.5f - OutlineCornerIn), oy = f.cell.y + f.dy * (0.5f - OutlineCornerIn);
+                if ((x - ox) * f.dx < 0f || (y - oy) * f.dy < 0f || Mathf.Abs(x - f.cell.x) > 0.5f || Mathf.Abs(y - f.cell.y) > 0.5f) continue;   // chỉ trong ô tường đó
+                d = Mathf.Min(d, OutlineCornerIn - new Vector2(x - ox, y - oy).magnitude);
+            }
+            return d;
+        }
 
         /// <summary>Đặt tấm cửa kính của hộp có cửa khít miệng hố ô đó.</summary>
         public void FitDoorCover(AmmoBox box, Vector2Int cell)
         {
             HoleRect(cell, out Vector3 hc, out Vector2 hs);
-            box.SetCoverPlacement(hc, hs, _cell * SlotRadius);
+            box.SetCoverPlacement(hc, hs, PlateRotation ?? Quaternion.identity);
         }
 
         // ---------- Khay ----------
@@ -65,6 +205,20 @@ namespace BounceBlast.Gameplay
         float PanelZ => -0.6f + _cell * (TrayPanelZ + 0.6f);
 
         Material _trayTileMat, _trayWallMat, _trayBaseMat;
+        /// <summary>
+        /// Khay gốc: hướng mặt khay HoleAll (đã lật để trục +Y = lên màn hình, −Z = hướng camera). Nắp & cửa kính nằm TRONG mặt khay
+        /// này nên trùng khít vành miệng hố nghiêng; null = khay tự sinh (tấm phẳng hướng camera).
+        /// </summary>
+        public Quaternion? PlateRotation;
+        const float PlateLift = 0.02f;   // nắp/cửa nổi khỏi mặt khay (theo ô), tránh nhấp nháy z
+
+        Vector3 PlatePoint(Vector2Int cell, float lift)
+        {
+            Vector3 c = CellWorld(cell);
+            Vector3 p = new Vector3(c.x, c.y, _rowZ[Mathf.Clamp(cell.y, 0, _rowZ.Length - 1)]);
+            return p + PlateRotation.Value * Vector3.back * (lift * _cell);
+        }
+
         readonly Dictionary<Vector2Int, AmmoHoleLid> _lids = new Dictionary<Vector2Int, AmmoHoleLid>();
         readonly Dictionary<string, Material> _jellyMats = new Dictionary<string, Material>();
 
@@ -73,13 +227,17 @@ namespace BounceBlast.Gameplay
         {
             RemoveLid(cell);
             if (_trayTileMat == null || _trayWallMat == null) return;
-            float z = PanelZ + 0.012f; // ngay sau vành mặt khay → vành che mép
+            float z = _rowZ != null ? _rowZ[Mathf.Clamp(cell.y, 0, _rowZ.Length - 1)] - 0.05f   // khay gốc: ngay trước mặt khay của hàng
+                                    : PanelZ + 0.012f; // ngay sau vành mặt khay → vành che mép
             const float dy = 0f; // camera thẳng: các lớp khay cùng x,y là thẳng hàng
             Vector3 c = CellWorld(cell);
             var go = new GameObject($"HoleLid_{cell.x}_{cell.y}");
             go.transform.SetParent(_trayRoot, false);
             go.transform.position = new Vector3(c.x, c.y + dy, z);
-            float s = _cell * SlotSize * 0.5f, top = s - HoleTopInset * _cell;
+            if (PlateRotation.HasValue) go.transform.SetPositionAndRotation(PlatePoint(cell, PlateLift), PlateRotation.Value);
+            // khay gốc: đúng cỡ miệng hố của mesh Hole, nằm trong mặt khay nghiêng
+            float s = _cell * (_rowZ != null ? _config.holeLidSize : SlotSize) * 0.5f;
+            float sy = s, top = sy - HoleTopInset * _cell;
             if (!_jellyMats.TryGetValue(colorCode ?? "", out Material jm) || jm == null)
             {
                 jm = new Material(_trayBaseMat != null ? _trayBaseMat : _trayTileMat) { name = "HoleJelly " + colorCode };
@@ -87,7 +245,7 @@ namespace BounceBlast.Gameplay
                 _jellyMats[colorCode ?? ""] = jm;
             }
             var lid = go.AddComponent<AmmoHoleLid>();
-            lid.Init(_cell, s, -s, top, _cell * SlotRadius, _trayWallMat, jm, _trayTileMat, _config);
+            lid.Init(_cell, s, -sy, top, _cell * (_rowZ != null ? _config.holeLidRadius : SlotRadius), _trayWallMat, jm, _trayTileMat, _config);
             _lids[cell] = lid;
             _tiles.Add(go);
         }
@@ -101,6 +259,14 @@ namespace BounceBlast.Gameplay
         /// <summary>Tâm & kích thước miệng lỗ của ô (đã bù độ nghiêng camera như CreateFlat) – cho tấm kính cửa.</summary>
         void HoleRect(Vector2Int cell, out Vector3 center, out Vector2 size)
         {
+            if (_rowZ != null)
+            {
+                // khay gốc: đúng miệng hố mesh Hole (như nắp hố), ngay trước mặt khay của hàng
+                float hw = _cell * _config.holeLidSize * 0.5f;
+                center = PlateRotation.HasValue ? PlatePoint(cell, PlateLift * 1.5f) : CellWorld(cell);
+                size = new Vector2(2f * hw, 2f * hw);
+                return;
+            }
             float s = _cell * SlotSize * 0.5f, top = s - HoleTopInset * _cell;
             float z = PanelZ - 0.01f; // ngay trước vành mặt khay; hộp có cửa đóng lún hẳn ra sau mặt khay (AmmoBox)
             const float dy = 0f; // camera thẳng: các lớp khay cùng x,y là thẳng hàng
@@ -139,7 +305,8 @@ namespace BounceBlast.Gameplay
                 lipMat.SetColor("_BaseColor", Color.Lerp(wallMat.GetColor("_BaseColor"), baseMat.GetColor("_BaseColor"), 0.7f));
             }
 
-            _trayTileMat = slotMat; _trayWallMat = wallMat; _trayBaseMat = baseMat;
+            _trayTileMat = slotMat; _trayWallMat = wallMat; _trayBaseMat = baseMat;   // nắp hố (SpawnHoleLid) dùng các vật liệu này cả khi dùng khay gốc
+            if (!_config.trayProcedural) return;   // khay gốc HoleAll đã đặt sẵn trong scene: không dựng hình khay tự sinh
             Func<int, int, bool> emptyAt = (c, r) => c >= 0 && r >= 0 && c < _cols && r < _rows && _kind[c, r] == AmmoCellKind.Empty;
             Func<int, int, bool> isSlot = (c, r) => c >= 0 && r >= 0 && c < _cols && r < _rows && _kind[c, r] != AmmoCellKind.Wall;
 
@@ -240,9 +407,6 @@ namespace BounceBlast.Gameplay
                 if (well.HasProperty("_BaseColor")) well.SetColor("_BaseColor", wallMat.GetColor("_BaseColor") * 0.8f);
                 var wv = new List<Vector3>(); var wt = new List<int>(); var wn = new List<Vector3>();
                 float zTop = panelZ, zBot = -0.6f + _cell * (TrayFloorZ + 0.6f);
-                const float tan = 0f;
-                // vách thẳng góc mặt khay (ngăn thật): nhìn nghiêng từ trên thấy vách trên của giếng che phần hộp phía sau
-                float dyTop = -(zTop + 0.6f) * tan, dyBot = dyTop;
                 for (int r = 0; r < _rows; r++)
                     for (int c = 0; c < _cols; c++)
                     {
@@ -250,8 +414,8 @@ namespace BounceBlast.Gameplay
                         Vector2 ctr = CellWorld(new Vector2Int(c, r));
                         List<Vector2> ring = RoundedRect(-s, -s, s, s, sr, sr, sr, sr);
                         int o = wv.Count, n = ring.Count;
-                        foreach (Vector2 p in ring) { wv.Add(new Vector3(ctr.x + p.x, ctr.y + p.y + dyTop, zTop)); wn.Add(-(Vector3)p.normalized); }
-                        foreach (Vector2 p in ring) { wv.Add(new Vector3(ctr.x + p.x, ctr.y + p.y + dyBot, zBot)); wn.Add(-(Vector3)p.normalized); }
+                        foreach (Vector2 p in ring) { wv.Add(new Vector3(ctr.x + p.x, ctr.y + p.y, zTop)); wn.Add(-(Vector3)p.normalized); }
+                        foreach (Vector2 p in ring) { wv.Add(new Vector3(ctr.x + p.x, ctr.y + p.y, zBot)); wn.Add(-(Vector3)p.normalized); }
                         for (int i = 0; i < n; i++)
                         {
                             int j = (i + 1) % n;
