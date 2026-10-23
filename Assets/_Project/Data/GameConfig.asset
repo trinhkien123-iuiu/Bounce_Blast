@@ -297,8 +297,8 @@ MonoBehaviour:
   blockBottomExtra: 0
   blockTopTrim: 0
   cubeOverlap: 1.05
-  cubeCornerRadius: 0.12
-  cubeEdgeRound: 0.1
+  cubeCornerRadius: 0.15
+  cubeEdgeRound: 0.08
   cubeBodyDepth: 0.5
   columnWidthRatio: 0.6
   crusherSpinSpeed: 800

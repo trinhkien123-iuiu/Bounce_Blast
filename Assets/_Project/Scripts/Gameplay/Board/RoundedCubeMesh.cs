@@ -13,9 +13,9 @@ namespace BounceBlast.Gameplay
     {
         const float HalfX = 0.5f, HalfY = 0.4365f, CenterY = 0.5591f;  // mặt trước của pCube35
         const float FrontZ = -0.484f;
-        // Góc gạch gốc: "vót" nhỏ ở 4 đầu nhọn rồi làm mịn nhẹ (2 đoạn mỗi góc), cạnh còn lại gần thẳng.
+        // Góc gạch: vát thẳng ở 4 đầu nhọn (1 đoạn mỗi góc), cạnh còn lại gần thẳng.
         // Mép mặt trước bo mịn 3 nấc để chuyển sáng mềm (2 nấc → 1 vạch trắng gắt).
-        const int CornerSegs = 2, EdgeSegs = 3;
+        const int CornerSegs = 1, EdgeSegs = 3;   // CornerSegs 1 = mỗi góc một nhát vát thẳng như dao cắt
 
         static readonly Dictionary<(int, int, int), Mesh> Cache = new Dictionary<(int, int, int), Mesh>();
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
