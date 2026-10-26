@@ -6,12 +6,7 @@ using UnityEngine;
 
 namespace BounceBlast.EditorTools
 {
-    /// <summary>
-    /// Cửa sổ Level Editor (Tools ▸ Bounce Blast ▸ Level Editor): làm level cho bộ <c>custom</c>.
-    /// Trái: danh sách level · Giữa: tab Bàn gạch / Khay đạn · Phải: thông số, cân bi theo màu, lỗi, Chơi thử.
-    /// Thiết kế: Docs/thiet-ke/level-editor.md. Việc vẽ nằm ở <see cref="BoardPainter"/> / <see cref="TrayPainter"/>,
-    /// kiểm tra ở <see cref="LevelValidator"/>, nhập CSV / chơi thử ở <see cref="LevelEditorActions"/>.
-    /// </summary>
+    /// <summary>Cửa sổ Level Editor (Tools ▸ Bounce Blast ▸ Level Editor)</summary>
     public class LevelEditorWindow : EditorWindow
     {
         const float LeftW = 210f, RightW = 320f;
@@ -28,6 +23,7 @@ namespace BounceBlast.EditorTools
         readonly BoardPainter _board = new BoardPainter();
         readonly TrayPainter _tray = new TrayPainter();
 
+        /// <summary>Xử lý mở cửa sổ sửa level</summary>
         [MenuItem("Tools/Bounce Blast/Level Editor/Mở Level Editor %#l")]
         public static void Open()
         {
@@ -62,7 +58,6 @@ namespace BounceBlast.EditorTools
             GUILayout.EndArea();
         }
 
-        // ------------------------------------------------------------------ Trái: danh sách
         void DrawList()
         {
             EditorGUILayout.LabelField($"Bộ custom ({_pack.Count} level)", EditorStyles.boldLabel);
@@ -114,7 +109,6 @@ namespace BounceBlast.EditorTools
             GUI.FocusControl(null);
         }
 
-        // ------------------------------------------------------------------ Giữa: vẽ
         void DrawCenter(Rect area)
         {
             if (_level == null) { EditorGUILayout.HelpBox("Chọn hoặc tạo một level ở cột trái.", MessageType.Info); return; }
@@ -132,7 +126,6 @@ namespace BounceBlast.EditorTools
 
         void MarkChanged() { _reportDirty = true; Repaint(); }
 
-        // ------------------------------------------------------------------ Phải: thông số, kiểm tra
         void DrawRight()
         {
             if (_level == null) return;
@@ -159,7 +152,7 @@ namespace BounceBlast.EditorTools
             {
                 Undo.RecordObject(_level, "Đổi cỡ bàn");
                 _level.SetBoardSize(Mathf.Clamp(bc, 1, 32), Mathf.Clamp(br, 1, 64));
-                _level.boardSizeOverride = Vector2Int.zero;   // level tự làm: bàn thật = ô thiết kế × Multiplier
+                _level.boardSizeOverride = Vector2Int.zero;
                 EditorUtility.SetDirty(_level); MarkChanged();
             }
             EditorGUILayout.BeginHorizontal();
@@ -178,7 +171,6 @@ namespace BounceBlast.EditorTools
 
             if (_tab == 1) { EditorGUILayout.Space(); _tray.DrawInspector(_level, _colors); }
 
-            // ---- kiểm tra
             if (_reportDirty || _report == null) { _report = LevelValidator.Check(_level, _colors); _reportDirty = false; }
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Cân bi theo màu (máu gạch ↔ bi trong khay)", EditorStyles.boldLabel);
@@ -205,7 +197,6 @@ namespace BounceBlast.EditorTools
             EditorGUILayout.EndScrollView();
         }
 
-        // ------------------------------------------------------------------ Phím tắt / hành động
         void HandleShortcuts()
         {
             Event e = Event.current;
@@ -241,11 +232,12 @@ namespace BounceBlast.EditorTools
         }
     }
 
-    /// <summary>Các hành động trên bộ level: tạo / nhân bản / xoá / nhập level gốc / chơi thử.</summary>
+    /// <summary>Các hành động trên bộ level</summary>
     public static class LevelEditorActions
     {
         public const string GameplayScene = "Assets/_Project/Scenes/Gameplay.unity";
 
+        /// <summary>Xử lý tạo level mới trong bộ</summary>
         public static LevelData CreateLevel(LevelPack pack, LevelData copyFrom)
         {
             LevelData d;
@@ -268,6 +260,7 @@ namespace BounceBlast.EditorTools
             return d;
         }
 
+        /// <summary>Xử lý xoá level khỏi bộ</summary>
         public static void DeleteLevel(LevelPack pack, LevelData d)
         {
             pack.levels.Remove(d);
@@ -276,7 +269,7 @@ namespace BounceBlast.EditorTools
             AssetDatabase.SaveAssets();
         }
 
-        /// <summary>Nhập level gốc số <paramref name="id"/> thành một LevelData mới trong bộ custom (làm mẫu / so sánh).</summary>
+        /// <summary>Nhập level gốc số id thành một LevelData mới trong bộ custom</summary>
         public static LevelData ImportOriginal(LevelPack pack, int id)
         {
             GameConfig config = LevelEditorUtil.FindConfig();
@@ -294,7 +287,7 @@ namespace BounceBlast.EditorTools
             return d;
         }
 
-        /// <summary>Lưu scene đang mở (nếu người dùng đồng ý), mở Gameplay và Play đúng level đang sửa.</summary>
+        /// <summary>Lưu scene đang mở (nếu người dùng đồng ý), mở Gameplay và Play đúng level đang sửa</summary>
         public static void Playtest(LevelData d)
         {
             if (EditorApplication.isPlaying) EditorApplication.isPlaying = false;

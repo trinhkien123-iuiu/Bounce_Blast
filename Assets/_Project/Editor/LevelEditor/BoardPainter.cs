@@ -7,9 +7,10 @@ using CellType = BounceBlast.Gameplay.LevelData.CellType;
 
 namespace BounceBlast.EditorTools
 {
-    /// <summary>Tab "Bàn gạch" của Level Editor: công cụ vẽ + lưới + thao tác trên vùng chọn (gộp khối, hòm gỗ, cột nhà).</summary>
+    /// <summary>Tab "Bàn gạch" của Level Editor</summary>
     public class BoardPainter
     {
+        /// <summary>Dùng cho công cụ vẽ bàn chơi</summary>
         public enum Tool { Brush, Fill, Erase, Pick, Select }
 
         public Tool tool = Tool.Brush;
@@ -27,7 +28,7 @@ namespace BounceBlast.EditorTools
         static readonly Color CrateColor = new Color(0.72f, 0.48f, 0.25f);
         static readonly Color ColumnColor = new Color(0.93f, 0.87f, 0.74f);
 
-        // ------------------------------------------------------------------ Thanh công cụ
+        /// <summary>Xử lý vẽ thanh công cụ bàn chơi</summary>
         public void DrawToolbar(LevelData d, ColorLibrary colors)
         {
             EditorGUILayout.BeginHorizontal();
@@ -62,7 +63,7 @@ namespace BounceBlast.EditorTools
             }
         }
 
-        /// <summary>Bảng màu lấy từ ColorLibrary (dùng chung cho bàn và khay).</summary>
+        /// <summary>Bảng màu lấy từ ColorLibrary</summary>
         public static void ColorPalette(ColorLibrary colors, ref string selected)
         {
             if (colors == null) { EditorGUILayout.HelpBox("Không tìm thấy ColorLibrary", MessageType.Warning); return; }
@@ -82,7 +83,7 @@ namespace BounceBlast.EditorTools
             EditorGUILayout.EndHorizontal();
         }
 
-        // ------------------------------------------------------------------ Lưới
+        /// <summary>Xử lý vẽ lưới bàn chơi</summary>
         public void DrawGrid(Rect area, LevelData d, ColorLibrary colors, System.Action changed)
         {
             d.EnsureSize();
@@ -137,7 +138,6 @@ namespace BounceBlast.EditorTools
                     EditorGUI.DrawRect(inner, col);
                     if (!string.IsNullOrEmpty(x.group))
                     {
-                        // viền khối gộp ở cạnh giáp ô không cùng khối
                         Color edge = Color.Lerp(col, Color.black, 0.55f);
                         if (!SameGroup(d, x, c, r - 1)) EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, 2), edge);
                         if (!SameGroup(d, x, c, r + 1)) EditorGUI.DrawRect(new Rect(rect.x, rect.yMax - 2, rect.width, 2), edge);
@@ -152,7 +152,6 @@ namespace BounceBlast.EditorTools
                     }
                     break;
             }
-            // nhãn máu khối gộp: ở ô trên-trái của khối
             if (x.type == CellType.Cube && !string.IsNullOrEmpty(x.group) && !SameGroup(d, x, c, r - 1) && !SameGroup(d, x, c - 1, r))
                 GridView.Label(inner, x.hp.ToString(), GridView.TextOn(colors != null ? colors.ColorOf(x.color) : Color.white), 8);
         }
@@ -164,7 +163,6 @@ namespace BounceBlast.EditorTools
             return y.type == CellType.Cube && y.group == x.group && y.crate == x.crate;
         }
 
-        // ------------------------------------------------------------------ Công cụ
         void UseTool(LevelData d, int c, int r, bool down)
         {
             Cell x = d.Cell(c, r);
@@ -236,7 +234,7 @@ namespace BounceBlast.EditorTools
             {
                 Cell x = d.Cell(p.x, p.y);
                 if (x.type != CellType.Cube) continue;
-                groupColor ??= x.color;   // khối gộp dùng một màu: lấy màu ô đầu tiên
+                groupColor ??= x.color;
                 x.color = groupColor; x.group = id; x.hp = groupHp;
             }
         }
@@ -247,7 +245,7 @@ namespace BounceBlast.EditorTools
             foreach (Vector2Int p in _selection)
             {
                 Cell x = d.Cell(p.x, p.y);
-                if (x.type != CellType.Cube) continue;   // hòm chỉ che gạch (game dựng hòm từ các ô gạch có /cr)
+                if (x.type != CellType.Cube) continue;
                 x.crate = id; x.crateHp = crateHp;
             }
         }
@@ -263,6 +261,7 @@ namespace BounceBlast.EditorTools
             }
         }
 
+        /// <summary>Xử lý bỏ chọn</summary>
         public void ClearSelection() => _selection.Clear();
     }
 }

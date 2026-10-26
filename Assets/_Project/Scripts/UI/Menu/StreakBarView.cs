@@ -7,12 +7,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab StreakMainBar – thanh "Bounce Streak" trên trang Home (huy chương, thanh "0/1", đồng hồ sự kiện,
-    /// phần thưởng tim vô hạn bên phải). Hình tách từ <c>BounceStreakLoadAsync/MainPanelCanvas/MainPanelBarMain</c> của bản gốc. View chỉ hiển thị tiến độ;
-    /// bấm vào thanh khi đã đầy thì báo <see cref="OnClaim"/> (việc cộng thưởng là của <c>MenuManager</c>).
-    /// Lúc chạy chỉ đổi: độ đầy, chữ x/y, chữ phút thưởng, đồng hồ, nhịp phóng to phần thưởng khi nhận được. Hình (băng đỏ, cỡ, vị trí) lưu sẵn trong prefab.
-    /// </summary>
+    /// <summary>Script quản lý của prefab StreakMainBar</summary>
     [DisallowMultipleComponent]
     public class StreakBarView : MonoBehaviour
     {
@@ -41,7 +36,7 @@ namespace BounceBlast.UI
             });
         }
 
-        /// <summary>Hiện tiến độ: <paramref name="wins"/>/<paramref name="target"/> trận thắng liên tiếp, thưởng <paramref name="rewardMinutes"/> phút tim vô hạn.</summary>
+        /// <summary>Hiện tiến độ: wins/target trận thắng liên tiếp, thưởng rewardMinutes phút tim vô hạn</summary>
         public void Set(int wins, int target, int rewardMinutes, bool snap = false)
         {
             target = Mathf.Max(1, target);
@@ -53,6 +48,7 @@ namespace BounceBlast.UI
             if (rewardText != null) rewardText.text = ShopPanelView.FormatMinutes(rewardMinutes);
         }
 
+        /// <summary>Xử lý hiện thời gian còn lại của sự kiện</summary>
         public void SetTimer(TimeSpan left)
         {
             if (timerText != null) timerText.text = ShopPanelView.FormatSpan(left);
@@ -63,13 +59,12 @@ namespace BounceBlast.UI
             if (fill != null) fill.fillAmount = Mathf.MoveTowards(fill.fillAmount, _target, fillSpeed * Time.unscaledDeltaTime);
             if (rewardIcon != null)
             {
-                // nhịp nhẹ phần thưởng khi đã nhận được
                 float s = _ready ? 1f + 0.06f * Mathf.Sin(Time.unscaledTime * 6f) : 1f;
                 rewardIcon.rectTransform.localScale = _iconScale * s;
             }
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

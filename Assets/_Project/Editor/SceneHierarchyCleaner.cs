@@ -3,8 +3,10 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>Dùng cho dọn Hierarchy của scene</summary>
 public static class SceneHierarchyCleaner
 {
+    /// <summary>Xử lý dọn Hierarchy của scene</summary>
     [MenuItem("BounceBlast/Dọn dẹp Hierarchy (Clean Up Unused GameObjects)")]
     public static void CleanSceneHierarchy()
     {
@@ -17,14 +19,12 @@ public static class SceneHierarchyCleaner
 
         int deletedCount = 0;
 
-        // Quét toàn bộ tất cả GameObject trong Scene
         GameObject[] allObjects = activeScene.GetRootGameObjects();
         foreach (GameObject rootObj in allObjects)
         {
             deletedCount += CleanTransformRecursive(rootObj.transform);
         }
 
-        // Xóa riêng quả bóng dummy nếu có ở root
         GameObject rootBall = GameObject.Find("/Ball");
         if (rootBall != null)
         {
@@ -48,7 +48,6 @@ public static class SceneHierarchyCleaner
             Transform child = parent.GetChild(i);
             string n = child.name;
 
-            // Kiểm tra tên các GameObject rác cần xóa (không phân biệt chữ hoa thường)
             if (n.Equals("ConveyorManager", System.StringComparison.OrdinalIgnoreCase) ||
                 n.Equals("CONVEYOR MANAGERS", System.StringComparison.OrdinalIgnoreCase) ||
                 n.StartsWith("KPConveyorManager", System.StringComparison.OrdinalIgnoreCase) ||
@@ -65,7 +64,6 @@ public static class SceneHierarchyCleaner
             }
             else
             {
-                // Quét tiếp vào các cấp con
                 count += CleanTransformRecursive(child);
             }
         }

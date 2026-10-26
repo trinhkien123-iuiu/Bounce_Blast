@@ -7,16 +7,11 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab MenuBottomBar – thanh 5 tab dưới đáy MenuGame (Shop, Journey, Home, Collection, Settings).
-    /// Chỉ lo phần hình của tab (icon phóng to, hiện tên, dải sáng trượt theo) và báo <see cref="OnTabClicked"/>;
-    /// mở trang nào là việc của <c>MenuManager</c>.
-    /// Cỡ / vị trí icon chỉnh thẳng trong prefab; tab đang chọn chỉ nhân thêm <c>selectedIconScale</c> và nâng thêm <c>selectedIconLift</c>.
-    /// </summary>
+    /// <summary>Script quản lý của prefab MenuBottomBar</summary>
     [DisallowMultipleComponent]
     public class BottomBarView : MonoBehaviour
     {
-        /// <summary>Một tab của thanh dưới đáy.</summary>
+        /// <summary>Một tab của thanh dưới đáy</summary>
         [Serializable]
         public class Tab
         {
@@ -33,16 +28,16 @@ namespace BounceBlast.UI
         [FormerlySerializedAs("selectedIconY")] [SerializeField] float selectedIconLift = 68f;
         [SerializeField] float hoverSpeed = 14f;
 
-        /// <summary>Người chơi bấm tab thứ i.</summary>
+        /// <summary>Người chơi bấm tab thứ i</summary>
         public event Action<int> OnTabClicked;
 
         public int Count => tabs.Length;
+        /// <summary>Dùng cho lấy tên tab theo chỉ số</summary>
         public string Title(int i) => i >= 0 && i < tabs.Length ? tabs[i].title : null;
 
         int _selected = -1;
         float _hoverX;
         bool _hoverSnap = true;
-        // cỡ / vị trí icon khi CHƯA chọn = giá trị bạn đặt trong prefab (tab đang chọn trong prefab thì quy ngược về)
         Vector3[] _iconScale = new Vector3[0];
         Vector2[] _iconPos = new Vector2[0];
 
@@ -56,13 +51,13 @@ namespace BounceBlast.UI
                 if (tabs[i].button != null) tabs[i].button.onClick.AddListener(() => { AudioManager.Play(Sfx.Button); OnTabClicked?.Invoke(index); });
                 RectTransform icon = tabs[i].icon;
                 if (icon == null) continue;
-                bool selectedInPrefab = tabs[i].label != null && tabs[i].label.activeSelf;   // prefab lưu sẵn tab Home đang chọn
+                bool selectedInPrefab = tabs[i].label != null && tabs[i].label.activeSelf;
                 _iconScale[i] = selectedInPrefab ? icon.localScale / Mathf.Max(0.01f, selectedIconScale) : icon.localScale;
                 _iconPos[i] = selectedInPrefab ? icon.anchoredPosition - new Vector2(0f, selectedIconLift) : icon.anchoredPosition;
             }
         }
 
-        /// <summary>Tô sáng tab đang chọn.</summary>
+        /// <summary>Tô sáng tab đang chọn</summary>
         public void Highlight(int index)
         {
             if (index < 0 || index >= tabs.Length) return;
@@ -82,7 +77,6 @@ namespace BounceBlast.UI
         void LateUpdate()
         {
             if (hover == null || _selected < 0 || tabs[_selected].button == null) return;
-            // dải sáng trượt tới giữa tab đang chọn
             var parent = (RectTransform)hover.parent;
             float target = parent.InverseTransformPoint(tabs[_selected].button.transform.position).x;
             _hoverX = _hoverSnap ? target : Mathf.Lerp(_hoverX, target, 1f - Mathf.Exp(-hoverSpeed * Time.unscaledDeltaTime));
@@ -92,7 +86,7 @@ namespace BounceBlast.UI
             hover.anchoredPosition = p;
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

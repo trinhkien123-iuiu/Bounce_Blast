@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace BounceBlast.Cheats
 {
-    /// <summary>Mẫu dòng "nút / công tắc" của panel cheat (đặt sẵn, tắt, trong prefab CheatPanel; CheatPanelView nhân bản).</summary>
+    /// <summary>Mẫu dòng "nút / công tắc" của panel cheat</summary>
     public class CheatButtonRow : MonoBehaviour
     {
         public Button button;

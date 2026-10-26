@@ -8,17 +8,11 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab BoosterBar – gắn ngay trên gốc prefab.
-    ///
-    /// Giữ tham chiếu tới các con bằng Inspector (không đi tìm theo tên lúc chạy), và phơi ra API cho GameUI:
-    /// bấm nút, đổi số lượt, tô màu dải nền theo độ khó, bật mũi tên nhắc dùng booster.
-    /// Thêm/bớt/đổi chỗ nút thì sửa trong prefab rồi kéo lại ô tham chiếu, không phải đụng code.
-    /// </summary>
+    /// <summary>Script quản lý của prefab BoosterBar</summary>
     [DisallowMultipleComponent]
     public class BoosterBarView : MonoBehaviour
     {
-        /// <summary>Một nút booster và các mảnh của nó.</summary>
+        /// <summary>Một nút booster và các mảnh của nó</summary>
         [Serializable]
         public class Entry
         {
@@ -31,7 +25,7 @@ namespace BounceBlast.UI
             [Tooltip("Mũi tên vàng nhắc dùng – để trống nếu nút này không cần")] public RectTransform warnArrow;
         }
 
-        /// <summary>Bộ hình các nút booster ở một độ khó (gốc: SpriteConfig.spritesBooster – sprite / spriteHardOverride / spriteSuperHardOverride).</summary>
+        /// <summary>Bộ hình các nút booster ở một độ khó</summary>
         [Serializable]
         public class Style
         {
@@ -43,6 +37,7 @@ namespace BounceBlast.UI
             [Tooltip("Ô số tròn (Number / Hard Number / Super Hard Number)")] public Sprite number;
             [Tooltip("Màu dải nền dưới cùng ở độ khó này (đo từ ảnh gốc). Alpha 0 = giữ màu đang có")] public Color stripColor = new Color(1f, 1f, 1f, 0f);
 
+            /// <summary>Dùng cho lấy hình nút theo loại booster</summary>
             public Sprite For(BoosterType t)
             {
                 switch (t)
@@ -70,17 +65,16 @@ namespace BounceBlast.UI
         [SerializeField] Style hard = new Style();
         [SerializeField] Style superHard = new Style();
 
-        /// <summary>Bấm vào một nút booster.</summary>
+        /// <summary>Bấm vào một nút booster</summary>
         public event Action<BoosterType> OnPressed;
 
-        /// <summary>Hàng nút (GameUI đo mép trên của nó để cân bàn chơi).</summary>
+        /// <summary>Hàng nút (GameUI đo mép trên của nó để cân bàn chơi)</summary>
         public RectTransform ButtonsRow => buttonsRow;
 
         bool _warnOn;
         Style _style;
         readonly HashSet<BoosterType> _locked = new HashSet<BoosterType>();
         Coroutine _hintRoutine;
-        // cỡ nút / vị trí mũi tên trong prefab – hiệu ứng chỉ cộng/nhân lên trên
         readonly Dictionary<Transform, Vector3> _baseScale = new Dictionary<Transform, Vector3>();
         readonly Dictionary<RectTransform, Vector2> _basePos = new Dictionary<RectTransform, Vector2>();
 
@@ -101,19 +95,18 @@ namespace BounceBlast.UI
 
         void LateUpdate()
         {
-            foreach (Entry e in boosters) if (e != null && e.warnArrow != null) BasePos(e.warnArrow);   // ghi vị trí gốc trước khi nhấp nhô
-            // mũi tên nhấp nhô khi sức chứa gần đầy (video gốc lose_coche)
+            foreach (Entry e in boosters) if (e != null && e.warnArrow != null) BasePos(e.warnArrow);
             float y = 8f + Mathf.Abs(Mathf.Sin(Time.unscaledTime * Mathf.PI * 1.6f)) * 26f;
             foreach (Entry e in boosters)
             {
                 if (e == null || e.warnArrow == null) continue;
-                bool show = _warnOn && !_locked.Contains(e.type);   // nút còn khoá thì không nhắc dùng
+                bool show = _warnOn && !_locked.Contains(e.type);
                 if (e.warnArrow.gameObject.activeSelf != show) e.warnArrow.gameObject.SetActive(show);
                 if (show) e.warnArrow.anchoredPosition = BasePos(e.warnArrow) + new Vector2(0f, y);
             }
         }
 
-        /// <summary>Đổi hình 4 nút + ô số + màu dải nền theo độ khó (Normal xanh, Hard tím, Super Hard tối – theo SpriteConfig gốc).</summary>
+        /// <summary>Đổi hình 4 nút + ô số + màu dải nền theo độ khó</summary>
         public void ApplyDifficulty(LevelDifficulty difficulty)
         {
             Style s = difficulty == LevelDifficulty.SuperHard ? superHard : difficulty == LevelDifficulty.Hard ? hard : normal;
@@ -132,10 +125,10 @@ namespace BounceBlast.UI
             }
         }
 
-        /// <summary>Bật/tắt mũi tên nhắc dùng booster.</summary>
+        /// <summary>Bật/tắt mũi tên nhắc dùng booster</summary>
         public void SetWarn(bool on) => _warnOn = on;
 
-        /// <summary>Cập nhật một nút: còn lượt thì hiện ô số, hết lượt thì hiện nút "+" xanh.</summary>
+        /// <summary>Cập nhật một nút: còn lượt thì hiện ô số, hết lượt thì hiện nút "+" xanh</summary>
         public void SetBooster(BoosterType type, int count, bool armed)
         {
             Entry e = Find(type);
@@ -164,7 +157,7 @@ namespace BounceBlast.UI
             }
         }
 
-        /// <summary>Khoá / mở nút booster (khoá: hiện ổ khoá, ẩn số lượt; mở: trả hình nút của độ khó).</summary>
+        /// <summary>Khoá / mở nút booster (khoá</summary>
         public void SetLocked(BoosterType type, bool locked)
         {
             Entry e = Find(type);
@@ -174,9 +167,10 @@ namespace BounceBlast.UI
             if (_style != null && e.frame != null) e.frame.sprite = _style.For(type);
         }
 
+        /// <summary>Kiểm tra booster còn khoá</summary>
         public bool IsLocked(BoosterType type) => _locked.Contains(type);
 
-        /// <summary>Chữ "Reach Lv N" nổi lên trên nút đang khoá rồi mờ dần (video gốc: bấm nút khoá).</summary>
+        /// <summary>Chữ "Reach Lv N" nổi lên trên nút đang khoá rồi mờ dần</summary>
         public void ShowUnlockHint(BoosterType type, int level)
         {
             Entry e = Find(type);
@@ -205,7 +199,7 @@ namespace BounceBlast.UI
             _hintRoutine = null;
         }
 
-        /// <summary>Toạ độ màn hình của nút (dùng đặt hiệu ứng hạt thế giới lên đúng chỗ).</summary>
+        /// <summary>Toạ độ màn hình của nút (dùng đặt hiệu ứng hạt thế giới lên đúng chỗ)</summary>
         public Vector2 ButtonScreenPos(BoosterType type)
         {
             Entry e = Find(type);
@@ -215,7 +209,7 @@ namespace BounceBlast.UI
             return RectTransformUtility.WorldToScreenPoint(cam, e.frame.rectTransform.position);
         }
 
-        /// <summary>Mở khoá: ổ khoá rung lắc rồi bật ra thành nút booster (phồng lên rồi về cỡ gốc). onPop gọi lúc nút bật ra.</summary>
+        /// <summary>Mở khoá: ổ khoá rung lắc rồi bật ra thành nút booster</summary>
         public IEnumerator PlayUnlock(BoosterType type, Action onPop, Action onDone)
         {
             Entry e = Find(type);
@@ -224,7 +218,7 @@ namespace BounceBlast.UI
             Vector3 baseScale = BaseScale(rt);
             Quaternion baseRot = rt.localRotation;
             if (_style != null && _style.locked != null) e.frame.sprite = _style.locked;
-            yield return new WaitForSecondsRealtime(0.5f);   // chờ màn chơi hiện rõ rồi mới mở khoá
+            yield return new WaitForSecondsRealtime(0.5f);
             const float shake = 0.7f;
             for (float t = 0f; t < shake; t += Time.unscaledDeltaTime)
             {
@@ -244,7 +238,7 @@ namespace BounceBlast.UI
                 yield return null;
             }
             rt.localScale = baseScale;
-            yield return new WaitForSecondsRealtime(0.7f);   // cho người chơi kịp nhìn nút vừa mở rồi mới hiện popup
+            yield return new WaitForSecondsRealtime(0.7f);
             onDone?.Invoke();
         }
 
@@ -254,7 +248,7 @@ namespace BounceBlast.UI
             return null;
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (gọi khi dựng để lỗi hiện sớm, rõ ràng).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

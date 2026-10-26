@@ -5,18 +5,11 @@ using UnityEngine.UI;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Vuốt ngang để chuyển trang ở MenuGame (như game gốc): trang đi theo ngón tay, trang kế bên lộ dần ra;
-    /// thả quá <see cref="switchFraction"/> bề ngang hoặc vuốt nhanh thì sang trang kế, không thì trượt về.
-    /// Tab chưa có trang (Journey, Collection) bị bỏ qua khi vuốt. Bấm tab cũng trượt sang trang đó.
-    ///
-    /// Đặt sẵn ở <c>UI/MenuPager</c> (scene MenuGame). Mỗi trang là một prefab riêng (Canvas gốc không dời được),
-    /// nên thứ được trượt là <see cref="Page.content"/> – con phủ kín màn hình của trang. Lúc đứng yên mọi content ở x = 0
-    /// (đúng như trong prefab); chỉ khi đang vuốt / đang trượt content mới lệch, xong lại về vị trí prefab.
-    /// </summary>
+    /// <summary>Vuốt ngang để chuyển trang ở MenuGame</summary>
     [DisallowMultipleComponent]
     public class MenuPager : MonoBehaviour
     {
+        /// <summary>Dùng cho một trang của menu</summary>
         [Serializable]
         public class Page
         {
@@ -33,35 +26,34 @@ namespace BounceBlast.UI
         [Tooltip("Giây trượt nốt sau khi thả")] [SerializeField] float settleTime = 0.22f;
         [Tooltip("Vuốt về phía không còn trang thì chỉ kéo được phần này rồi bật lại")] [SerializeField, Range(0f, 0.5f)] float edgeResistance = 0.15f;
 
-        /// <summary>Trang hiện tại đổi (do vuốt hoặc do <see cref="Show"/>) – nhận chỉ số tab.</summary>
+        /// <summary>Trang hiện tại đổi (do vuốt hoặc do Show)</summary>
         public event Action<int> OnPageChanged;
 
         public int Count => pages.Length;
+        /// <summary>Kiểm tra trang có tồn tại</summary>
         public bool HasPage(int i) => i >= 0 && i < pages.Length && pages[i].root != null;
 
         int _current = -1;
-        // đang vuốt
         bool _pressed, _dragging, _blocked;
         Vector2 _pressPos;
-        float _offset;          // độ lệch hiện tại, đơn vị = bề ngang trang (−1..1)
+        float _offset;
         float _lastX, _velocity;
-        // đang trượt nốt
         bool _settling;
         float _settleFrom, _settleTo, _settleT;
         int _target = -1;
         int _restoreFrame = -1;
         readonly List<ScrollRect> _lockedScrolls = new List<ScrollRect>();
-        readonly Dictionary<RectTransform, float> _baseX = new Dictionary<RectTransform, float>();   // X của content trong prefab
+        readonly Dictionary<RectTransform, float> _baseX = new Dictionary<RectTransform, float>();
 
         void Awake()
         {
             foreach (Page p in pages) if (p.content != null) _baseX[p.content] = p.content.anchoredPosition.x;
         }
 
-        /// <summary>Có popup che (VD Profile) thì tạm khoá vuốt.</summary>
+        /// <summary>Có popup che (VD Profile) thì tạm khoá vuốt</summary>
         public bool Locked { get; set; }
 
-        /// <summary>Hiện trang <paramref name="index"/>; <paramref name="animate"/> = trượt sang như vuốt.</summary>
+        /// <summary>Hiện trang index; animate = trượt sang như vuốt</summary>
         public void Show(int index, bool animate)
         {
             if (!HasPage(index)) return;
@@ -70,7 +62,6 @@ namespace BounceBlast.UI
                 SnapTo(index);
                 return;
             }
-            // trượt: đặt trang đích sát bên rồi cho chạy offset về phía nó
             int dir = index > _current ? 1 : -1;
             _target = index;
             _settleFrom = 0f;
@@ -90,7 +81,7 @@ namespace BounceBlast.UI
             {
                 if (pages[i].root == null) continue;
                 bool on = i == index;
-                if (on && !pages[i].root.activeSelf && pages[i].transition != null) pages[i].transition.Prepare(EnterDir(index));   // bật thẳng (không trượt) – ẩn trước rồi mới hiện
+                if (on && !pages[i].root.activeSelf && pages[i].transition != null) pages[i].transition.Prepare(EnterDir(index));
                 pages[i].root.SetActive(on);
                 if (pages[i].content != null) SetX(pages[i].content, 0f);
             }
@@ -98,12 +89,12 @@ namespace BounceBlast.UI
             _current = index;
             if (changed)
             {
-                if (pages[index].transition != null) pages[index].transition.Play(enter);   // tới trang mới: các thành phần lần lượt hiện ra
+                if (pages[index].transition != null) pages[index].transition.Play(enter);
                 OnPageChanged?.Invoke(index);
             }
         }
 
-        /// <summary>+1 = trang <paramref name="index"/> nằm bên phải trang hiện tại, −1 = bên trái, 0 = cùng trang / chưa có.</summary>
+        /// <summary>+1 = trang index nằm bên phải trang hiện tại, −1 = bên trái, 0 = cùng trang / chưa có</summary>
         int EnterDir(int index) => _current < 0 || index == _current ? 0 : (index > _current ? 1 : -1);
 
         int Neighbour(int from, int dir)
@@ -121,7 +112,7 @@ namespace BounceBlast.UI
             return w > 1f ? w : 1242f;
         }
 
-        /// <summary>Đặt độ lệch khi vuốt – cộng lên X trong prefab (đứng yên = đúng như prefab).</summary>
+        /// <summary>Đặt độ lệch khi vuốt – cộng lên X trong prefab</summary>
         void SetX(RectTransform rt, float offset)
         {
             float bx;
@@ -131,7 +122,7 @@ namespace BounceBlast.UI
             rt.anchoredPosition = p;
         }
 
-        /// <summary>Đặt trang hiện tại lệch <paramref name="offset"/> bề ngang, trang kế (phía <paramref name="dir"/>) nằm sát bên.</summary>
+        /// <summary>Đặt trang hiện tại lệch offset bề ngang, trang kế</summary>
         void Layout(int cur, int next, float offset, int dir)
         {
             for (int i = 0; i < pages.Length; i++)
@@ -139,7 +130,7 @@ namespace BounceBlast.UI
                 Page p = pages[i];
                 if (p.root == null) continue;
                 bool show = i == cur || i == next;
-                if (show && !p.root.activeSelf && p.transition != null) p.transition.Prepare(i == cur ? 0 : dir);   // trang vừa lộ ra khi vuốt / trượt: thành phần ẩn, chờ tới nơi
+                if (show && !p.root.activeSelf && p.transition != null) p.transition.Prepare(i == cur ? 0 : dir);
                 if (p.root.activeSelf != show) p.root.SetActive(show);
                 if (!show || p.content == null) continue;
                 float w = Width(i);
@@ -156,11 +147,11 @@ namespace BounceBlast.UI
             {
                 _settleT += Time.unscaledDeltaTime / Mathf.Max(0.01f, settleTime);
                 float k = Mathf.Clamp01(_settleT);
-                float e = 1f - (1f - k) * (1f - k) * (1f - k);   // ease-out cubic
+                float e = 1f - (1f - k) * (1f - k) * (1f - k);
                 _offset = Mathf.Lerp(_settleFrom, _settleTo, e);
                 bool moving = _target >= 0 && _target != _current;
                 int dir = moving ? (_target > _current ? 1 : -1) : (_offset < 0f ? 1 : -1);
-                Layout(_current, moving ? _target : Neighbour(_current, dir), _offset, dir);   // trượt về: trang kế vẫn lộ tới khi khuất
+                Layout(_current, moving ? _target : Neighbour(_current, dir), _offset, dir);
                 if (k >= 1f) SnapTo(_target >= 0 ? _target : _current);
                 return;
             }
@@ -178,7 +169,7 @@ namespace BounceBlast.UI
             if (held && !_dragging && !_blocked)
             {
                 Vector2 d = pos - _pressPos;
-                if (Mathf.Abs(d.y) > dragThreshold && Mathf.Abs(d.y) > Mathf.Abs(d.x)) _blocked = true;      // cuộn dọc (Shop) – không vuốt
+                if (Mathf.Abs(d.y) > dragThreshold && Mathf.Abs(d.y) > Mathf.Abs(d.x)) _blocked = true;
                 else if (Mathf.Abs(d.x) > dragThreshold) BeginDrag();
             }
 
@@ -188,7 +179,7 @@ namespace BounceBlast.UI
                 _velocity = Mathf.Lerp(_velocity, (pos.x - _lastX) / screenW / dt, 0.5f);
                 _lastX = pos.x;
                 float raw = (pos.x - _pressPos.x) / screenW;
-                int dir = raw < 0f ? 1 : -1;                       // kéo sang trái → lộ trang bên phải
+                int dir = raw < 0f ? 1 : -1;
                 int next = Neighbour(_current, dir);
                 _offset = next < 0 ? raw * edgeResistance : Mathf.Clamp(raw, -1f, 1f);
                 Layout(_current, next, _offset, dir);
@@ -204,7 +195,7 @@ namespace BounceBlast.UI
         void BeginDrag()
         {
             _dragging = true;
-            SetInteractable(false);                               // không để cú vuốt kết thúc thành cú bấm nút
+            SetInteractable(false);
             _lockedScrolls.Clear();
             Page p = pages[_current];
             if (p.content != null)
@@ -217,7 +208,7 @@ namespace BounceBlast.UI
             _dragging = false;
             foreach (ScrollRect s in _lockedScrolls) if (s != null) s.vertical = true;
             _lockedScrolls.Clear();
-            _restoreFrame = Time.frameCount;                      // bật lại nút ở frame sau (cú thả đã qua EventSystem)
+            _restoreFrame = Time.frameCount;
 
             int dir = _offset < 0f ? 1 : -1;
             int next = Neighbour(_current, dir);
@@ -251,7 +242,7 @@ namespace BounceBlast.UI
             up = Input.GetMouseButtonUp(0);
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

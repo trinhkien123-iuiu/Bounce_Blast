@@ -6,15 +6,12 @@ using BounceBlast.UI;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Quản lý BOOSTER (Hammer, Magic Hand, Shuffle, Capacity): xử lý khi bấm nút booster, giữ booster đang "lên cò",
-    /// và đẩy số lượng / trạng thái lên thanh booster của UI. Dữ liệu số lượng nằm trong <see cref="BoosterSystem"/>.
-    /// </summary>
+    /// <summary>Quản lý BOOSTER (Hammer, Magic Hand, Shuffle, Capacity)</summary>
     public class BoosterManager : MonoBehaviour
     {
         public BoosterSystem Boosters { get; } = new BoosterSystem();
 
-        /// <summary>Booster đang lên cò (Hammer / MagicHand) – InputManager đọc để biết cú bấm tiếp theo làm gì.</summary>
+        /// <summary>Booster đang lên cò (Hammer / MagicHand)</summary>
         public BoosterType? Armed => Boosters.Armed;
 
         GameConfig _config;
@@ -25,6 +22,7 @@ namespace BounceBlast.Gameplay
         LevelManager _level;
         bool _playing;
 
+        /// <summary>Xử lý khởi tạo quản lý booster</summary>
         public void Init(GameConfig config, Camera cam, GameUI ui, BoardController board, AmmoGridController grid, LaunchManager launch, LevelManager level)
         {
             _config = config;
@@ -35,6 +33,7 @@ namespace BounceBlast.Gameplay
             _level.OnLevelLoaded += _ => { Boosters.ResetArmed(); RefreshLocks(); RefreshUi(); };
         }
 
+        /// <summary>Nhận trạng thái đang chơi</summary>
         public void SetPlaying(bool playing) => _playing = playing;
 
         void HandleBooster(BoosterType type)
@@ -48,9 +47,14 @@ namespace BounceBlast.Gameplay
             }
             if (Boosters.Count(type) <= 0)
             {
-                // Hết lượt → popup mua (game gốc trả coin; bản clone chưa có cửa hàng nên bấm mua là nhận luôn)
-                _ui.ShowBoosterBuy(type, _level.Level.Difficulty, (t, n) =>
+                _ui.ShowBoosterBuy(type, _level.Level.Difficulty, (t, n, price) =>
                 {
+                    if (!PlayerData.TrySpendCoins(price))
+                    {
+                        AudioManager.Play(Sfx.Error);
+                        _ui.Toast("Not enough coins!");
+                        return;
+                    }
                     Boosters.Add(t, n);
                     AudioManager.Play(Sfx.Magic);
                     _ui.Toast("+" + n + " " + t);
@@ -83,10 +87,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        /// <summary>
-        /// Dùng búa (InputManager gọi khi Hammer đang lên cò và người chơi bấm vào khối). Búa đập xuống điểm chạm rồi phá cả VÙNG quanh đó
-        /// (bán kính <see cref="GameConfig.hammerRadiusCells"/> ô), vỡ lan dần từ tâm ra ngoài.
-        /// </summary>
+        /// <summary>Dùng búa (InputManager gọi khi Hammer đang lên cò và người chơi bấm vào khối)</summary>
         public void UseHammer(Vector2 point, BoardBlock block)
         {
             if (block == null || !block.IsDestructible) return;
@@ -103,7 +104,7 @@ namespace BounceBlast.Gameplay
             foreach (Collider2D col in Physics2D.OverlapCircleAll(point, radius))
             {
                 BoardBlock b = col.GetComponent<BoardBlock>();
-                if (b == null || !b.IsDestructible || b.IsDestroyed || (b != tapped && (b.Cells.width > 1 || b.Cells.height > 1))) continue;   // khối gộp lớn chỉ vỡ khi bấm trúng, không bị lan
+                if (b == null || !b.IsDestructible || b.IsDestroyed || (b != tapped && (b.Cells.width > 1 || b.Cells.height > 1))) continue;
                 if (seen.Add(b)) hits.Add(b);
             }
             if (tapped != null && seen.Add(tapped)) hits.Add(tapped);
@@ -119,7 +120,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        /// <summary>Trừ một lượt Magic Hand (LaunchManager gọi khi bắn hộp bằng Magic Hand) và chiếu hiệu ứng bàn tay phép lên hộp.</summary>
+        /// <summary>Trừ một lượt Magic Hand (LaunchManager gọi khi bắn hộp bằng Magic Hand) và chiếu hiệu ứng bàn tay phép lên hộp</summary>
         public void ConsumeMagicHand(AmmoBox box)
         {
             Boosters.Consume(BoosterType.MagicHand);
@@ -130,14 +131,12 @@ namespace BounceBlast.Gameplay
         }
 
         ColorLibrary _colors;
+        /// <summary>Nhận bảng màu cho hiệu ứng</summary>
         public void SetColors(ColorLibrary colors) => _colors = colors;
 
         bool IsLocked(BoosterType t) => _level.CurrentLevel < _config.BoosterUnlockLevel(t);
 
-        /// <summary>
-        /// Khoá booster chưa tới level mở. Booster đã mở mà người chơi CHƯA từng được báo (cờ PlayerPrefs) thì chơi hoạt cảnh mở khoá
-        /// + popup hướng dẫn, lần lượt từng cái (vào level mở, hoặc nhảy thẳng tới level cao hơn đều được báo đủ).
-        /// </summary>
+        /// <summary>Khoá booster chưa tới level mở</summary>
         void RefreshLocks()
         {
             var fresh = new List<BoosterType>();
@@ -153,7 +152,7 @@ namespace BounceBlast.Gameplay
 
         List<BoosterType> _pending = new List<BoosterType>();
 
-        /// <summary>Chơi hoạt cảnh + popup mở khoá các booster còn chờ, xong thì gọi <paramref name="done"/> (OnboardingManager gọi sau khi level nạp xong).</summary>
+        /// <summary>Chơi hoạt cảnh + popup mở khoá các booster còn chờ, xong thì gọi done</summary>
         public void PlayPendingUnlocks(Action done)
         {
             var list = _pending; _pending = new List<BoosterType>();
@@ -167,14 +166,14 @@ namespace BounceBlast.Gameplay
             BoosterType t = list[index];
             PlayerPrefs.SetInt("bb_booster_unlocked_" + t, 1);
             int free = _config.freeBoosterOnUnlock;
-            Boosters.Add(t, free);   // tặng lượt thử miễn phí (hiện nhãn xN trên popup hướng dẫn)
+            Boosters.Add(t, free);
             _ui.PlayBoosterUnlock(t, () =>
             {
                 AudioManager.Play(Sfx.BoosterUnlock);
-                RefreshUi();   // nút đã mở: hiện lại ô số lượt
+                RefreshUi();
                 if (BoosterFx.Instance != null) BoosterFx.Instance.Unlock(_ui.BoosterButtonScreenPos(t));
             },
-            () => _ui.ShowBoosterTutorial(t, _level.Level.Difficulty, HandleBooster, () => AnnounceUnlock(list, index + 1, done), free));   // Use → dùng ngay; đóng → báo cái kế
+            () => _ui.ShowBoosterTutorial(t, _level.Level.Difficulty, HandleBooster, () => AnnounceUnlock(list, index + 1, done), free));
         }
 
         void RefreshUi()

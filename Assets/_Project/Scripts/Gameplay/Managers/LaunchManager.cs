@@ -5,11 +5,7 @@ using BounceBlast.UI;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Quản lý BẮN HỘP ĐẠN và SỨC CHỨA: bấm hộp → kiểm tra sức chứa → phóng hộp lên máng, xử lý "Out Of Capacity" và phát hiện
-    /// hết nước đi. Giữ <see cref="CapacitySystem"/> của màn chơi. Khi hết cách chơi thì phát <see cref="OnGameOver"/> (Observer)
-    /// – GameManager nghe và quyết định thua.
-    /// </summary>
+    /// <summary>Quản lý BẮN HỘP ĐẠN và SỨC CHỨA</summary>
     public class LaunchManager : MonoBehaviour
     {
         [Header("Debug (read only)")]
@@ -18,7 +14,7 @@ namespace BounceBlast.Gameplay
         [Tooltip("Bi đã rời khay mà chưa tiêu hao (máng + bàn + hộp đang nhả)")] public int ballsInSystem;
         public int blocksLeft;
 
-        /// <summary>Hết cách chơi (hết sức chứa mà bỏ cuộc, hoặc không còn nước đi) – kèm lý do hiển thị.</summary>
+        /// <summary>Hết cách chơi (hết sức chứa mà bỏ cuộc, hoặc không còn nước đi)</summary>
         public event Action<string> OnGameOver;
 
         public CapacitySystem Capacity { get; } = new CapacitySystem();
@@ -36,6 +32,7 @@ namespace BounceBlast.Gameplay
         float _idleTimer;
         float _deadlockTimer;
 
+        /// <summary>Xử lý khởi tạo quản lý bắn hộp</summary>
         public void Init(GameUI ui, BoardController board, AmmoGridController grid, ConveyorSystem conveyor, BallManager balls,
                          BoosterManager boosters, LevelManager level)
         {
@@ -46,7 +43,7 @@ namespace BounceBlast.Gameplay
             _level.OnLevelLoaded += model => ResetForLevel(model);
         }
 
-        /// <summary>GameManager báo trạng thái: chỉ đang Playing mới xét hết nước đi / chấp nhận bắn.</summary>
+        /// <summary>GameManager báo trạng thái</summary>
         public void SetPlaying(bool playing) => _playing = playing;
 
         void ResetForLevel(LevelModel model)
@@ -74,19 +71,16 @@ namespace BounceBlast.Gameplay
             if (_playing) CheckDeadlock();
         }
 
-        // ------------------------------------------------------------------ Bắn hộp
-        /// <param name="tapSoundDone">true nếu tiếng chạm đã phát lúc người chơi chạm xuống (InputManager) → không phát lại lúc bắn</param>
+        /// <summary>Xử lý bắn hộp, hết sức chứa thì hiện Out Of Capacity</summary>
         public void TryLaunch(AmmoBox box, bool forced, bool tapSoundDone = false)
         {
             if (_overflowPending) return;
-            // Video gốc (lose_coche): hộp làm vượt sức chứa → thanh nhảy kín 100%, hộp bật lên lơ lửng, ~0.6s sau mới hiện Out Of Capacity.
-            // Bi của hộp CHƯA được cộng; chỉ khi chọn Play On (tăng sức chứa) hộp mới bay tiếp.
             if (!Capacity.CanAdd(box.Data.Balls))
             {
                 _overflowPending = true;
                 _started = true;
                 Capacity.ForceFull = true;
-                _conveyor.HoldBoxMidFlight(box);   // chạy hoạt ảnh bay thật rồi dừng giữa chừng (không còn ống nghiêng riêng)
+                _conveyor.HoldBoxMidFlight(box);
                 AudioManager.Play(Sfx.Error);
                 StartCoroutine(OutOfCapacityRoutine(box, forced, tapSoundDone));
                 return;
@@ -112,9 +106,22 @@ namespace BounceBlast.Gameplay
         {
             yield return new WaitForSeconds(0.6f);
             if (!_playing || box == null) { _overflowPending = false; Capacity.ForceFull = false; yield break; }
+            ShowOutOfCapacityPopup(box, forced, tapSoundDone);
+        }
+
+        /// <summary>Xử lý hiện popup hết sức chứa; Play On trừ xu, không đủ xu thì báo và hiện lại popup</summary>
+        void ShowOutOfCapacityPopup(AmmoBox box, bool forced, bool tapSoundDone)
+        {
             _ui.ShowOutOfCapacity(_level.Level.Difficulty,
                 onAddCapacity: () =>
                 {
+                    if (!PlayerData.TrySpendCoins(PlayerData.PlayOnCost))
+                    {
+                        AudioManager.Play(Sfx.Error);
+                        _ui.Toast("Not enough coins!");
+                        ShowOutOfCapacityPopup(box, forced, tapSoundDone);
+                        return;
+                    }
                     Capacity.Increase(0.25f);
                     AudioManager.Play(Sfx.Magic);
                     Capacity.ForceFull = false;
@@ -124,10 +131,7 @@ namespace BounceBlast.Gameplay
                 onGiveUp: () => { Capacity.ForceFull = false; _overflowPending = false; OnGameOver?.Invoke("Out of capacity"); });
         }
 
-        /// <summary>
-        /// Thua khi không còn gì làm được: không hộp nào bấm được, máng trống,
-        /// và không bi nào trên bàn còn mục tiêu cùng màu (gốc: Capacity.IsInDeadlock).
-        /// </summary>
+        /// <summary>Thua khi không còn gì làm được</summary>
         void CheckDeadlock()
         {
             _idleTimer += Time.deltaTime;

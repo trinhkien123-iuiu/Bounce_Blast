@@ -9,26 +9,18 @@ using UnityEngine.UI;
 
 namespace BounceBlast.EditorTools
 {
-    /// <summary>
-    /// Công cụ dọn prefab UI tách từ game gốc (xem Docs/kien-truc/ui.md mục "Dọn prefab"). Mọi thao tác đều KIỂM TRA TRƯỚC
-    /// rồi mới sửa, thiếu điều kiện thì không làm và báo lý do:
-    ///  - <see cref="Delete"/>: xoá nhánh – chặn nếu nhánh (hoặc con của nó) đang được component nào ngoài nhánh, hay scene đang mở, tham chiếu.
-    ///  - <see cref="Flatten"/>: bỏ lớp bọc – chỉ khi lớp bọc phủ kín cha (neo 0..1, lệch 0, scale 1, không xoay), đang bật,
-    ///    không có component nào ngoài RectTransform, không ai tham chiếu, không nằm trên đường dẫn hoạt ảnh.
-    ///  - <see cref="RemoveNestedCanvas"/>: bỏ Canvas lồng không override thứ tự (kèm GraphicRaycaster/CanvasScaler của nó).
-    ///  - <see cref="Rename"/>: đổi tên – chặn nếu object nằm trên đường dẫn hoạt ảnh của Animator, hoặc trùng tên anh em.
-    /// Đường dẫn object tính từ gốc prefab, ngăn bằng "/".
-    /// </summary>
+    /// <summary>Công cụ dọn prefab UI tách từ game gốc</summary>
     public static class UiTidy
     {
-        // ------------------------------------------------------------------ phân tích
+        /// <summary>Dùng cho thông tin một node UI</summary>
         class Info
         {
             public readonly Dictionary<Transform, List<Component>> refs = new Dictionary<Transform, List<Component>>();
-            public readonly HashSet<string> external = new HashSet<string>();      // đường dẫn được scene tham chiếu
+            public readonly HashSet<string> external = new HashSet<string>();
             public readonly HashSet<Transform> animLocked = new HashSet<Transform>();
         }
 
+        /// <summary>Dùng cho lấy đường dẫn tương đối của node</summary>
         public static string Rel(Transform root, Transform t)
         {
             if (t == root) return "";
@@ -61,7 +53,6 @@ namespace BounceBlast.EditorTools
                 }
             }
 
-            // scene đang mở tham chiếu vào bên trong instance của prefab này (scene không đổi trong một lệnh → chỉ quét lần đầu)
             var scene = EditorSceneManager.GetActiveScene();
             if (sceneFrom == null)
             foreach (GameObject g in scene.GetRootGameObjects())
@@ -80,12 +71,11 @@ namespace BounceBlast.EditorTools
                         if (tg == null || EditorUtility.IsPersistent(tg) || !PrefabUtility.IsPartOfPrefabInstance(tg)) continue;
                         GameObject instRoot = PrefabUtility.GetNearestPrefabInstanceRoot(tg);
                         if (PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(tg) != prefabPath) continue;
-                        if (c.transform.IsChildOf(instRoot.transform) && PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(c.gameObject) == prefabPath) continue; // tham chiếu nội bộ – đã tính ở trên
+                        if (c.transform.IsChildOf(instRoot.transform) && PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(c.gameObject) == prefabPath) continue;
                         info.external.Add(Rel(instRoot.transform, tg.transform));
                     }
                 }
 
-            // đường dẫn hoạt ảnh
             foreach (Animator a in root.GetComponentsInChildren<Animator>(true))
             {
                 if (a.runtimeAnimatorController == null) continue;
@@ -103,7 +93,7 @@ namespace BounceBlast.EditorTools
             return info;
         }
 
-        /// <summary>Trường nội bộ của Unity (liên kết prefab, script…) – không phải tham chiếu do người dùng kéo.</summary>
+        /// <summary>Trường nội bộ của Unity (liên kết prefab, script…)</summary>
         static bool SkipProp(string path) =>
             path == "m_GameObject" || path == "m_Script" || path == "m_CorrespondingSourceObject" || path == "m_PrefabInstance" || path == "m_PrefabAsset";
 
@@ -122,9 +112,7 @@ namespace BounceBlast.EditorTools
             return false;
         }
 
-        // ------------------------------------------------------------------ in cây
-        /// <summary>In cây prefab ra file (Temp/UiTidy/&lt;tên&gt;.txt). Cờ: [off] đang tắt, R script tham chiếu, X scene tham chiếu,
-        /// A trên đường hoạt ảnh, W ứng viên làm phẳng, C Canvas lồng không override.</summary>
+        /// <summary>In cây prefab ra file (Temp/UiTidy/&amp;lt;tên&amp;gt;.txt)</summary>
         public static string Dump(string prefabPath, int maxDepth = 99)
         {
             GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
@@ -180,7 +168,6 @@ namespace BounceBlast.EditorTools
                 && rt.localScale == Vector3.one && rt.localRotation == Quaternion.identity && Mathf.Approximately(rt.localPosition.z, 0f);
         }
 
-        // ------------------------------------------------------------------ thao tác
         delegate string Op(GameObject root, Info info, string rel);
 
         static string Run(string prefabPath, string[] rels, Op op)
@@ -193,7 +180,7 @@ namespace BounceBlast.EditorTools
                 Info first = null;
                 foreach (string rel in rels)
                 {
-                    Info info = Analyse(root, prefabPath, first);   // phân tích lại sau mỗi bước (cây đã đổi); tham chiếu từ scene dùng lại
+                    Info info = Analyse(root, prefabPath, first);
                     if (first == null) first = info;
                     string r = op(root, info, rel);
                     sb.AppendLine(r);
@@ -207,6 +194,7 @@ namespace BounceBlast.EditorTools
 
         static Transform Find(GameObject root, string rel) => string.IsNullOrEmpty(rel) ? root.transform : root.transform.Find(rel);
 
+        /// <summary>Xử lý xoá node trong prefab</summary>
         public static string Delete(string prefabPath, params string[] rels) => Run(prefabPath, rels, (root, info, rel) =>
         {
             Transform t = Find(root, rel);
@@ -221,6 +209,7 @@ namespace BounceBlast.EditorTools
             return "OK xoá " + rel + " (" + n + " object)";
         });
 
+        /// <summary>Xử lý làm phẳng node trong prefab</summary>
         public static string Flatten(string prefabPath, params string[] rels) => Run(prefabPath, rels, (root, info, rel) =>
         {
             Transform w = Find(root, rel);
@@ -240,6 +229,7 @@ namespace BounceBlast.EditorTools
             return "OK làm phẳng " + rel + " (" + kids.Count + " con lên " + (parent == root.transform ? "gốc" : parent.name) + ")";
         });
 
+        /// <summary>Xử lý gỡ Canvas lồng nhau trong prefab</summary>
         public static string RemoveNestedCanvas(string prefabPath, params string[] rels) => Run(prefabPath, rels, (root, info, rel) =>
         {
             Transform t = Find(root, rel);
@@ -253,7 +243,7 @@ namespace BounceBlast.EditorTools
             return "OK bỏ Canvas lồng " + rel;
         });
 
-        /// <summary>Đổi tên: mỗi phần tử dạng "đường/dẫn=>TênMới".</summary>
+        /// <summary>Đổi tên: mỗi phần tử dạng "đường/dẫn=&gt;TênMới"</summary>
         public static string Rename(string prefabPath, params string[] pairs) => Run(prefabPath, pairs, (root, info, pair) =>
         {
             int k = pair.IndexOf("=>");
@@ -267,7 +257,7 @@ namespace BounceBlast.EditorTools
             return "OK đổi tên " + rel + " → " + name;
         });
 
-        /// <summary>Đặt lại thứ tự / bật tắt / đổi cha thì làm trong Editor; ở đây chỉ phục vụ dọn.</summary>
+        /// <summary>Đặt lại thứ tự / bật tắt / đổi cha thì làm trong Editor</summary>
         public static string Count(string prefabPath)
         {
             GameObject root = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
@@ -277,8 +267,7 @@ namespace BounceBlast.EditorTools
             return Path.GetFileNameWithoutExtension(prefabPath) + ": " + all.Length + " object, sâu " + depth + ", Canvas " + root.GetComponentsInChildren<Canvas>(true).Length;
         }
 
-        // ------------------------------------------------------------------ chụp MenuGame
-        /// <summary>Chụp các trạng thái MenuGame (Edit mode) vào Temp/UiTidy/&lt;tag&gt;_&lt;trạng thái&gt;.png rồi trả scene về như cũ.</summary>
+        /// <summary>Chụp các trạng thái MenuGame</summary>
         public static string ShotMenu(string tag, int w = 621, int h = 1344)
         {
             var scene = EditorSceneManager.GetActiveScene();
@@ -308,11 +297,7 @@ namespace BounceBlast.EditorTools
             return sb.ToString();
         }
 
-        // ------------------------------------------------------------------ chụp popup Gameplay
-        /// <summary>
-        /// Chụp từng popup của scene Gameplay (Edit mode) qua UI Camera trên nền đen (bàn chơi không lọt vào → ảnh ổn định).
-        /// Popup được bật tạm, CanvasGroup alpha 1; màn Thắng chụp 2 trạng thái (logo / bảng). Xong trả mọi thứ về như cũ.
-        /// </summary>
+        /// <summary>Chụp từng popup của scene Gameplay</summary>
         public static string ShotGame(string tag, int w = 621, int h = 1344)
         {
             var scene = EditorSceneManager.GetActiveScene();
@@ -337,7 +322,6 @@ namespace BounceBlast.EditorTools
                     if (cg != null) { float a = cg.alpha; restore.Add(() => cg.alpha = a); cg.alpha = 1f; }
                     if (p.name == "SuccessPopup")
                     {
-                        // lấy theo ô tham chiếu của SuccessPopupView (không theo tên – tên đổi khi dọn)
                         var view = p.GetComponent<BounceBlast.UI.SuccessPopupView>();
                         var vso = new SerializedObject(view);
                         System.Func<string, Transform> Ref = f => { var o = vso.FindProperty(f).objectReferenceValue; return o is Component ? ((Component)o).transform : null; };
@@ -363,7 +347,7 @@ namespace BounceBlast.EditorTools
             return sb.ToString();
         }
 
-        /// <summary>Đường dẫn (từ <paramref name="root"/>) của object đầu tiên mang tên <paramref name="name"/> – dùng khi tên đã đổi chỗ sau khi dọn.</summary>
+        /// <summary>Đường dẫn (từ root) của object đầu tiên mang tên name</summary>
         static string FindPath(Transform root, string name)
         {
             Transform t = root.GetComponentsInChildren<Transform>(true).FirstOrDefault(x => x.name == name);

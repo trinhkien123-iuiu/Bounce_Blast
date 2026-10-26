@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using BounceBlast.Gameplay;
 using UnityEditor;
 using UnityEngine;
@@ -7,14 +6,12 @@ using BounceBlast.UI;
 
 namespace BounceBlast.EditorTools
 {
-    /// <summary>
-    /// Gắn <see cref="UiButtonFeedback"/> vào mọi <see cref="Button"/> của các prefab UI (Assets/_Project/Prefabs/UI).
-    /// Chạy lại bao nhiêu lần cũng được (nút đã có thì bỏ qua). Nút "Hover Indicator"/nút ẩn vẫn được gắn – component tự ngủ khi object tắt.
-    /// </summary>
+    /// <summary>Gắn UiButtonFeedback vào mọi Button của các prefab UI</summary>
     public static class UiButtonFeedbackInstaller
     {
         const string Folder = "Assets/_Project/Prefabs/UI";
 
+        /// <summary>Xử lý gắn phản hồi bấm cho mọi nút</summary>
         [MenuItem("Tools/Bounce Blast/UI/Thêm phản hồi cho mọi nút")]
         public static void InstallAll()
         {

@@ -3,20 +3,13 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Dựng vật thể nhiều ô từ bộ MẢNH GỐC của prefab "ModularPrimitive…" (cột nhà, hòm gỗ…) – thay cho script
-    /// ModularPrimitive/CombinedCubic gốc đã bị strip khi rip.
-    ///
-    /// Quy ước tên mảnh của game gốc: hậu tố là tập ô hàng xóm cùng khối, nối bằng '-'.
-    /// VD hòm gỗ: <c>CrateCorner1-T-R</c> (góc dưới-trái: có ô trên & phải), <c>CrateMid-L-T-R-B</c> (ô giữa), <c>CrateSide2</c> (không hàng xóm).
-    /// Cột nhà dùng thêm hàng xóm chéo (TL/TR/BL/BR). Mỗi ô chọn mảnh có tập hàng xóm khớp; mảnh giữ nguyên transform gốc.
-    /// </summary>
+    /// <summary>Dựng vật thể nhiều ô từ bộ MẢNH GỐC của prefab "ModularPrimitive…"</summary>
     public static class ModularPrimitiveBuilder
     {
         static readonly HashSet<string> DirTokens = new HashSet<string> { "T", "B", "L", "R", "TL", "TR", "BL", "BR" };
         static readonly Dictionary<Transform, Dictionary<string, Transform>> Cache = new Dictionary<Transform, Dictionary<string, Transform>>();
 
-        /// <summary>Khoá hàng xóm chuẩn hoá (sắp xếp) từ các token hướng trong tên mảnh; token không phải hướng (tên mảnh) bị bỏ.</summary>
+        /// <summary>Khoá hàng xóm chuẩn hoá (sắp xếp) từ các token hướng trong tên mảnh</summary>
         public static string Key(IEnumerable<string> tokens)
         {
             var l = new List<string>();
@@ -25,7 +18,7 @@ namespace BounceBlast.Gameplay
             return string.Join("-", l);
         }
 
-        /// <summary>Bảng khoá → mảnh của một container (VD prefab.transform hoặc "Model"). Chỉ lấy con có MeshRenderer.</summary>
+        /// <summary>Bảng khoá → mảnh của một container</summary>
         public static Dictionary<string, Transform> Pieces(Transform container)
         {
             if (Cache.TryGetValue(container, out var d) && d != null) return d;
@@ -40,7 +33,7 @@ namespace BounceBlast.Gameplay
             return d;
         }
 
-        /// <summary>Tập hàng xóm của ô <paramref name="c"/> trong <paramref name="cells"/>.</summary>
+        /// <summary>Tập hàng xóm của ô c trong cells</summary>
         public static string NeighbourKey(HashSet<Vector2Int> cells, Vector2Int c, bool diagonals)
         {
             var n = new List<string>(8);
@@ -58,10 +51,7 @@ namespace BounceBlast.Gameplay
             return Key(n);
         }
 
-        /// <summary>
-        /// Đặt một bản sao mảnh vào ô <paramref name="c"/> (toạ độ ô trong khối kích thước <paramref name="size"/>), con của <paramref name="root"/>.
-        /// <paramref name="containerScale"/> = scale của container gốc (VD "Model" của hòm gỗ là 1.06 → các ô chồng mép nhẹ như gốc).
-        /// </summary>
+        /// <summary>Đặt một bản sao mảnh vào ô c</summary>
         public static Transform Place(Transform root, Transform piece, Vector2Int c, RectInt size, float cell, Vector3 containerScale, int layer)
         {
             var cellT = new GameObject("Cell").transform;
@@ -78,7 +68,7 @@ namespace BounceBlast.Gameplay
             return cellT;
         }
 
-        /// <summary>Tập ô của khối (mask nếu có, không thì cả hình chữ nhật).</summary>
+        /// <summary>Tập ô của khối (mask nếu có, không thì cả hình chữ nhật)</summary>
         public static HashSet<Vector2Int> Cells(BoardItemData item)
         {
             var cells = new HashSet<Vector2Int>();

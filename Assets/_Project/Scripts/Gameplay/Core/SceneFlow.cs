@@ -3,10 +3,7 @@ using UnityEngine.SceneManagement;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Luồng chuyển scene: Loading → MenuGame ⇄ Gameplay. Build Settings: Loading đứng đầu (mở app), rồi MenuGame, Gameplay.
-    /// Vào màn chơi đi qua scene Loading (màn loading gốc); về Menu nạp thẳng.
-    /// </summary>
+    /// <summary>Luồng chuyển scene: Loading → MenuGame ⇄ Gameplay</summary>
     public static class SceneFlow
     {
         public const string Loading = "Loading";
@@ -15,7 +12,7 @@ namespace BounceBlast.Gameplay
 
         static string _pending;
 
-        /// <summary>Scene mà màn Loading cần nạp (null = vừa mở app → MenuGame). Đọc một lần rồi xoá.</summary>
+        /// <summary>Scene mà màn Loading cần nạp</summary>
         public static string TakePending()
         {
             string s = _pending;
@@ -23,20 +20,16 @@ namespace BounceBlast.Gameplay
             return s;
         }
 
-        /// <summary>
-        /// true khi người chơi vào Gameplay từ Menu → Gameplay chơi tiếp level đã lưu. Bấm Play thẳng scene Gameplay
-        /// trong Editor thì false → dùng LevelManager.startLevel để tiện test.
-        /// </summary>
+        /// <summary>true khi người chơi vào Gameplay từ Menu → Gameplay chơi tiếp level đã lưu</summary>
         public static bool FromMenu { get; private set; }
 
-        /// <summary>
-        /// true khi Gameplay đã dựng xong level đầu tiên (LevelManager báo). Màn Loading giữ lại tới lúc này rồi mới mờ đi –
-        /// không lộ khung bàn chơi trống / cú khựng lúc dựng level.
-        /// </summary>
+        /// <summary>true khi Gameplay đã dựng xong level đầu tiên</summary>
         public static bool LevelReady { get; private set; }
 
+        /// <summary>Xử lý báo level đã nạp xong</summary>
         public static void MarkLevelReady() => LevelReady = true;
 
+        /// <summary>Xử lý chuyển sang scene chơi</summary>
         public static void GoToGameplay()
         {
             FromMenu = true;
@@ -46,6 +39,7 @@ namespace BounceBlast.Gameplay
             SceneManager.LoadScene(Loading);
         }
 
+        /// <summary>Xử lý chuyển về scene menu</summary>
         public static void GoToMenu()
         {
             Time.timeScale = 1f;

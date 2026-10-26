@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>Tham chiếu asset + thông số gameplay (một chỗ để tinh chỉnh).</summary>
+    /// <summary>Tham chiếu asset + thông số gameplay</summary>
     [CreateAssetMenu(menuName = "Bounce Blast/Game Config")]
     public class GameConfig : ScriptableObject
     {
@@ -15,9 +15,9 @@ namespace BounceBlast.Gameplay
         public LevelSource levelSource = LevelSource.Original;
         [Tooltip("Bộ level tự làm (Data/Levels/custom/LevelPack_custom.asset)")] public LevelPack customLevels;
 
-        /// <summary>Level lớn nhất của bộ đang chơi.</summary>
+        /// <summary>Level lớn nhất của bộ đang chơi</summary>
         public int MaxLevel => levelSource == LevelSource.Custom ? Mathf.Max(1, customLevels != null ? customLevels.Count : 1) : maxLevel;
-        /// <summary>Tên bộ đang chơi (dùng làm khoá lưu tiến độ riêng từng bộ).</summary>
+        /// <summary>Tên bộ đang chơi (dùng làm khoá lưu tiến độ riêng từng bộ)</summary>
         public string ActiveSetName => levelSource == LevelSource.Custom ? "custom" : "original";
 
         [Header("Prefab gốc (Resources/prefabs)")]
@@ -68,7 +68,7 @@ namespace BounceBlast.Gameplay
         public AudioClip musicSuperHard;
 
         [Header("Bàn chơi (toạ độ world, lấy từ collider gốc của Board - Default)")]
-        public Rect arena = new Rect(1.07f, -6.35f, 8.46f, 14.0f); // mép trong nhìn thấy của khung (đo lại)
+        public Rect arena = new Rect(1.07f, -6.35f, 8.46f, 14.0f);
         public float arenaTopY = 7.45f;
         [Tooltip("Điểm thả bi vào bàn: phải nằm DƯỚI mép bịt cửa phun (y = 6.92) và trên nêm tam giác (đỉnh y = 6.30)")]
         public Vector2 dispenserOutlet = new Vector2(5.30f, 6.62f);
@@ -76,8 +76,7 @@ namespace BounceBlast.Gameplay
         [Header("Bi")]
         public float ballRadius = 0.17f;
         public float ballSpeed = 11f;
-        public float ballSpawnSpread = 55f;      // độ (± so với hướng thẳng xuống)
-        public float homingStrength = 0.12f;     // bẻ hướng nhẹ về cube cùng màu khi nảy
+        public float ballSpawnSpread = 55f;
         [Tooltip("Tốc độ dọc tối thiểu sau mỗi lần nảy – chống bi nảy ngang mãi giữa 2 vách")]
         public float ballMinVerticalSpeed = 1.6f;
         [Tooltip("Lệch ngẫu nhiên (độ) mỗi lần nảy, tránh quỹ đạo lặp vô hạn")]
@@ -97,14 +96,14 @@ namespace BounceBlast.Gameplay
         public float laneArrowSpeed = 1.5f;
 
         [Header("Khay đạn")]
-        public float ammoCellMax = 1.70f;       // ảnh gốc: ô khay ≈ 1.7 (7 cột phủ kín bề ngang)
+        public float ammoCellMax = 1.70f;
         public float ammoAreaWidth = 11.9f;
         public float ammoAreaTop = -7.9f;
-        public float ammoAreaBottom = -16f;     // mép trên thanh booster
+        public float ammoAreaBottom = -16f;
         [Tooltip("Thời gian (giây) logo + pháo hoa/confetti chạy sau khi chữ BOUNCE BLAST hiện xong, rồi mới hiện bảng thắng")]
         public float winFireworksTime = 2.4f;
-        public float ammoActiveScale = 0.9f;     // Ammunation.scaleOfActive (nhô khỏi hố)
-        public float ammoInactiveScale = 0.88f;  // khít miệng hố (SlotSize 0.92, chừa viền mảnh)
+        public float ammoActiveScale = 0.9f;
+        public float ammoInactiveScale = 0.88f;
         [Tooltip("Cỡ hộp so với bước giữa các hố (1 = như cũ). Nhỏ hơn 1 = khoảng cách hố tương đối dãn ra, hộp (kể cả hộp băng/cửa kính to) không dính nhau; vị trí hộp vẫn theo tâm hố")]
         [Range(0.5f, 1.2f)] public float ammoBoxVsHole = 1f;
 
@@ -135,7 +134,7 @@ namespace BounceBlast.Gameplay
         [Tooltip("Level nhắc \"Watch the capacity!\"")] public int onboardCapacityLevel = 2;
         [Tooltip("Level nhắc \"HOLD WALL TO SPEED UP!\"")] public int onboardSpeedLevel = 3;
 
-        /// <summary>Một cơ chế mới (popup "New Feature" hiện lần đầu cơ chế xuất hiện trong level). Chữ lấy nf_title_* / nf_description_* của game gốc.</summary>
+        /// <summary>Một cơ chế mới (popup "New Feature" hiện lần đầu cơ chế xuất hiện trong level)</summary>
         [Serializable]
         public class FeatureIntro
         {
@@ -146,6 +145,7 @@ namespace BounceBlast.Gameplay
         }
         public System.Collections.Generic.List<FeatureIntro> featureIntros = new System.Collections.Generic.List<FeatureIntro>();
 
+        /// <summary>Dùng cho lấy nội dung popup cơ chế mới theo id</summary>
         public FeatureIntro FeatureIntroOf(string id) => featureIntros.Find(f => f != null && f.id == id);
 
         [Header("Mở khoá booster theo level (gốc: KPBoosterDependencies.UnlockLevel)")]
@@ -156,7 +156,7 @@ namespace BounceBlast.Gameplay
 
         [Tooltip("Số lượt miễn phí để thử mỗi khi một booster được mở khoá")] public int freeBoosterOnUnlock = 2;
 
-        /// <summary>Level mở khoá của một booster.</summary>
+        /// <summary>Level mở khoá của một booster</summary>
         public int BoosterUnlockLevel(BoosterType t)
         {
             switch (t)
@@ -168,10 +168,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        /// <summary>
-        /// Booster kế tiếp sẽ mở khoá sau level <paramref name="level"/> – cho thanh "New Booster" ở bảng thắng.
-        /// from/to = tiến độ (0..1) trước / sau khi thắng level này, tính từ lần mở khoá trước; to = 1 nghĩa là level kế tiếp mở khoá nó.
-        /// </summary>
+        /// <summary>Booster kế tiếp sẽ mở khoá sau level level</summary>
         public bool NextBoosterUnlock(int level, out BoosterType type, out float from, out float to)
         {
             type = BoosterType.MagicHand; from = to = 0f;
@@ -189,7 +186,7 @@ namespace BounceBlast.Gameplay
             return true;
         }
 
-        /// <summary>Hình icon (không viền nút) của một booster.</summary>
+        /// <summary>Hình icon (không viền nút) của một booster</summary>
         public Sprite BoosterIcon(BoosterType t)
         {
             switch (t)
@@ -226,6 +223,22 @@ namespace BounceBlast.Gameplay
         [Header("Ammo tunnel (/tu-XD) – áp dụng khi nạp level")]
         [Tooltip("Cạnh lớn nhất của tunnel trên màn hình (theo ô khay)")]
         [Range(0.3f, 1.5f)] public float tunnelSize = 0.95f;
+        /// <summary>Dùng cho tư thế riêng của thân ống (node Model/Tunnel) theo hướng nhả</summary>
+        [Serializable]
+        public class TunnelPose
+        {
+            public bool use;
+            public Vector3 position, euler, scale = Vector3.one;
+        }
+        [Header("Tư thế thân ống theo hướng nhả (đo từ bản chỉnh tay; use tắt = giữ mặc định)")]
+        public TunnelPose tunnelPoseRight = new TunnelPose(), tunnelPoseLeft = new TunnelPose(), tunnelPoseUp = new TunnelPose(), tunnelPoseDown = new TunnelPose();
+
+        /// <summary>Dùng cho lấy tư thế thân ống theo hướng nhả</summary>
+        public TunnelPose TunnelPoseOf(Vector2Int dir) => dir.x > 0 ? tunnelPoseRight : dir.x < 0 ? tunnelPoseLeft : dir.y < 0 ? tunnelPoseUp : tunnelPoseDown;
+
+        [Tooltip("Lùi ống ra sau (theo ô, +z = xa camera) để tường khay luôn nằm đè lên ống")] [Range(0f, 1.5f)] public float tunnelBackShift = 0.4f;
+        [Tooltip("Xê số đếm dọc hướng nhả (theo ô): dương = về phía vành, âm = về phía đáy ống")] [Range(-0.3f, 0.3f)] public float tunnelLabelShift = 0f;
+        [Tooltip("Vành miệng ống nhô ra khỏi mép hố bao nhiêu ô (0 = trùng đúng mép hố)")] [Range(-0.3f, 0.3f)] public float tunnelRimOverhang = 0.03f;
         [Tooltip("Độ nghiêng của mesh tunnel quanh trục X (độ). Mesh gốc là ống hở một đầu: −82° thì miệng ống hướng lên màn hình")]
         public float tunnelTiltX = -82f;
         [Tooltip("Xoay quanh trục nhìn (độ) cho miệng ống quay về hướng nhả hộp: lên / xuống / trái / phải. Gốc: 0 / 180 / 90 / −90")]
@@ -334,10 +347,7 @@ namespace BounceBlast.Gameplay
         [Tooltip("Thời gian nắp đóng (giây)")]
         public float holeLidTime = 0.22f;
 
-        [Header("Board gravity")]
-        public float fallSpeed = 9f;
-
-        /// <summary>Tư thế một nhóm hộp đạn trong khay (active / chưa active).</summary>
+        /// <summary>Tư thế một nhóm hộp đạn trong khay</summary>
         [Serializable]
         public class AmmoPose
         {
@@ -351,9 +361,10 @@ namespace BounceBlast.Gameplay
             [Range(0.5f, 1.3f)] public float scale = 1f;
         }
 
-        /// <summary>Chỉnh trong Inspector (kể cả lúc đang Play) → hộp trong khay dựng lại tư thế ngay.</summary>
+        /// <summary>Chỉnh trong Inspector (kể cả lúc đang Play) → hộp trong khay dựng lại tư thế ngay</summary>
         void OnValidate() => AmmoBoxTuning.Bump();
 
+        /// <summary>Dùng cho bộ màu và vật liệu theo độ khó</summary>
         [Serializable]
         public class Theme
         {
@@ -364,9 +375,8 @@ namespace BounceBlast.Gameplay
             public Material conveyorSurface;
             public Material conveyorSide;
             public Material conveyorGround;
-            public Material ammoCell;   // sàn rãnh của ô khay đạn
-            public Material ammoWall;   // khối tường nổi quanh/giữa khay (ô /awl + viền)
-            public Color hudTint = Color.white;
+            public Material ammoCell;
+            public Material ammoWall;
             [Header("Theo ArtConfig gốc (Resources/configs/artconfigs/material configs/original)")]
             [Tooltip("ColorModularWallBoardGround: màu nền sau bàn + tông khung")]
             public Color groundColor = new Color(0.282f, 0.314f, 0.682f);
@@ -384,13 +394,14 @@ namespace BounceBlast.Gameplay
             [Range(0f, 1f)] public float maskAlpha = 1f;
             [Tooltip("Màu nền camera (phía sau lớp gradient). Alpha = 0 → dùng groundColor. Tách riêng groundColor vì groundColor còn quyết định màu khung/máy xay")]
             public Color cameraBackground = new Color(0f, 0f, 0f, 0f);
-            public Material trayWall;   // type 8: t4/t6/t3-wall
-            public Material trayPanel;  // type 7: t4-bg / t6-bg 2 / t3-bg2
-            public Material trayHole;   // type 5: Hole-1/2/3
+            public Material trayWall;
+            public Material trayPanel;
+            public Material trayHole;
             [Tooltip("Màu đường viền sáng quanh vùng ô chơi của khay (đo từ ảnh gốc)")]
             public Color trayOutline = new Color(0.40f, 0.44f, 0.86f);
         }
 
+        /// <summary>Dùng cho lấy theme theo độ khó</summary>
         public Theme ThemeFor(LevelDifficulty d) =>
             d == LevelDifficulty.SuperHard ? superHardTheme : d == LevelDifficulty.Hard ? hardTheme : normalTheme;
     }

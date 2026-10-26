@@ -2,14 +2,10 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Máy xay ở chân mỗi máng (mesh gốc "Crusher" trong Board - Default: khung Plane.028 + lưỡi Cutter1/Cutter2).
-    /// Hộp đạn đậu trên máy xay; khi nhả bi thì lưỡi quay và cả khối rung
-    /// (thông số gốc KPConveyorCrusher: shakeMagnitude 0.05, shakeFrequency 25, dampening 5).
-    /// </summary>
+    /// <summary>Máy xay ở chân mỗi máng (mesh gốc "Crusher" trong Board</summary>
     public class CrusherFx : MonoBehaviour
     {
-        /// <summary>ConveyorSystem gán – 4 thông số dưới chỉnh trong GameConfig.</summary>
+        /// <summary>ConveyorSystem gán – 4 thông số dưới chỉnh trong GameConfig</summary>
         public GameConfig Config;
         float ShakeMagnitude => Config != null ? Config.crusherShakeMagnitude : 0.06f;
         float ShakeFrequency => Config != null ? Config.crusherShakeFrequency : 28f;
@@ -37,10 +33,7 @@ namespace BounceBlast.Gameplay
             StartCoroutine(WarmUp());
         }
 
-        /// <summary>
-        /// Phát thử 1 hạt cực nhỏ, trong suốt ở mỗi hệ hạt rồi xoá: vẽ lần đầu mới biên dịch shader hạt + dựng buffer, nếu để tới lúc hộp
-        /// đầu tiên chạm máy xay (nổ 40 hạt cùng lúc) thì khựng trên máy yếu.
-        /// </summary>
+        /// <summary>Phát thử 1 hạt cực nhỏ, trong suốt ở mỗi hệ hạt rồi xoá</summary>
         System.Collections.IEnumerator WarmUp()
         {
             yield return null;
@@ -110,7 +103,6 @@ namespace BounceBlast.Gameplay
 
         void SetupParticleSystems()
         {
-            // 1. Hệ thống hạt vụn thạch tròn (Jelly Drops / Splatter)
             var chunkGo = new GameObject("CrusherChunks_VFX");
             chunkGo.transform.SetParent(transform, false);
             chunkGo.transform.localPosition = new Vector3(0f, 0.25f, -0.6f);
@@ -148,7 +140,6 @@ namespace BounceBlast.Gameplay
             sizeCurve.AddKey(1f, 0f);
             sizeOverLife.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
 
-            // 2. Hệ thống tia lửa sao lấp lánh (Sparks / Stars)
             var sparkGo = new GameObject("CrusherSparks_VFX");
             sparkGo.transform.SetParent(transform, false);
             sparkGo.transform.localPosition = new Vector3(0f, 0.25f, -0.65f);
@@ -183,7 +174,7 @@ namespace BounceBlast.Gameplay
             sparkSizeOverLife.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
         }
 
-        /// <summary>Kích hoạt khi một hộp đạn mới vừa đáp vào máy nghiền (nổ tia lớn).</summary>
+        /// <summary>Kích hoạt khi một hộp đạn mới vừa đáp vào máy nghiền</summary>
         public void OnBoxEnter(Color color)
         {
             _shake = 1.4f;
@@ -191,7 +182,7 @@ namespace BounceBlast.Gameplay
             EmitBurst(color, 24, 16);
         }
 
-        /// <summary>Gọi mỗi lần một viên bi được xay ra (phun tia liên tục).</summary>
+        /// <summary>Gọi mỗi lần một viên bi được xay ra</summary>
         public void Pulse(Color color)
         {
             _shake = Mathf.Max(_shake, 0.9f);
@@ -199,6 +190,7 @@ namespace BounceBlast.Gameplay
             EmitBurst(color, Random.Range(3, 6), Random.Range(2, 4));
         }
 
+        /// <summary>Xử lý nháy sáng máy xay</summary>
         public void Pulse() => Pulse(Color.white);
 
         void EmitBurst(Color color, int chunkCount, int sparkCount)
@@ -238,7 +230,6 @@ namespace BounceBlast.Gameplay
             if (_spinTimer > 0f)
             {
                 _spinTimer -= dt;
-                // hai lưỡi quay ngược chiều nhau như máy nghiền
                 if (_cutter1 != null) _cutter1.Rotate(SpinSpeed * dt, 0f, 0f, Space.Self);
                 if (_cutter2 != null) _cutter2.Rotate(-SpinSpeed * dt, 0f, 0f, Space.Self);
             }

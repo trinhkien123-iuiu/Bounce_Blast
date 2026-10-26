@@ -4,10 +4,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Bi nên ngắm khối nào: khối nhận màu bi gần nhất mà đường bay thẳng không vướng khối khác (duyệt lưới),
-    /// kèm bộ nhớ đệm "khối lộ ra theo màu" chỉ dựng lại khi lưới đổi. Không sửa gì trên bàn – chỉ trả lời câu hỏi.
-    /// </summary>
+    /// <summary>Bi nên ngắm khối nào: khối nhận màu bi gần nhất mà đường bay thẳng không vướng khối khác</summary>
     public class BoardTargeting
     {
         readonly BoardGrid _grid;
@@ -20,17 +17,17 @@ namespace BounceBlast.Gameplay
             _blocks = blocks;
         }
 
-        /// <summary>Khối mà bi màu này nên nhắm tới (cube cùng màu). Hòm/cột nhận bi mọi màu nhưng không phải mục tiêu.</summary>
+        /// <summary>Khối mà bi màu này nên nhắm tới</summary>
         public static bool IsTarget(BoardBlock b, string color) => b.Accepts(color) && !b.IsFreeHit;
 
+        /// <summary>Kiểm tra còn khối cùng màu để nhắm</summary>
         public bool HasTargetFor(string color)
         {
-            // hòm gỗ còn máu (bi nảy tiếp & trừ máu, tính vào điều kiện thắng) cũng là việc còn phải làm → chưa bế tắc
             foreach (BoardBlock b in _blocks) if (IsTarget(b, color) || (b.IsFreeHit && b.IsDestructible && !b.IsDestroyed)) return true;
             return false;
         }
 
-        /// <summary>Khối nhận màu này gần nhất mà bi có thể chạm tới (ưu tiên mặt trên đang lộ).</summary>
+        /// <summary>Khối nhận màu này gần nhất mà bi có thể chạm tới</summary>
         public bool TryGetNearestTarget(string color, Vector2 from, out Vector2 point)
         {
             point = default;
@@ -39,7 +36,6 @@ namespace BounceBlast.Gameplay
             {
                 if (!IsTarget(b, color)) continue;
                 RectInt r = b.Cells;
-                // chỉ nhắm khối có ít nhất 1 cạnh lộ ra ngoài
                 if (!_grid.IsExposed(b)) continue;
                 Vector2 c = _grid.CellToWorld(r);
                 float d = (c - from).sqrMagnitude;
@@ -72,12 +68,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        /// <summary>
-        /// Khối nhận màu này mà bi bay thẳng tới được (đường bay không vướng khối khác màu) – ngắm khi đường thông, không bẻ cong xuyên vật cản.
-        /// Duyệt THẲNG trên lưới ô (3 tia song song cách nhau ~bán kính bi) thay cho Physics2D.CircleCast: đo ở màn dày (≈240 bi),
-        /// 5 CircleCast/lần nảy chiếm ~17 ms/khung trên Editor; duyệt lưới chỉ là vài trăm lần tra mảng. Tường khung lồi nên đoạn bay
-        /// trong lòng bàn luôn thông tường.
-        /// </summary>
+        /// <summary>Khối nhận màu này mà bi bay thẳng tới được</summary>
         public bool TryGetLineOfSightTarget(string color, Vector2 from, float radius, int mask, out Vector2 point)
         {
             point = default;
@@ -85,12 +76,10 @@ namespace BounceBlast.Gameplay
             _losCandidates.Clear();
             string key = color != null ? color.ToLowerInvariant() : "";
             if (_losByColor.TryGetValue(key, out List<BoardBlock> byColor)) _losCandidates.AddRange(byColor);
-            // hết khối cùng màu → ngắm hòm gỗ còn lại (để bi phá hòm thay vì nảy vô định)
             bool aimCrates = _losCandidates.Count == 0;
             if (aimCrates) _losCandidates.AddRange(_losCrates);
             if (_losCandidates.Count == 0) return false;
 
-            // Tìm tối đa 3 khối gần nhất không dùng lambda sort (Zero GC)
             int checkCount = Mathf.Min(3, _losCandidates.Count);
             for (int k = 0; k < checkCount; k++)
             {
@@ -123,7 +112,7 @@ namespace BounceBlast.Gameplay
             return false;
         }
 
-        /// <summary>Khối đầu tiên gặp trên đoạn from→to (3 tia: tâm và hai bên lệch <paramref name="halfWidth"/>); null nếu không gặp gì.</summary>
+        /// <summary>Khối đầu tiên gặp trên đoạn from→to</summary>
         BoardBlock FirstBlockOnPath(Vector2 from, Vector2 to, float halfWidth)
         {
             Vector2 d = to - from;
@@ -132,7 +121,7 @@ namespace BounceBlast.Gameplay
             Vector2 dir = d / dist, perp = new Vector2(-dir.y, dir.x) * halfWidth;
             float cell = _grid.Cell;
             float step = cell * 0.4f;
-            for (float t = halfWidth * 2f; t <= dist + cell * 0.5f; t += step)   // bỏ đoạn sát bi (khối vừa va chạm)
+            for (float t = halfWidth * 2f; t <= dist + cell * 0.5f; t += step)
             {
                 Vector2 c = from + dir * t;
                 for (int ray = 0; ray < 3; ray++)

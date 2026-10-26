@@ -7,12 +7,10 @@ using UnityEngine;
 
 namespace BounceBlast.EditorTools
 {
-    /// <summary>
-    /// Kiểm tra khứ hồi cho TOÀN BỘ level gốc: CSV → LevelData → lưới mã → LevelModel phải giống hệt CSV → LevelModel.
-    /// Chạy sau khi sửa LevelData / LevelParser. Menu: Tools ▸ Bounce Blast ▸ Level Editor ▸ Kiểm tra khứ hồi 550 level gốc.
-    /// </summary>
+    /// <summary>Kiểm tra khứ hồi cho TOÀN BỘ level gốc</summary>
     public static class LevelRoundTripCheck
     {
+        /// <summary>Xử lý kiểm level ghi ra rồi đọc lại còn đúng</summary>
         [MenuItem("Tools/Bounce Blast/Level Editor/Kiểm tra khứ hồi 550 level gốc")]
         public static void Run()
         {
@@ -45,7 +43,7 @@ namespace BounceBlast.EditorTools
             else Debug.LogError(msg + "\n" + sb);
         }
 
-        /// <summary>Chuỗi mô tả đầy đủ một LevelModel (mọi thứ ảnh hưởng tới cách chơi) để so sánh.</summary>
+        /// <summary>Chuỗi mô tả đầy đủ một LevelModel</summary>
         public static string Signature(LevelModel m)
         {
             var sb = new StringBuilder();
@@ -93,25 +91,27 @@ namespace BounceBlast.EditorTools
         }
     }
 
-    /// <summary>Tiện ích dùng chung cho các công cụ Level Editor.</summary>
+    /// <summary>Tiện ích dùng chung cho các công cụ Level Editor</summary>
     public static class LevelEditorUtil
     {
         public const string CustomDir = "Assets/_Project/Data/Levels/custom";
         public const string PackPath = CustomDir + "/LevelPack_custom.asset";
 
+        /// <summary>Dùng cho tìm GameConfig trong project</summary>
         public static GameConfig FindConfig()
         {
             string guid = AssetDatabase.FindAssets("t:GameConfig").FirstOrDefault();
             return guid != null ? AssetDatabase.LoadAssetAtPath<GameConfig>(AssetDatabase.GUIDToAssetPath(guid)) : null;
         }
 
+        /// <summary>Dùng cho tìm ColorLibrary trong project</summary>
         public static ColorLibrary FindColors()
         {
             string guid = AssetDatabase.FindAssets("t:ColorLibrary").FirstOrDefault();
             return guid != null ? AssetDatabase.LoadAssetAtPath<ColorLibrary>(AssetDatabase.GUIDToAssetPath(guid)) : null;
         }
 
-        /// <summary>Bộ level custom (tạo nếu chưa có) và gán vào GameConfig.customLevels.</summary>
+        /// <summary>Bộ level custom (tạo nếu chưa có) và gán vào GameConfig.customLevels</summary>
         public static LevelPack EnsurePack()
         {
             if (!AssetDatabase.IsValidFolder(CustomDir)) AssetDatabase.CreateFolder("Assets/_Project/Data/Levels", "custom");

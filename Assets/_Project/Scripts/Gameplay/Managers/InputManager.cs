@@ -5,13 +5,7 @@ using BounceBlast.UI;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Quản lý ĐẦU VÀO: đọc chuột / touch, đổi vị trí chạm thành "bấm vào hộp đạn" hoặc "bấm vào khối" (khi Hammer lên cò),
-    /// rồi ra lệnh cho <see cref="LaunchManager"/> / <see cref="BoosterManager"/>. Không chứa luật chơi.
-    /// Nhấn giữ một hộp bấm được thì hộp lắc như thạch (<see cref="AmmoBox.SetHeld"/>); thả tay trên đúng hộp đó thì bắn,
-    /// kéo ngón ra khỏi hộp rồi thả thì huỷ (không bắn).
-    /// Nhấn giữ chỗ trống trong khu khay đạn (không trúng hộp) = tăng tốc chơi (Time.timeScale → <see cref="holdSpeed"/>) + viền trắng và chữ báo (GameUI.SetSpeedUp); chỉ khi trên bàn đang có bi, thả tay hoặc hết bi là thôi.
-    /// </summary>
+    /// <summary>Quản lý ĐẦU VÀO: đọc chuột / touch, đổi vị trí chạm thành "bấm vào hộp đạn" hoặc "bấm vào khối"</summary>
     public class InputManager : MonoBehaviour
     {
         [Tooltip("Bật: nhấn giữ hộp thì lắc, THẢ TAY trên hộp mới bắn. Tắt: bắn ngay lúc chạm xuống như trước (không có cú lắc khi giữ).")]
@@ -40,12 +34,14 @@ namespace BounceBlast.Gameplay
 
         OnboardingManager _onboarding;
 
+        /// <summary>Xử lý khởi tạo đầu vào</summary>
         public void Init(Camera camera, GameUI ui, BoardController board, AmmoGridController grid, BoosterManager boosters, LaunchManager launch, BallManager balls, OnboardingManager onboarding = null)
         {
             _onboarding = onboarding;
             _camera = camera; _ui = ui; _board = board; _grid = grid; _boosters = boosters; _launch = launch; _balls = balls;
         }
 
+        /// <summary>Nhận trạng thái đang chơi, huỷ thao tác dở khi dừng</summary>
         public void SetPlaying(bool playing)
         {
             _playing = playing;
@@ -61,10 +57,9 @@ namespace BounceBlast.Gameplay
 
         void OnDisable() => StopSpeed();
 
-        /// <summary>Đang giữ chỗ trống trong khu khay: tăng dần Time.timeScale lên holdSpeed; thả tay thì về 1.</summary>
+        /// <summary>Đang giữ chỗ trống trong khu khay</summary>
         void UpdateSpeed(bool up)
         {
-            // thả tay, hoặc bàn hết bi (không còn gì để tăng tốc) → thôi; muốn tăng tốc lại phải giữ lần mới
             if (up || !HasBalls) { StopSpeed(); return; }
             float step = speedRamp > 0f ? (holdSpeed - 1f) * Time.unscaledDeltaTime / speedRamp : holdSpeed;
             Time.timeScale = Mathf.MoveTowards(Time.timeScale, holdSpeed, step);
@@ -72,7 +67,7 @@ namespace BounceBlast.Gameplay
 
         bool HasBalls => _balls != null && _balls.ActiveCount > 0;
 
-        /// <summary>Tắt tăng tốc. Chỉ trả timeScale về 1 khi chính mình đã tăng (popup đặt 0 thì để nguyên).</summary>
+        /// <summary>Tắt tăng tốc. Chỉ trả timeScale về 1 khi chính mình đã tăng</summary>
         void StopSpeed()
         {
             if (!_speeding) return;
@@ -81,7 +76,7 @@ namespace BounceBlast.Gameplay
             if (_ui != null) _ui.SetSpeedUp(false, holdSpeed);
         }
 
-        /// <summary>Đọc con trỏ: vừa chạm xuống / đang giữ / vừa thả.</summary>
+        /// <summary>Đọc con trỏ: vừa chạm xuống / đang giữ / vừa thả</summary>
         static void ReadPointer(out bool down, out bool up, out Vector2 screen)
         {
             down = Input.GetMouseButtonDown(0);
@@ -104,7 +99,6 @@ namespace BounceBlast.Gameplay
 
             if (_heldBox != null)
             {
-                // hộp đã bay đi / bị huỷ trong lúc giữ
                 if (_heldBox.IsLaunched) { _heldBox = null; _wobbling = false; _tapSoundPlayed = false; }
                 else if (up)
                 {
@@ -113,13 +107,11 @@ namespace BounceBlast.Gameplay
                     bool stillOver = BoxUnder(screen) == box;
                     bool tapSound = _tapSoundPlayed;
                     CancelHold();
-                    if (stillOver) _launch.TryLaunch(box, magic, tapSound);   // click nhanh hay giữ lâu, thả trên hộp đều bắn
+                    if (stillOver) _launch.TryLaunch(box, magic, tapSound);
                     return;
                 }
                 else
                 {
-                    // còn đang giữ: quá ngưỡng thời gian thì núng nính (click nhanh không lắc). KÉO ngón ra khỏi hộp vẫn lắc tiếp,
-                    // để người chơi dời tay (tay che hộp) mà vẫn thấy hộp lắc; thả ngoài hộp = huỷ, thả trên hộp = bắn.
                     bool shouldWobble = Time.unscaledTime - _pressTime >= holdToWobble;
                     if (shouldWobble != _wobbling) { _wobbling = shouldWobble; _heldBox.SetHeld(shouldWobble); }
                 }
@@ -127,7 +119,6 @@ namespace BounceBlast.Gameplay
 
             if (!down || IsOverUiButton(screen)) return;
 
-            // Camera nghiêng 20° → phải chiếu tia xuống đúng mặt phẳng của vật (không dùng ScreenToWorldPoint)
             Ray ray = _camera.ScreenPointToRay(screen);
 
             if (_boosters.Armed == BoosterType.Hammer)
@@ -139,10 +130,9 @@ namespace BounceBlast.Gameplay
 
             Vector2 onAmmo = PointOnPlane(ray, -0.6f);
             AmmoBox hit = _grid.BoxAtWorld(onAmmo);
-            if (_onboarding != null && _onboarding.Blocking && hit != _onboarding.Target) return;   // onboarding: chỉ bấm đúng hộp được chỉ
+            if (_onboarding != null && _onboarding.Blocking && hit != _onboarding.Target) return;
             if (hit == null)
             {
-                // chạm chỗ trống trong khu khay đạn → giữ để tăng tốc
                 if (holdSpeed > 1f && HasBalls && _grid.IsInAmmoArea(onAmmo)) { _speeding = true; _ui.SetSpeedUp(true, holdSpeed); UpdateSpeed(false); }
                 return;
             }
@@ -156,10 +146,9 @@ namespace BounceBlast.Gameplay
             _heldMagic = magicHand;
             _pressTime = Time.unscaledTime;
             _wobbling = false;
-            // Phản hồi TỨC THÌ lúc chạm (bù độ trễ vì bắn lúc thả): hộp lún xuống + tiếng chạm
             hit.SetPressed(true);
             AudioManager.Play(Sfx.TapAmmo);
-            _tapSoundPlayed = true;   // chưa lắc: đợi giữ đủ holdToWobble giây
+            _tapSoundPlayed = true;
         }
 
         AmmoBox BoxUnder(Vector2 screen) => _grid.BoxAtWorld(PointOnPlane(_camera.ScreenPointToRay(screen), -0.6f));
@@ -179,7 +168,7 @@ namespace BounceBlast.Gameplay
             return new Vector2(p.x, p.y);
         }
 
-        /// <summary>Chỉ chặn bấm xuống game khi con trỏ nằm trên một nút UI thật (không chặn bởi ảnh trang trí).</summary>
+        /// <summary>Chỉ chặn bấm xuống game khi con trỏ nằm trên một nút UI thật</summary>
         static readonly List<RaycastResult> UiHits = new List<RaycastResult>();
         static bool IsOverUiButton(Vector2 screen)
         {

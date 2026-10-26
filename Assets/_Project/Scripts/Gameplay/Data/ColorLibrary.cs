@@ -4,22 +4,20 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Bảng màu của game: mã màu trong CSV → material gốc (rip) cho cube / hộp đạn / bi.
-    /// Asset được sinh bởi menu Tools/Bounce Blast/Setup Gameplay Scene.
-    /// </summary>
+    /// <summary>Bảng màu của game: mã màu trong CSV → material gốc</summary>
     [CreateAssetMenu(menuName = "Bounce Blast/Color Library")]
     public class ColorLibrary : ScriptableObject
     {
+        /// <summary>Dùng cho một màu và vật liệu của nó</summary>
         [Serializable]
         public class Entry
         {
-            public string code;           // g, r, b, ...
-            public string name;           // Green, Red, ...
+            public string code;
+            public string name;
             public Color color = Color.white;
-            public Material cubeMaterial; // BounceBlast/CubeIsolatedOptimized
-            public Material ammoMaterial; // TCP2 Directional Cube (Outline)
-            public Material ballMaterial; // TCP2 Directional Cube
+            public Material cubeMaterial;
+            public Material ammoMaterial;
+            public Material ballMaterial;
             [Tooltip("Dải _CubeShadeOffset ngẫu nhiên cho từng cube (Colors_v3.txt) – tạo vân sáng/tối như game gốc")]
             public Vector2 shadeOffset = new Vector2(-0.05f, 0.05f);
         }
@@ -31,6 +29,7 @@ namespace BounceBlast.Gameplay
 
         Dictionary<string, Entry> _lookup;
 
+        /// <summary>Dùng cho lấy mục màu theo mã</summary>
         public Entry Get(string code)
         {
             if (_lookup == null || _lookup.Count != entries.Count)
@@ -41,9 +40,13 @@ namespace BounceBlast.Gameplay
             return code != null && _lookup.TryGetValue(code, out Entry entry) ? entry : null;
         }
 
+        /// <summary>Dùng cho lấy màu theo mã</summary>
         public Color ColorOf(string code) => Get(code)?.color ?? Color.white;
+        /// <summary>Dùng cho lấy vật liệu khối theo mã màu</summary>
         public Material CubeMat(string code) => Get(code)?.cubeMaterial ?? fallbackCube;
+        /// <summary>Dùng cho lấy vật liệu hộp theo mã màu</summary>
         public Material AmmoMat(string code) => Get(code)?.ammoMaterial ?? fallbackAmmo;
+        /// <summary>Dùng cho lấy vật liệu bi theo mã màu</summary>
         public Material BallMat(string code) => Get(code)?.ballMaterial ?? fallbackBall;
     }
 }

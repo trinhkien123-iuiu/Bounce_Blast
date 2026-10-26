@@ -5,15 +5,10 @@ using BounceBlast.UI;
 
 namespace BounceBlast.Gameplay
 {
+    /// <summary>Dùng cho trạng thái chung của màn chơi</summary>
     public enum GameState { Loading, Playing, Won, Lost }
 
-    /// <summary>
-    /// Bộ điều phối của màn chơi (composition root): dựng / nối các manager với nhau lúc Awake, giữ TRẠNG THÁI game
-    /// (Loading → Playing → Won / Lost) và quyết định thắng / thua. Việc cụ thể do manager riêng lo:
-    ///   LevelManager (nạp level) · InputManager (bấm) · LaunchManager (bắn hộp + sức chứa) · BoosterManager (booster)
-    ///   · DebugManager (test) · AudioManager (âm thanh) · CameraFitter (camera) · GameUI (giao diện).
-    /// Các manager nói chuyện bằng sự kiện (Observer), xem ARCHITECTURE.md (mục 4b).
-    /// </summary>
+    /// <summary>Bộ điều phối của màn chơi</summary>
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
@@ -55,27 +50,26 @@ namespace BounceBlast.Gameplay
         [Header("Debug (read only)")]
         public GameState state;
 
-        /// <summary>Trạng thái game vừa đổi.</summary>
+        /// <summary>Trạng thái game vừa đổi</summary>
         public event Action<GameState> OnStateChanged;
-        /// <summary>Người chơi thắng level hiện tại.</summary>
+        /// <summary>Người chơi thắng level hiện tại</summary>
         public event Action OnWin;
-        /// <summary>Người chơi thua, kèm lý do.</summary>
+        /// <summary>Người chơi thua, kèm lý do</summary>
         public event Action<string> OnLose;
 
         GameUI _ui;
-        const int WinCoins = 50; // xu thưởng mỗi lần thắng
+        const int WinCoins = 50;
 
         void Awake()
         {
             Instance = this;
             if (gameCamera == null) gameCamera = Camera.main;
 
-            PlayerData.UseLevelSet(config.ActiveSetName);   // tiến độ riêng từng bộ level
-            AmmoBoxTuning.Config = config; // tư thế hộp đạn đọc từ GameConfig (chỉnh được ngay cả khi đang Play)
+            PlayerData.UseLevelSet(config.ActiveSetName);
+            AmmoBoxTuning.Config = config;
             AudioManager.Init(audioManager != null ? audioManager.gameObject : gameObject, config.sounds);
-            DynamicGI.UpdateEnvironment(); // cập nhật ambient SH (Trilight như scene gốc) cho shader toon
+            DynamicGI.UpdateEnvironment();
 
-            // ---- hệ thống bàn chơi
             board = Get(board, "Board");
             board.gameObject.layer = LayerMask.NameToLayer("Cube") >= 0 ? LayerMask.NameToLayer("Cube") : 0;
             ammoGrid = Get(ammoGrid, "AmmoGrid");
@@ -92,12 +86,11 @@ namespace BounceBlast.Gameplay
             }
             Vfx.Root = vfxRoot;
 
-            // Một hướng nhìn: camera thẳng → là phẳng khung bàn 3D gốc (dựng cho camera nghiêng 20°) trước khi đọc vị trí máy xay/máng
             ViewSpace.FlattenStaticScene(boardRoot);
             SceneRig.EnsureCubeLight(gameCamera != null ? gameCamera.transform.parent : null);
             balls.Init(config, colors, board);
             conveyor.Init(config, balls);
-            StartCoroutine(balls.Prewarm(config.ballPrewarm));   // dựng sẵn bi + nạp shader: hộp đầu tiên lên máy xay không bị khựng
+            StartCoroutine(balls.Prewarm(config.ballPrewarm));
             theme.Init(boardRoot, gameCamera);
             theme.SetConveyor(conveyor);
             if (config.normalTheme != null) theme.SetReferenceGround(config.normalTheme.groundColor);
@@ -108,10 +101,9 @@ namespace BounceBlast.Gameplay
             _ui.Build(config, uiCamera, gameCamera);
             cameraFitter = Get(cameraFitter, "CameraFitter");
             cameraFitter.Init(config, _ui, gameCamera);
-            arenaWalls = Get(arenaWalls, "ArenaWalls"); // RequireComponent tự thêm EdgeCollider2D
+            arenaWalls = Get(arenaWalls, "ArenaWalls");
             arenaWalls.EnsureBuilt(config);
 
-            // ---- các manager
             levelManager = Get(levelManager, "LevelManager");
             launchManager = Get(launchManager, "LaunchManager");
             boosterManager = Get(boosterManager, "BoosterManager");
@@ -127,7 +119,6 @@ namespace BounceBlast.Gameplay
 
             onboardingManager.Init(config, _ui, levelManager, boosterManager, ammoGrid, balls, gameCamera, onboardingView);
 
-            // ---- Observer: ai báo gì thì ai nghe
             levelManager.OnLevelLoading += () => { StopAllCoroutines(); SetState(GameState.Loading); };
             levelManager.OnLevelLoaded += _ => SetState(GameState.Playing);
             board.OnBoardCleared += HandleWin;
@@ -137,7 +128,7 @@ namespace BounceBlast.Gameplay
 
         LevelDifficulty CurrentDifficulty => levelManager.Level != null ? levelManager.Level.Difficulty : LevelDifficulty.Normal;
 
-        /// <summary>Lấy hệ thống đã đặt sẵn; chưa có thì tạo một object con mới (scene trống vẫn chạy được).</summary>
+        /// <summary>Lấy hệ thống đã đặt sẵn; chưa có thì tạo một object con mới</summary>
         T Get<T>(T assigned, string name) where T : Component => assigned != null ? assigned : CreateChild<T>(name);
 
         T CreateChild<T>(string name) where T : Component
@@ -158,7 +149,6 @@ namespace BounceBlast.Gameplay
             OnStateChanged?.Invoke(s);
         }
 
-        // ------------------------------------------------------------------ Kết thúc
         void HandleWin()
         {
             if (state != GameState.Playing) return;
@@ -182,9 +172,16 @@ namespace BounceBlast.Gameplay
         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS
-        /// <summary>Chỉ cho công cụ cheat (Scripts/Debug/CheatRegistry): ép thua ngay để thử màn thua.</summary>
+        /// <summary>Chỉ cho công cụ cheat (Scripts/Debug/CheatRegistry)</summary>
         public void CheatLose() => Lose("Cheat");
 #endif
+
+        /// <summary>Xử lý thử lại sau khi thua: còn tim thì chơi lại, hết tim thì về Menu</summary>
+        void RetryOrHome()
+        {
+            if (PlayerData.CanPlay) levelManager.Restart();
+            else SceneFlow.GoToMenu();
+        }
 
         void Lose(string reason)
         {
@@ -192,8 +189,9 @@ namespace BounceBlast.Gameplay
             SetState(GameState.Lost);
             AudioManager.Play(Sfx.Lose);
             BounceStreak.RecordLose();
+            PlayerData.LoseHeart();
             OnLose?.Invoke(reason);
-            _ui.ShowFail(levelManager.CurrentLevel, CurrentDifficulty, reason, levelManager.Restart);
+            _ui.ShowFail(levelManager.CurrentLevel, CurrentDifficulty, reason, RetryOrHome);
         }
     }
 }

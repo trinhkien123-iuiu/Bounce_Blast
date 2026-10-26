@@ -5,18 +5,16 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// MỘT level tự làm (bộ <c>custom</c>), lưu thành một asset riêng – sửa bằng cửa sổ Level Editor
-    /// (Tools ▸ Bounce Blast ▸ Level Editor). Dữ liệu theo ô THIẾT KẾ (chưa nhân Multiplier), giống CSV gốc nhưng
-    /// tách thành field có tên. Game không đọc trực tiếp lớp này: <see cref="ToTokens"/> → <see cref="LevelParser.Build"/>,
-    /// đúng đường dựng của level gốc. Thiết kế: Docs/thiet-ke/level-editor.md.
-    /// </summary>
+    /// <summary>MỘT level tự làm (bộ custom), lưu thành một asset riêng</summary>
     [CreateAssetMenu(menuName = "Bounce Blast/Level Data", fileName = "Level_000")]
     public class LevelData : ScriptableObject
     {
+        /// <summary>Dùng cho loại ô trên bàn trong trình sửa level</summary>
         public enum CellType { Empty, Cube, Column, Blocker }
+        /// <summary>Dùng cho loại ô khay đạn trong trình sửa level</summary>
         public enum SlotType { None, Wall, Empty, Box, Tunnel }
 
+        /// <summary>Dùng cho dữ liệu một ô bàn chơi</summary>
         [Serializable]
         public class BoardCell
         {
@@ -29,9 +27,11 @@ namespace BounceBlast.Gameplay
             [Tooltip("Lớp phủ chưa hỗ trợ của game gốc (st-…, cur-…) – giữ nguyên khi nhập/xuất")] public string overlay = "";
             [Tooltip("Mã nguyên văn của vật cản chưa hỗ trợ (/bomb-…, /lck-…) – game coi là tường")] public string raw = "";
 
+            /// <summary>Dùng cho sao chép dữ liệu</summary>
             public BoardCell Clone() => (BoardCell)MemberwiseClone();
         }
 
+        /// <summary>Dùng cho dữ liệu một hộp đạn</summary>
         [Serializable]
         public class Box
         {
@@ -41,9 +41,11 @@ namespace BounceBlast.Gameplay
             [Tooltip("Hộp \"?\" – lộ màu khi thông đường")] public bool hidden;
             [Tooltip("0 = không cửa; 1 = cửa đóng lúc đầu; 2 = cửa mở lúc đầu")] public int door;
 
+            /// <summary>Dùng cho sao chép dữ liệu</summary>
             public Box Clone() => (Box)MemberwiseClone();
         }
 
+        /// <summary>Dùng cho dữ liệu một ô khay đạn</summary>
         [Serializable]
         public class Slot
         {
@@ -53,6 +55,7 @@ namespace BounceBlast.Gameplay
             [Tooltip("Tunnel: hướng nhả hộp L / R / U / D")] public string tunnelDir = "D";
             [Tooltip("Mã nguyên văn của ô tường (/awl…)")] public string raw = "/awl";
 
+            /// <summary>Dùng cho sao chép dữ liệu</summary>
             public Slot Clone()
             {
                 var s = (Slot)MemberwiseClone();
@@ -61,6 +64,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
+        /// <summary>Dùng cho dữ liệu một ống nhả hộp</summary>
         [Serializable]
         public class Tunnel
         {
@@ -96,22 +100,23 @@ namespace BounceBlast.Gameplay
         public List<Slot> ammo = new List<Slot>();
         public List<Tunnel> tunnels = new List<Tunnel>();
 
-        // ------------------------------------------------------------------ Truy cập ô
+        /// <summary>Dùng cho lấy ô bàn theo cột, hàng</summary>
         public BoardCell Cell(int col, int row) { EnsureSize(); return board[row * boardCols + col]; }
+        /// <summary>Dùng cho lấy ô khay theo cột, hàng</summary>
         public Slot AmmoSlot(int col, int row) { EnsureSize(); return ammo[row * ammoCols + col]; }
 
-        /// <summary>Đảm bảo hai danh sách đủ số ô (khi vừa đổi kích thước: giữ nguyên ô cũ theo toạ độ).</summary>
+        /// <summary>Đảm bảo hai danh sách đủ số ô</summary>
         public void EnsureSize()
         {
             if (board.Count != boardCols * boardRows) board = Resize(board, BoardGridCols(), boardCols, boardRows, () => new BoardCell());
             if (ammo.Count != ammoCols * ammoRows) ammo = Resize(ammo, AmmoGridCols(), ammoCols, ammoRows, () => new Slot());
         }
 
-        // Số cột của danh sách hiện tại TRƯỚC khi đổi kích thước (lưu lại lúc đổi) – xem SetBoardSize / SetAmmoSize
         int _prevBoardCols = -1, _prevAmmoCols = -1;
         int BoardGridCols() => _prevBoardCols > 0 ? _prevBoardCols : boardCols;
         int AmmoGridCols() => _prevAmmoCols > 0 ? _prevAmmoCols : ammoCols;
 
+        /// <summary>Xử lý đổi kích thước bàn chơi</summary>
         public void SetBoardSize(int cols, int rows)
         {
             EnsureSize();
@@ -121,6 +126,7 @@ namespace BounceBlast.Gameplay
             _prevBoardCols = -1;
         }
 
+        /// <summary>Xử lý đổi kích thước khay đạn</summary>
         public void SetAmmoSize(int cols, int rows)
         {
             EnsureSize();
@@ -140,8 +146,7 @@ namespace BounceBlast.Gameplay
             return list;
         }
 
-        // ------------------------------------------------------------------ Sang lưới mã (game dùng)
-        /// <summary>Dữ liệu → lưới mã như CSV gốc, để <see cref="LevelParser.Build"/> dựng LevelModel.</summary>
+        /// <summary>Dữ liệu → lưới mã như CSV gốc, để Build dựng LevelModel</summary>
         public LevelTokens ToTokens(int id)
         {
             EnsureSize();
@@ -173,6 +178,7 @@ namespace BounceBlast.Gameplay
             return t;
         }
 
+        /// <summary>Dùng cho chuyển ô bàn sang mã CSV</summary>
         public static string CellToken(BoardCell c)
         {
             if (c == null) return "-";
@@ -190,6 +196,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
+        /// <summary>Dùng cho chuyển ô khay sang mã CSV</summary>
         public static string SlotToken(Slot s)
         {
             if (s == null) return "";
@@ -203,6 +210,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
+        /// <summary>Dùng cho chuyển hộp sang mã CSV</summary>
         public static string BoxToken(Box b)
         {
             if (b == null) return "";
@@ -213,8 +221,7 @@ namespace BounceBlast.Gameplay
             return sb.ToString();
         }
 
-        // ------------------------------------------------------------------ Từ lưới mã (nhập level gốc)
-        /// <summary>Đổ lưới mã (từ CSV gốc) vào asset này – dùng khi nhập level gốc làm mẫu.</summary>
+        /// <summary>Đổ lưới mã (từ CSV gốc) vào asset này</summary>
         public void FromTokens(LevelTokens t)
         {
             string hard = (t.HardLevel ?? "").Trim().ToUpperInvariant();
@@ -223,11 +230,8 @@ namespace BounceBlast.Gameplay
             multiplier = Mathf.Max(1, t.Multiplier);
             isFigurative = t.IsFigurative;
 
-            // bề ngang thật của bàn tính theo ô thiết kế; CSV gốc luôn có 32 cột mã, phần thừa bên phải để trống
             boardCols = Mathf.Max(1, Mathf.Min(t.BoardDesignCols, Mathf.CeilToInt(t.BoardCols / (float)multiplier)));
             boardSizeOverride = new Vector2Int(t.BoardCols, t.BoardRows);
-            // Bỏ các dòng TRỐNG phía trên (CSV gốc dùng chung dòng với khay đạn nên thường dư dòng trên): bàn xếp từ đáy lên
-            // nên vị trí mọi khối không đổi.
             int top = 0;
             while (top < t.BoardLines - 1 && LineEmpty(t, top)) top++;
             boardRows = Mathf.Max(1, t.BoardLines - top);
@@ -262,7 +266,7 @@ namespace BounceBlast.Gameplay
             return true;
         }
 
-        /// <summary>Số cột mã (có nội dung) bị bỏ vì nằm ngoài bề ngang bàn – để công cụ nhập báo lỗi nếu khác 0.</summary>
+        /// <summary>Số cột mã (có nội dung) bị bỏ vì nằm ngoài bề ngang bàn</summary>
         public static int CountTokensOutside(LevelTokens t, int designCols)
         {
             int n = 0;
@@ -275,6 +279,7 @@ namespace BounceBlast.Gameplay
             return n;
         }
 
+        /// <summary>Xử lý đọc mã CSV thành ô bàn</summary>
         public static BoardCell ParseCell(string code)
         {
             var cell = new BoardCell();
@@ -311,6 +316,7 @@ namespace BounceBlast.Gameplay
             return cell;
         }
 
+        /// <summary>Xử lý đọc mã CSV thành ô khay</summary>
         public static Slot ParseSlot(string code)
         {
             var s = new Slot();
@@ -327,12 +333,13 @@ namespace BounceBlast.Gameplay
                 return s;
             }
             Box box = ParseBox(code);
-            if (box == null) { s.type = SlotType.Empty; return s; }   // như parser gốc: mã hộp hỏng = ô trống
+            if (box == null) { s.type = SlotType.Empty; return s; }
             s.type = SlotType.Box;
             s.box = box;
             return s;
         }
 
+        /// <summary>Xử lý đọc mã CSV thành hộp</summary>
         public static Box ParseBox(string code)
         {
             string[] parts = (code ?? "").Split('/');

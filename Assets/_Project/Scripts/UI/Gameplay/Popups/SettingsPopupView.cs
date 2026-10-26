@@ -6,17 +6,11 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của popup SETTINGS – gắn trên gốc SettingsCanvas.prefab.
-    ///
-    /// Ba công tắc (âm thanh / nhạc / rung) giữ trạng thái bật-tắt của riêng nó và chỉ báo ra ngoài bằng sự kiện;
-    /// việc ghi vào AudioManager / PlayerPrefs là của GameUI, View không biết đến.
-    /// Phần nảy vào / mở CanvasGroup nằm ở <see cref="PopupViewBase"/>.
-    /// </summary>
+    /// <summary>Script quản lý của popup SETTINGS</summary>
     [DisallowMultipleComponent]
     public class SettingsPopupView : PopupViewBase
     {
-        /// <summary>Một hàng công tắc: nút bấm + hình khi BẬT + hình khi TẮT.</summary>
+        /// <summary>Một hàng công tắc: nút bấm + hình khi BẬT + hình khi TẮT</summary>
         [Serializable]
         public class ToggleRow
         {
@@ -26,6 +20,7 @@ namespace BounceBlast.UI
 
             [NonSerialized] public bool value;
 
+            /// <summary>Xử lý cập nhật trạng thái các nút cài đặt</summary>
             public void Refresh()
             {
                 if (onState != null) onState.SetActive(value);
@@ -43,7 +38,7 @@ namespace BounceBlast.UI
 
         public event Action OnClose;
         public event Action OnRestart;
-        /// <summary>Nút Home: về màn hình chính (scene MenuGame).</summary>
+        /// <summary>Nút Home: về màn hình chính</summary>
         public event Action OnHome;
         public event Action<bool> OnSoundChanged;
         public event Action<bool> OnMusicChanged;
@@ -72,12 +67,12 @@ namespace BounceBlast.UI
             {
                 row.value = !row.value;
                 row.Refresh();
-                changed(row.value);              // báo ra ngoài TRƯỚC (có thể vừa tắt âm) rồi mới phát tiếng bấm
+                changed(row.value);
                 AudioManager.Play(Sfx.Button);
             });
         }
 
-        /// <summary>Mở popup với trạng thái hiện tại của ba công tắc.</summary>
+        /// <summary>Mở popup với trạng thái hiện tại của ba công tắc</summary>
         public void Show(LevelDifficulty difficulty, bool soundOn, bool musicOn, bool vibrationOn)
         {
             sound.value = soundOn; sound.Refresh();

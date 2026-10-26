@@ -8,16 +8,13 @@ using BounceBlast.Cheats;
 
 namespace BounceBlast.EditorTools
 {
-    /// <summary>
-    /// Dựng prefab CheatPanel (UI công cụ cheat) bằng code Editor – một lần – rồi lưu thành prefab để chỉnh bằng tay trong Unity.
-    /// Menu: Tools ▸ Bounce Blast ▸ Cheat ▸ Build panel prefab  /  Place panel in open scene.
-    /// Cấu trúc & ý nghĩa: Docs/thiet-ke/cheat-tool.md.
-    /// </summary>
+    /// <summary>Dựng prefab CheatPanel (UI công cụ cheat) bằng code Editor</summary>
     public static class CheatPanelBuilder
     {
         const string PrefabPath = "Assets/_Project/Prefabs/UI/CheatPanel.prefab";
         static readonly Color Dark = new Color(0.08f, 0.09f, 0.17f, 0.96f), Mid = new Color(0.3f, 0.32f, 0.5f), Accent = new Color(0.98f, 0.74f, 0.1f);
 
+        /// <summary>Dựng prefab bảng cheat</summary>
         [MenuItem("Tools/Bounce Blast/Cheat/Build panel prefab")]
         public static void BuildPrefab()
         {
@@ -30,24 +27,21 @@ namespace BounceBlast.EditorTools
             scaler.referenceResolution = new Vector2(1080f, 1920f);
             scaler.matchWidthOrHeight = 0.5f;
 
-            // ---- FPS overlay
             TMP_Text fps = Text(root.transform, "FpsOverlay", "", 28, TextAlignmentOptions.TopLeft, Color.yellow);
             Stretch(fps.rectTransform, new Vector2(0f, 1f), new Vector2(0.75f, 1f), new Vector2(24f, -200f), new Vector2(0f, -24f));
             fps.raycastTarget = false;
             fps.gameObject.SetActive(false);
 
-            // ---- Panel
             var panel = NewRect(root.transform, "Panel");
             Stretch(panel, Vector2.zero, Vector2.one, new Vector2(40f, 120f), new Vector2(-40f, -120f));
             var bg = panel.gameObject.AddComponent<Image>(); bg.color = Dark;
-            var blocker = panel.gameObject.AddComponent<Button>();   // Selectable ở nền → InputManager.IsOverUiButton chặn chạm xuyên xuống game
+            var blocker = panel.gameObject.AddComponent<Button>();
             blocker.transition = Selectable.Transition.None;
 
             TMP_Text title = Text(panel, "Title", "CHEATS  (dev only)", 44, TextAlignmentOptions.Left, Accent);
             Stretch(title.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(30f, -110f), new Vector2(-170f, -10f));
             Button close = ButtonRow(panel, "CloseButton", "X", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-150f, -100f), new Vector2(-20f, -20f), out _, 44);
 
-            // ---- Tabs
             var tabBar = NewRect(panel, "Tabs");
             Stretch(tabBar, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(20f, -230f), new Vector2(-20f, -120f));
             var tabLayout = tabBar.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -57,7 +51,6 @@ namespace BounceBlast.EditorTools
             for (int i = 0; i < tabs.Length; i++)
                 tabs[i] = TabButton(tabBar, "Tab" + i, CheatRegistry.Groups[i], out tabLabels[i]);
 
-            // ---- Scroll
             var scrollGo = NewRect(panel, "Scroll");
             Stretch(scrollGo, Vector2.zero, Vector2.one, new Vector2(20f, 20f), new Vector2(-20f, -250f));
             var scroll = scrollGo.gameObject.AddComponent<ScrollRect>();
@@ -75,11 +68,9 @@ namespace BounceBlast.EditorTools
             content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             scroll.viewport = viewport; scroll.content = content;
 
-            // ---- Mẫu dòng (tắt, nhân bản lúc chạy)
             CheatButtonRow btnRow = ButtonTemplate(panel);
             CheatStepperRow stepRow = StepperTemplate(panel);
 
-            // ---- Gắn script + nối tham chiếu
             var overlay = root.AddComponent<CheatPerfOverlay>();
             Set(overlay, "label", fps);
             var view = root.AddComponent<CheatPanelView>();
@@ -102,6 +93,7 @@ namespace BounceBlast.EditorTools
             Debug.Log("[Cheat] Đã dựng " + PrefabPath);
         }
 
+        /// <summary>Xử lý đặt bảng cheat vào scene</summary>
         [MenuItem("Tools/Bounce Blast/Cheat/Place panel in open scene")]
         public static void PlaceInScene()
         {
@@ -114,7 +106,6 @@ namespace BounceBlast.EditorTools
             Debug.Log("[Cheat] Đã đặt CheatPanel vào scene " + inst.scene.name + " – nhớ lưu scene.");
         }
 
-        // ------------------------------------------------------------------ helpers
         static RectTransform NewRect(Transform parent, string name)
         {
             var go = new GameObject(name, typeof(RectTransform));

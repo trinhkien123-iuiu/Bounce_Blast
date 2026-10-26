@@ -6,15 +6,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Lớp nền cho script quản lý của MỌI popup (Fail, Success, Settings, OutOfCapacity).
-    /// Lo phần dùng chung để mỗi popup chỉ còn viết phần riêng của nó:
-    ///  - bật popup, mở lại các CanvasGroup (prefab gốc để alpha 0 + script gốc tự fade-in, ta không có script đó);
-    ///  - bật đúng khung theo độ khó (<see cref="normalOnly"/> / <see cref="hardOnly"/> / <see cref="superHardOnly"/>);
-    ///  - hiệu ứng nảy vào (fade nền + EaseOutBack khung) thay cho tween DOTween của bản gốc;
-    ///  - tắt popup (KHÔNG huỷ – popup đặt sẵn trong Hierarchy, xem Docs/kien-truc/ui.md).
-    /// Lớp con thêm tham chiếu riêng bằng [SerializeField], sự kiện riêng và hàm Show(...) riêng.
-    /// </summary>
+    /// <summary>Lớp nền cho script quản lý của MỌI popup</summary>
     public abstract class PopupViewBase : MonoBehaviour
     {
         [Header("Chung cho mọi popup")]
@@ -33,10 +25,10 @@ namespace BounceBlast.UI
         public Canvas Canvas => canvas != null ? canvas : GetComponentInChildren<Canvas>(true);
         public bool IsOpen => gameObject.activeSelf;
 
-        /// <summary>Popup có hiệu ứng nảy vào chung không. Popup Thắng tự chạy chuỗi riêng nên tắt.</summary>
+        /// <summary>Popup có hiệu ứng nảy vào chung không</summary>
         protected virtual bool UsesPopIn => true;
 
-        /// <summary>Bật popup + đặt khung theo độ khó + chạy hiệu ứng nảy. Lớp con gọi trong Show(...) của nó.</summary>
+        /// <summary>Bật popup + đặt khung theo độ khó + chạy hiệu ứng nảy</summary>
         protected void OpenBase(LevelDifficulty difficulty)
         {
             gameObject.SetActive(true);
@@ -47,7 +39,7 @@ namespace BounceBlast.UI
             if (UsesPopIn) StartCoroutine(PopIn());
         }
 
-        /// <summary>Tắt popup (vẫn nằm trong scene để lần sau bật lại).</summary>
+        /// <summary>Tắt popup (vẫn nằm trong scene để lần sau bật lại)</summary>
         public virtual void Hide() => gameObject.SetActive(false);
 
         static void SetGroup(GameObject[] objs, bool on)
@@ -61,9 +53,9 @@ namespace BounceBlast.UI
 
         IEnumerator PopIn()
         {
-            if (content != null && !_contentScaleSaved) { _contentScale = content.localScale; _contentScaleSaved = true; }   // cỡ trong prefab (lần mở đầu)
+            if (content != null && !_contentScaleSaved) { _contentScale = content.localScale; _contentScaleSaved = true; }
             if (rootGroup == null) rootGroup = GetComponent<CanvasGroup>();
-            for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / PopTime)   // unscaled: game đang tạm dừng khi hiện popup Thua
+            for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / PopTime)
             {
                 if (rootGroup != null) rootGroup.alpha = Mathf.Clamp01(k * 2f);
                 if (content != null) content.localScale = _contentScale * EaseOutBack(k);
@@ -79,10 +71,10 @@ namespace BounceBlast.UI
             return 1f + c3 * Mathf.Pow(x - 1f, 3f) + c1 * Mathf.Pow(x - 1f, 2f);
         }
 
-        /// <summary>Lớp con thêm tên các ô tham chiếu riêng còn trống vào danh sách.</summary>
+        /// <summary>Lớp con thêm tên các ô tham chiếu riêng còn trống vào danh sách</summary>
         protected virtual void CollectMissing(List<string> missing) { }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ) – GameUI gọi lúc dựng để lỗi hiện sớm, rõ ràng.</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

@@ -7,12 +7,7 @@ using BounceBlast.UI;
 
 namespace BounceBlast.Menu
 {
-    /// <summary>
-    /// Điều phối scene MenuGame (màn hình chính). Mỗi phần UI là một prefab đặt cạnh nhau dưới <c>UI/</c>, có View riêng:
-    /// <see cref="HomeView"/> (trang Home), <see cref="ShopPanelView"/> (trang Shop), <see cref="MenuSettingsView"/> (trang Settings),
-    /// <see cref="BottomBarView"/> (thanh 5 tab), <see cref="ToastView"/> (dòng thông báo) và <see cref="ProfilePopupView"/> (popup Profile).
-    /// MenuManager nghe sự kiện của các View, bật đúng trang theo tab, ghi dữ liệu người chơi rồi chuyển sang Gameplay.
-    /// </summary>
+    /// <summary>Điều phối scene MenuGame (màn hình chính)</summary>
     public class MenuManager : MonoBehaviour
     {
         [Header("Asset")]
@@ -45,7 +40,7 @@ namespace BounceBlast.Menu
             if (missing != null) { Debug.LogError("MenuManager: chưa nối đủ: " + missing); return; }
             _ready = true;
 
-            home.OnPlay += SceneFlow.GoToGameplay;
+            home.OnPlay += TryPlay;
             home.OnOpenShop += () => SelectTab(shopTab);
             home.OnComingSoon += () => toast.Show("Coming soon!");
             home.OnOpenProfile += () => profile.Show(PlayerData.ProfileName, PlayerData.Avatar);
@@ -85,14 +80,22 @@ namespace BounceBlast.Menu
 
         void Update()
         {
-            // đồng hồ tim vô hạn đếm lùi mỗi giây
             if (!_ready) return;
-            pager.Locked = profile.gameObject.activeSelf;   // popup Profile đang mở thì không vuốt trang
+            pager.Locked = profile.gameObject.activeSelf;
             _clock -= Time.unscaledDeltaTime;
             if (_clock > 0f) return;
             _clock = 1f;
-            home.SetHearts(PlayerData.MaxHearts, PlayerData.InfiniteHeartsLeft);
+            home.SetHearts(PlayerData.Hearts, PlayerData.InfiniteHeartsLeft, PlayerData.NextHeartIn);
             home.Streak.SetTimer(BounceStreak.TimeLeft);
+        }
+
+        /// <summary>Xử lý bấm Play: hết tim thì báo và mở Shop thay vì vào level</summary>
+        void TryPlay()
+        {
+            if (PlayerData.CanPlay) { SceneFlow.GoToGameplay(); return; }
+            AudioManager.Play(Sfx.Error);
+            toast.Show("Out of hearts! Next in " + ShopPanelView.FormatSpan(PlayerData.NextHeartIn));
+            SelectTab(shopTab);
         }
 
         void SaveProfile(string playerName, int avatar)
@@ -105,7 +108,7 @@ namespace BounceBlast.Menu
             toast.Show("Profile saved!");
         }
 
-        /// <summary>Chọn một tab: trượt sang trang của nó. Tab chưa có trang → chỉ báo "coming soon", không đổi tab.</summary>
+        /// <summary>Chọn một tab: trượt sang trang của nó</summary>
         void SelectTab(int index)
         {
             if (index < 0 || index >= pager.Count) return;
@@ -117,7 +120,7 @@ namespace BounceBlast.Menu
             pager.Show(index, true);
         }
 
-        /// <summary>Bản dựng lại không có mua hàng thật: bấm mua là nhận luôn phần thưởng của gói.</summary>
+        /// <summary>Bản dựng lại không có mua hàng thật</summary>
         void Buy(ShopOfferItem offer)
         {
             PlayerData.Coins += offer.coins;
@@ -156,16 +159,16 @@ namespace BounceBlast.Menu
         {
             home.SetCoins(PlayerData.Coins);
             shop.SetCoins(PlayerData.Coins);
-            home.SetHearts(PlayerData.MaxHearts, PlayerData.InfiniteHeartsLeft);
+            home.SetHearts(PlayerData.Hearts, PlayerData.InfiniteHeartsLeft, PlayerData.NextHeartIn);
         }
 
         void RefreshStreak(bool snap)
         {
-            home.Streak.SetTimer(BounceStreak.TimeLeft);   // đọc trước: hết đợt thì chuỗi về 0
+            home.Streak.SetTimer(BounceStreak.TimeLeft);
             home.Streak.Set(BounceStreak.Wins, BounceStreak.Target, BounceStreak.Reward, snap);
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         string Validate()
         {
             var miss = new List<string>();

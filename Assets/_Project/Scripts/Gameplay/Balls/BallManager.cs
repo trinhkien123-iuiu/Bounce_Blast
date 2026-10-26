@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>Pool bi + thả bi vào bàn từ cửa phun trên đỉnh (gốc: InGameBallManager / BallSpawner).</summary>
+    /// <summary>Pool bi + thả bi vào bàn từ cửa phun trên đỉnh</summary>
     public class BallManager : MonoBehaviour
     {
         public event Action<Ball> OnBallConsumed;
@@ -21,8 +21,10 @@ namespace BounceBlast.Gameplay
 
         public int ActiveCount => _active.Count;
         public IReadOnlyList<Ball> Active => _active;
+        /// <summary>Dùng cho lấy màu từ mã màu</summary>
         public Color ColorOf(string code) => _colors != null ? _colors.ColorOf(code) : Color.white;
 
+        /// <summary>Xử lý khởi tạo quản lý bi</summary>
         public void Init(GameConfig config, ColorLibrary colors, BoardController board)
         {
             Config = config;
@@ -34,15 +36,9 @@ namespace BounceBlast.Gameplay
             _trailMat = config.trailMaterial != null ? config.trailMaterial : new Material(Shader.Find("Sprites/Default"));
         }
 
-        /// <summary>
-        /// Làm nóng trước khi chơi: dựng sẵn <paramref name="count"/> viên bi vào pool (mỗi viên = Instantiate prefab + Rigidbody2D + collider + trail)
-        /// và nạp shader/material bi, vệt bi cho từng màu. Rải đều vài viên mỗi khung hình để không làm đứng màn nạp.
-        /// Không làm trước thì hộp ĐẦU TIÊN lên máy xay phải dựng bi + biên dịch shader ngay lúc nhả viên đầu → khựng ~0.4 s trên máy yếu
-        /// (các hộp sau dùng lại pool nên mượt).
-        /// </summary>
+        /// <summary>Làm nóng trước khi chơi: dựng sẵn count viên bi vào pool</summary>
         public System.Collections.IEnumerator Prewarm(int count, int perFrame = 4)
         {
-            // 1) material + shader (SetPass biên dịch/gắn chương trình shader ngay, không chờ lần vẽ đầu)
             if (_trailMat != null) _trailMat.SetPass(0);
             foreach (ColorLibrary.Entry e in _colors.entries)
             {
@@ -52,7 +48,6 @@ namespace BounceBlast.Gameplay
                 if (tail != null) tail.SetPass(0);
                 yield return null;
             }
-            // 2) pool bi
             int made = 0;
             while (made < count)
             {
@@ -67,6 +62,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
+        /// <summary>Dùng cho lấy một bi từ pool theo màu</summary>
         public Ball Get(string colorCode)
         {
             Ball b = _pool.Count > 0 ? _pool.Pop() : Create();
@@ -84,8 +80,6 @@ namespace BounceBlast.Gameplay
             GameObject visual = Instantiate(Config.ballPrefab, go.transform);
             visual.name = "Visual";
             ModelUtil.StripPhysics(visual);
-            // Scale đều theo đường kính mesh bán cầu "Sphere" (≈1.03) – không FitVisual theo bounds
-            // vì bounds gồm cả đuôi tam giác và bán cầu chỉ sâu 0.5 → bi bị kéo dẹt/méo.
             float d = Config.ballRadius * 2f;
             visual.transform.localScale = Vector3.one * (d / 1.03f);
 
@@ -94,7 +88,7 @@ namespace BounceBlast.Gameplay
             return ball;
         }
 
-        /// <summary>Bi rời máng, phun xuống bàn từ cửa trên đỉnh (nêm tam giác phía dưới sẽ tách đôi luồng bi).</summary>
+        /// <summary>Bi rời máng, phun xuống bàn từ cửa trên đỉnh</summary>
         public void ReleaseIntoArena(Ball ball, float exitLateral = 0f)
         {
             float spreadAngle = Mathf.Clamp(exitLateral * 80f, -Config.ballSpawnSpread, Config.ballSpawnSpread);
@@ -104,8 +98,10 @@ namespace BounceBlast.Gameplay
             ball.EnterArena(pos, dir.normalized * Config.ballSpeed);
         }
 
+        /// <summary>Xử lý thả lại bi vào bàn</summary>
         public void Respawn(Ball ball) => ReleaseIntoArena(ball, 0f);
 
+        /// <summary>Xử lý huỷ bi đã trúng khối</summary>
         public void Consume(Ball ball, Vector2 at)
         {
             AudioManager.Play(Sfx.BallHit);
@@ -121,12 +117,13 @@ namespace BounceBlast.Gameplay
             _pool.Push(ball);
         }
 
+        /// <summary>Xử lý xoá toàn bộ bi</summary>
         public void ClearAll()
         {
             for (int i = _active.Count - 1; i >= 0; i--) Recycle(_active[i]);
         }
 
-        /// <summary>Có bi nào trên bàn còn mục tiêu cùng màu không (dùng để xét deadlock).</summary>
+        /// <summary>Có bi nào trên bàn còn mục tiêu cùng màu không</summary>
         public bool AnyBallHasTarget()
         {
             foreach (Ball b in _active) if (Board.HasTargetFor(b.ColorCode)) return true;

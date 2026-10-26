@@ -4,16 +4,11 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Danh mục dữ liệu level của một bộ (original, dailychallenge…): mỗi "chunk" là 5 level liền nhau (sheets_a_b) kèm hai file CSV
-    /// BoardProps_v3 và TunnelProps_v3. Thay cho việc tải bằng chuỗi `Resources.Load("sheets_levels/...")`: tham chiếu TextAsset
-    /// nằm thẳng trong asset nên đổi tên / đổi chỗ file CSV không làm hỏng âm thầm, và tìm dữ liệu level chỉ cần mở asset này.
-    ///
-    /// Tạo/cập nhật tự động từ thư mục Data/Levels/&lt;bộ&gt;/ bằng menu Tools/Bounce Blast/Data/Build Level Sets.
-    /// </summary>
+    /// <summary>Danh mục dữ liệu level của một bộ</summary>
     [CreateAssetMenu(menuName = "Bounce Blast/Level Set")]
     public class LevelSet : ScriptableObject
     {
+        /// <summary>Dùng cho một cụm 5 level liên tiếp</summary>
         [Serializable]
         public class Chunk
         {
@@ -26,7 +21,7 @@ namespace BounceBlast.Gameplay
         [Tooltip("Tên bộ để nhận diện (original, dailychallenge…)")] public string setName = "original";
         public List<Chunk> chunks = new List<Chunk>();
 
-        /// <summary>Tìm chunk chứa level; null nếu không có.</summary>
+        /// <summary>Tìm chunk chứa level; null nếu không có</summary>
         public Chunk Find(int levelId)
         {
             foreach (Chunk c in chunks)
@@ -34,7 +29,7 @@ namespace BounceBlast.Gameplay
             return null;
         }
 
-        /// <summary>Level lớn nhất có dữ liệu (0 nếu trống).</summary>
+        /// <summary>Level lớn nhất có dữ liệu</summary>
         public int MaxLevel
         {
             get

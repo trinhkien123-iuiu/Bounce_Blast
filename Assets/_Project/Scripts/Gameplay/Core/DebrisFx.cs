@@ -2,15 +2,10 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Văng mảnh vỡ có sẵn trong prefab gốc (các mesh "..._cell" của KPExploder gốc: băng, hòm gỗ, cột nhà).
-    /// Script KPExploder gốc bị strip khi rip nên chỉ còn mảnh mesh; ở đây bật mảnh lên, gắn Rigidbody và cho văng/rơi rồi tự huỷ.
-    /// </summary>
+    /// <summary>Văng mảnh vỡ có sẵn trong prefab gốc</summary>
     public static class DebrisFx
     {
-        /// <param name="t">mảnh vỡ (đang nằm đúng chỗ trong khối nguyên)</param>
-        /// <param name="center">tâm vụ nổ – mảnh văng ra xa tâm</param>
-        /// <param name="power">1 = như cột nhà; nhỏ hơn cho vật nhỏ (băng trên hộp đạn)</param>
+        /// <summary>Xử lý văng mảnh vỡ ra xa tâm</summary>
         public static void Fling(Transform t, Vector3 center, float power = 1f)
         {
             t.gameObject.SetActive(true);
@@ -25,7 +20,7 @@ namespace BounceBlast.Gameplay
             Object.Destroy(t.gameObject, Random.Range(0.9f, 1.4f));
         }
 
-        /// <summary>Văng mọi mảnh "_cell" nằm dưới <paramref name="root"/> (kể cả đang tắt).</summary>
+        /// <summary>Văng mọi mảnh "_cell" nằm dưới root</summary>
         public static void FlingCells(Transform root, Vector3 center, float power = 1f)
         {
             if (root == null) return;

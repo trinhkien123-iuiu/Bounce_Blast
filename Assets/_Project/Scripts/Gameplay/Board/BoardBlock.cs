@@ -4,10 +4,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Một vật thể trên bàn: cube nhỏ, khối gộp (nhiều ô dùng chung máu), hòm gỗ hoặc tường.
-    /// Có BoxCollider2D để bi nảy vào; vị trí logic là <see cref="Cells"/> trên lưới bàn.
-    /// </summary>
+    /// <summary>Một vật thể trên bàn: cube nhỏ, khối gộp</summary>
     public class BoardBlock : MonoBehaviour
     {
         public BoardItemKind Kind { get; private set; }
@@ -16,16 +13,16 @@ namespace BounceBlast.Gameplay
         public int MaxHp { get; private set; }
         public RectInt Cells { get; set; }
         public RectInt OriginCells { get; private set; }
-        /// <summary>Ô chiếm thực tế (tính từ Cells.min) với khối gộp hình bất kỳ; null = phủ kín Cells.</summary>
+        /// <summary>Ô chiếm thực tế (tính từ Cells.min) với khối gộp hình bất kỳ</summary>
         public List<Vector2Int> Mask { get; private set; }
         public List<BoardItemData> Contents { get; private set; }
         public bool IsDestroyed { get; private set; }
 
-        /// <summary>Luật của loại khối này (Board/Kinds) – mọi khác biệt giữa gạch / khối gộp / hòm / tường / cột nằm ở đó.</summary>
+        /// <summary>Luật của loại khối này (Board/Kinds)</summary>
         public BlockKind Rules { get; private set; }
-        /// <summary>Tính vào điều kiện thắng (tường, cột nhà thì không).</summary>
+        /// <summary>Tính vào điều kiện thắng (tường, cột nhà thì không)</summary>
         public bool IsDestructible => Rules.CountsForWin;
-        /// <summary>Hòm gỗ / cột nhà: bi màu nào cũng trừ máu nhưng KHÔNG bị tiêu hao (nảy tiếp), không phải mục tiêu ngắm.</summary>
+        /// <summary>Hòm gỗ / cột nhà: bi màu nào cũng trừ máu nhưng KHÔNG bị tiêu hao</summary>
         public bool IsFreeHit => Rules.HitByAnyColor;
         public bool IsStatic => Rules.IsStatic;
 
@@ -34,12 +31,12 @@ namespace BounceBlast.Gameplay
         Rigidbody2D _body;
         Vector3 _visualBaseScale;
         float _visualBaseZ;
-        const float RowDepth = 0.02f; // hàng thấp hơn gần camera hơn (giữ thứ tự che như cảnh nghiêng gốc)
+        const float RowDepth = 0.02f;
         float _punch;
         float _fallVelocity;
         Vector2 _targetPos;
 
-        /// <summary>Các ô bàn cờ khối đang chiếm.</summary>
+        /// <summary>Các ô bàn cờ khối đang chiếm</summary>
         public IEnumerable<Vector2Int> OccupiedCells()
         {
             RectInt r = Cells;
@@ -51,6 +48,7 @@ namespace BounceBlast.Gameplay
             else foreach (Vector2Int m in Mask) yield return r.min + m;
         }
 
+        /// <summary>Xử lý khởi tạo khối trên bàn</summary>
         public void Init(BoardItemData data, Transform visual, TextMeshPro label, Vector2 worldPos, Vector2 size,
                          List<Rect> colliderParts = null)
         {
@@ -71,7 +69,7 @@ namespace BounceBlast.Gameplay
 
             _body = gameObject.AddComponent<Rigidbody2D>();
             _body.bodyType = RigidbodyType2D.Kinematic;
-            _body.interpolation = RigidbodyInterpolation2D.None;   // chỉ bật nội suy trong lúc khối RƠI (Wake) – 1000+ khối đứng yên không phải nội suy mỗi khung
+            _body.interpolation = RigidbodyInterpolation2D.None;
 
             if (colliderParts == null || colliderParts.Count == 0)
             {
@@ -88,14 +86,10 @@ namespace BounceBlast.Gameplay
 
             RefreshLabel();
             ApplyDepth();
-            Sleep();   // đứng yên cho tới khi bị bi trúng hoặc mất chỗ đỡ
+            Sleep();
         }
 
-        /// <summary>
-        /// Màn dày đặc có 1000+ khối: mỗi khối chạy FixedUpdate + Update + LateUpdate MỖI khung dù đứng yên (đo: ~3.6 ms/khung trên
-        /// Editor). Giờ component chỉ BẬT khi có việc (rơi xuống ô đích, nảy khi bị trúng) và tự tắt khi xong.
-        /// </summary>
-        /// <param name="moving">true = khối sắp rơi: chuyển Kinematic + nội suy. false (bị bi trúng, chỉ nảy hình) giữ nguyên Static để không dựng lại tiếp xúc.</param>
+        /// <summary>Màn dày đặc có 1000+ khối</summary>
         void Wake(bool moving)
         {
             if (IsDestroyed) return;
@@ -107,7 +101,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        /// <summary>Đứng yên → Static: 1000+ khối không còn là 1000+ vật thể kinematic trong mô phỏng Physics2D (đo ở màn dày: phần tốn nhất khung hình).</summary>
+        /// <summary>Đứng yên → Static: 1000+ khối không còn là 1000+ vật thể kinematic trong mô phỏng Physics2D</summary>
         void Sleep()
         {
             if (_body != null)
@@ -118,7 +112,7 @@ namespace BounceBlast.Gameplay
             enabled = false;
         }
 
-        /// <summary>Hàng thấp gần camera hơn (xem RowDepth) – chỉ cần tính lại khi khối đổi chỗ.</summary>
+        /// <summary>Hàng thấp gần camera hơn (xem RowDepth)</summary>
         void ApplyDepth()
         {
             if (_visual == null) return;
@@ -127,13 +121,13 @@ namespace BounceBlast.Gameplay
             _visual.localPosition = lp;
         }
 
-        /// <summary>Bi màu <paramref name="ballColor"/> có trừ máu được khối này không.</summary>
+        /// <summary>Bi màu ballColor có trừ máu được khối này không</summary>
         public bool Accepts(string ballColor)
         {
             return !IsDestroyed && Rules.Accepts(this, ballColor);
         }
 
-        /// <summary>Trừ 1 máu. Trả về true nếu khối vừa bị phá.</summary>
+        /// <summary>Trừ 1 máu. Trả về true nếu khối vừa bị phá</summary>
         public bool TakeHit()
         {
             if (IsDestroyed) return false;
@@ -141,17 +135,19 @@ namespace BounceBlast.Gameplay
             _punch = 1f;
             Wake(false);
             RefreshLabel();
-            if (Hp > 0) return false;
+            if (Hp > 0) { Rules.OnHit(this); return false; }
             IsDestroyed = true;
             return true;
         }
 
+        /// <summary>Xử lý phá khối ngay, không tính máu</summary>
         public void ForceDestroy()
         {
             Hp = 0;
             IsDestroyed = true;
         }
 
+        /// <summary>Xử lý đặt vị trí đích cho khối đang nhúc nhích</summary>
         public void SetTarget(Vector2 worldPos)
         {
             if (((Vector2)transform.position - worldPos).sqrMagnitude > 0.00001f || (_targetPos - worldPos).sqrMagnitude > 0.00001f) Wake(true);
@@ -169,7 +165,6 @@ namespace BounceBlast.Gameplay
 
         void FixedUpdate()
         {
-            // Rơi theo trọng lực (gia tốc) tới vị trí ô đích
             Vector2 pos = _body.position;
             if ((pos - _targetPos).sqrMagnitude > 0.00001f)
             {
@@ -196,7 +191,6 @@ namespace BounceBlast.Gameplay
                 float s = 1f + Mathf.Sin(_punch * Mathf.PI) * Rules.HitPunch;
                 _visual.localScale = _visualBaseScale * s;
             }
-            // xong việc (đã tới ô đích, hết nảy) → ngủ
             if (_punch <= 0f && !IsMoving) { ApplyDepth(); Sleep(); }
         }
     }

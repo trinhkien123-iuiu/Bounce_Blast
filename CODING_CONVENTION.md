@@ -42,3 +42,8 @@ Ngắn gọn, áp dụng cho mọi script trong `Assets/_Project/Scripts` và `A
 ## 8. Git & tài liệu
 - Mỗi thay đổi lớn: ghi vào `Docs/` (vì sao, đo đạc, cách kiểm). Số liệu "đã kiểm" phải đo lại từ asset đã lưu.
 - Commit nhỏ theo chủ đề; không commit `Library/`, `Captures/`, file tạm.
+
+## Comment
+- Không comment trong thân hàm hay cuối dòng.
+- Mỗi class / hàm chính chỉ một dòng `/// <summary>` nói nó xử lý chức năng gì hoặc dùng cho cái gì.
+- Chi tiết dài (luật, số đo từ game gốc) ghi vào `Docs/`, không ghi trong code.

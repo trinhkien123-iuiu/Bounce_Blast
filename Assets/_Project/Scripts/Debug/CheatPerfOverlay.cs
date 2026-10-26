@@ -5,10 +5,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.Cheats
 {
-    /// <summary>
-    /// Số liệu hiệu năng góc màn hình: fps hiện tại (0.5 s), khung chậm nhất 3 s gần nhất, số khung &gt; 33 ms, bộ nhớ, số khối/bi.
-    /// Dùng thời gian thật (unscaled) nên đúng cả khi chỉnh tốc độ game.
-    /// </summary>
+    /// <summary>Số liệu hiệu năng góc màn hình</summary>
     public class CheatPerfOverlay : MonoBehaviour
     {
         [SerializeField] TMP_Text label;

@@ -4,14 +4,10 @@ using UnityEngine;
 using BounceBlast.Gameplay;
 using BounceBlast.UI;
 
-// Chỉ biên dịch ở Editor, Development Build, hoặc khi có Scripting Define Symbol BB_CHEATS (xem Docs/thiet-ke/cheat-tool.md).
 #if UNITY_EDITOR || DEVELOPMENT_BUILD || BB_CHEATS
 namespace BounceBlast.Cheats
 {
-    /// <summary>
-    /// Danh sách cheat (MVP: nhóm A Level · B Resources · C Speed). Mỗi cheat gọi các API công khai SẴN CÓ của manager,
-    /// không sửa trường private nên không đổi luật chơi thật. Xem Docs/thiet-ke/cheat-tool.md.
-    /// </summary>
+    /// <summary>Danh sách cheat (MVP: nhóm A Level · B Resources · C Speed)</summary>
     public static class CheatRegistry
     {
         public const string GroupLevel = "Level";
@@ -19,16 +15,16 @@ namespace BounceBlast.Cheats
         public const string GroupSpeed = "Speed";
         public static readonly string[] Groups = { GroupLevel, GroupResources, GroupSpeed };
 
-        // Trạng thái toggle (giữ giữa các lần mở panel)
         static bool _infiniteCapacity, _paused, _confirmReset;
         static float _speedBeforePause = 1f;
 
-        /// <summary>Gọi lại sau mỗi lần nạp level: <c>CapacitySystem.Reset</c> xoá cờ vô hạn nên phải áp lại.</summary>
+        /// <summary>Gọi lại sau mỗi lần nạp level</summary>
         public static void ReapplyPersistent(GameManager gm)
         {
             if (gm != null && gm.launchManager != null) gm.launchManager.Capacity.Infinite = _infiniteCapacity;
         }
 
+        /// <summary>Dựng danh sách các mục cheat cho bản test</summary>
         public static List<CheatItem> Build(GameManager gm, CheatPerfOverlay overlay)
         {
             var list = new List<CheatItem>();
@@ -38,7 +34,6 @@ namespace BounceBlast.Cheats
 
             LevelManager lm = gm.levelManager;
 
-            // ---------------- A. Level
             Add(new CheatItem
             {
                 group = GroupLevel, label = "Go to level", kind = CheatKind.Stepper,
@@ -51,7 +46,6 @@ namespace BounceBlast.Cheats
             Add(Btn(GroupLevel, "WIN now (break all blocks)", () => { foreach (BoardBlock b in new List<BoardBlock>(gm.board.Blocks)) gm.board.DestroyBlock(b); }));
             Add(Btn(GroupLevel, "LOSE now", () => gm.CheatLose()));
 
-            // ---------------- B. Resources
             Add(Btn(GroupResources, "+1000 coins", () => PlayerData.Coins += 1000));
             Add(Btn(GroupResources, "Coins = 0", () => PlayerData.Coins = 0));
             Add(Btn(GroupResources, "+5 every booster", () =>
@@ -74,7 +68,6 @@ namespace BounceBlast.Cheats
                 },
             });
 
-            // ---------------- C. Speed / auto
             foreach (float s in new[] { 0.25f, 0.5f, 1f, 2f, 4f })
             {
                 float speed = s;
@@ -94,7 +87,7 @@ namespace BounceBlast.Cheats
         static void SetSpeed(float s)
         {
             Time.timeScale = s;
-            Time.fixedDeltaTime = 0.02f * Mathf.Max(0.0001f, s > 0f ? s : 1f);   // vật lý theo kịp để bi không "xuyên" khi chạy nhanh
+            Time.fixedDeltaTime = 0.02f * Mathf.Max(0.0001f, s > 0f ? s : 1f);
         }
     }
 }

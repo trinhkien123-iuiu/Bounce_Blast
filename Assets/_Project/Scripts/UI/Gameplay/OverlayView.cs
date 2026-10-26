@@ -5,11 +5,7 @@ using UnityEngine.UI;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab OverlayCanvas – lớp UI phủ lên bàn chơi (gắn trên gốc prefab).
-    /// Giữ thanh booster, viền đỏ cảnh báo (Vignette) và dòng thông báo (Toast), đồng thời tự lo phần hoạt hình của hai cái sau:
-    /// viền đỏ "thở" khi sức chứa gần đầy, thông báo mờ dần. GameUI chỉ ra lệnh <see cref="SetDanger"/> / <see cref="ShowToast"/>.
-    /// </summary>
+    /// <summary>Script quản lý của prefab OverlayCanvas</summary>
     [DisallowMultipleComponent]
     public class OverlayView : MonoBehaviour
     {
@@ -29,10 +25,11 @@ namespace BounceBlast.UI
         public Canvas Canvas => canvas != null ? canvas : GetComponent<Canvas>();
         public BoosterBarView Booster => booster;
 
-        /// <param name="fill01">phần sức chứa đã dùng (0..1)</param>
+        /// <summary>Xử lý hiện viền đỏ cảnh báo theo mức sức chứa</summary>
         public void SetDanger(float fill01)
             => _dangerTarget = fill01 >= dangerStart ? Mathf.InverseLerp(dangerStart, 1f, fill01) : 0f;
 
+        /// <summary>Xử lý hiện thông báo ngắn</summary>
         public void ShowToast(string message, float seconds = 1.6f)
         {
             if (toast == null) return;
@@ -62,7 +59,7 @@ namespace BounceBlast.UI
             }
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

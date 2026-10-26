@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace BounceBlast.Cheats
 {
-    /// <summary>Mẫu dòng "chọn số + GO": nhãn, giá trị, 4 nút bước (−10 −1 +1 +10) và nút GO.</summary>
+    /// <summary>Mẫu dòng "chọn số + GO": nhãn, giá trị, 4 nút bước</summary>
     public class CheatStepperRow : MonoBehaviour
     {
         public TMP_Text label;

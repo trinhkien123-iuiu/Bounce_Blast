@@ -2,11 +2,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Tam giác chia bi dưới cửa phun (Environment Base/Triangle). Như video gốc: mỗi lần bi đập vào thì
-    /// loé hiệu ứng gốc "FlashExplosionBlue" (Ring/Rays/Stars/Glow) và tam giác nảy nhẹ.
-    /// Giới hạn tần suất vì bi phun liên tục.
-    /// </summary>
+    /// <summary>Tam giác chia bi dưới cửa phun</summary>
     public class TriangleFx : MonoBehaviour
     {
         const float MinInterval = 0.12f, PunchScale = 0.12f, PunchTime = 0.18f;
@@ -16,6 +12,7 @@ namespace BounceBlast.Gameplay
         Vector3 _baseScale;
         float _lastFlash = -1f, _punch;
 
+        /// <summary>Xử lý khởi tạo hiệu ứng tam giác đầu máng</summary>
         public void Init(Transform triangleRoot)
         {
             _model = triangleRoot.Find("Model");

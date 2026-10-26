@@ -7,18 +7,11 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab GameCanvas (HUD: badge Level + nút Settings) – gắn trên gốc prefab.
-    ///
-    /// Giữ tham chiếu bằng Inspector, và giữ luôn "kiểu dáng theo độ khó" (sprite badge, sprite nút Settings, cỡ/vị trí badge,
-    /// bố cục chữ, đối tượng chỉ hiện ở độ khó đó) – trước đây rải ở UiSkin + hằng số trong GameUI.
-    /// GameUI chỉ gọi <see cref="Apply"/> và nghe <see cref="OnSettingsPressed"/>.
-    /// Tài liệu kiến trúc: Docs/kien-truc/ui.md
-    /// </summary>
+    /// <summary>Script quản lý của prefab GameCanvas</summary>
     [DisallowMultipleComponent]
     public class HudView : MonoBehaviour
     {
-        /// <summary>Kiểu dáng của HUD ở Hard / Super Hard (Normal lấy đúng như prefab, ô Normal chỉ dùng mảng onlyHere) (kích thước/vị trí đo từ ảnh gốc 858×1908, ×1.448 ra canvas 1242).</summary>
+        /// <summary>Kiểu dáng của HUD ở Hard / Super Hard</summary>
         [Serializable]
         public class Style
         {
@@ -54,15 +47,15 @@ namespace BounceBlast.UI
         [SerializeField] Style hard = new Style();
         [SerializeField] Style superHard = new Style();
 
-        /// <summary>Bấm nút Settings.</summary>
+        /// <summary>Bấm nút Settings</summary>
         public event Action OnSettingsPressed;
 
         public Canvas Canvas => canvas != null ? canvas : GetComponent<Canvas>();
 
-        /// <summary>RectTransform nút Settings – GameManager đo tâm dọc của nó để đặt mép trên khung máng.</summary>
+        /// <summary>RectTransform nút Settings</summary>
         public RectTransform SettingsRect => settingsIcon != null ? settingsIcon.rectTransform : null;
 
-        // Kiểu Normal = đúng như prefab: ghi lại lúc Awake, Apply(Normal) trả về y nguyên (chỉnh badge / chữ trực tiếp trong prefab).
+        /// <summary>Dùng cho lưu vị trí gốc của một thành phần HUD</summary>
         struct RectState { public Vector2 aMin, aMax, oMin, oMax, size, pos; }
         static RectState Save(RectTransform t) => new RectState { aMin = t.anchorMin, aMax = t.anchorMax, oMin = t.offsetMin, oMax = t.offsetMax, size = t.sizeDelta, pos = t.anchoredPosition };
         static void Load(RectTransform t, RectState r) { t.anchorMin = r.aMin; t.anchorMax = r.aMax; t.sizeDelta = r.size; t.anchoredPosition = r.pos; }
@@ -84,13 +77,12 @@ namespace BounceBlast.UI
 
         Style StyleFor(LevelDifficulty d) => d == LevelDifficulty.SuperHard ? superHard : d == LevelDifficulty.Hard ? hard : normal;
 
-        /// <summary>Hiện level và đổi toàn bộ kiểu dáng theo độ khó.</summary>
+        /// <summary>Hiện level và đổi toàn bộ kiểu dáng theo độ khó</summary>
         public void Apply(int level, LevelDifficulty difficulty)
         {
             Style s = StyleFor(difficulty);
             if (difficulty == LevelDifficulty.Normal)
             {
-                // Normal: đúng như prefab – không đè giá trị bạn chỉnh
                 if (levelText != null) { levelText.text = "Lv " + level; Load(levelText.rectTransform, _levelRect); }
                 if (badge != null) { badge.sprite = _badgeSprite; Load(badge.rectTransform, _badgeRect); }
                 if (difficultyText != null) { difficultyText.gameObject.SetActive(_diffActive); Load(difficultyText.rectTransform, _diffRect); }
@@ -129,7 +121,6 @@ namespace BounceBlast.UI
             }
             if (settingsIcon != null && s.settingsIcon != null) settingsIcon.sprite = s.settingsIcon;
 
-            // đối tượng chỉ hiện ở đúng một độ khó
             SetGroup(normal, difficulty == LevelDifficulty.Normal);
             SetGroup(hard, difficulty == LevelDifficulty.Hard);
             SetGroup(superHard, difficulty == LevelDifficulty.SuperHard);
@@ -141,7 +132,7 @@ namespace BounceBlast.UI
             foreach (GameObject go in s.onlyHere) if (go != null) go.SetActive(on);
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (gọi khi dựng để lỗi hiện sớm, rõ ràng).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

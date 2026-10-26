@@ -1,15 +1,10 @@
 using System;
-using System.Collections;
 using TMPro;
 using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Hộp đạn (jelly) TRONG KHAY. Dùng prefab Ammunation gốc.
-    /// Trạng thái: bấm được (to, sáng) / chưa thông đường (nhỏ, lún, tối), đóng băng, hộp "?" bí ẩn, cửa kính; phản hồi khi chạm/giữ.
-    /// Phần bay lên máng + đậu trong máy xay ở <see cref="Flight"/> (<see cref="AmmoBoxFlight"/>); hình cửa kính ở <see cref="AmmoDoorView"/>.
-    /// </summary>
+    /// <summary>Hộp đạn (jelly) TRONG KHAY</summary>
     public class AmmoBox : MonoBehaviour
     {
         public AmmoBoxData Data { get; private set; }
@@ -20,18 +15,14 @@ namespace BounceBlast.Gameplay
         public bool HasDoor => Data != null && Data.Door > 0;
         public bool IsDoorClosed => Data != null && Data.Door > 0 && Data.DoorClosed;
         public bool IsLaunched { get; private set; }
-        /// <summary>Bay lên máng & đậu trong máy xay.</summary>
+        /// <summary>Bay lên máng &amp; đậu trong máy xay</summary>
         public AmmoBoxFlight Flight { get; private set; }
 
         GameConfig _config;
         ColorLibrary _colors;
         Transform _visual;
 
-        /// <summary>
-        /// Khung (x, y) của phần HÌNH THẬT đang hiện ra của hộp – gộp mọi renderer đang bật (thân jelly, nắp, hộp mù, cửa…).
-        /// Dùng để dò hộp khi người chơi bấm: bấm vào chỗ NHÌN THẤY hộp. Không dùng gốc xoay của model vì gốc đó nằm lệch
-        /// hẳn so với phần nhìn thấy (tilt −68°, cột jelly dài) và đổi theo mọi thông số tư thế trong GameConfig.
-        /// </summary>
+        /// <summary>Khung (x, y) của phần HÌNH THẬT đang hiện ra của hộp</summary>
         public bool TryGetVisibleBounds(out Bounds bounds)
         {
             bounds = new Bounds(transform.position, Vector3.zero);
@@ -47,7 +38,7 @@ namespace BounceBlast.Gameplay
         Renderer _jelly;
         GameObject _qmark;
         IceBlockerView _ice;
-        Vector3 _capLocal;          // tâm mặt nắp (đầu cột hướng về camera) trong toạ độ mesh của jelly
+        Vector3 _capLocal;
         bool _hasCap;
         Camera _cam;
         float _cell;
@@ -56,19 +47,19 @@ namespace BounceBlast.Gameplay
         float _tint = 1f;
         float _tintTarget = 1f;
         float _wobble;
-        JellyDeformer _jellyFx;   // lắc thạch khi nhấn giữ (tạo khi cần)
-        float _press, _pressTarget;   // 0..1: hộp lún nhỏ lại ngay khi bị chạm (phản hồi tức thì)
-        float _sink;        // 0 = trồi lên (bấm được), 1 = lún trong lỗ khay
+        JellyDeformer _jellyFx;
+        float _press, _pressTarget;
+        float _sink;
         float _sinkTarget;
 
-        public static float SinkDepth => AmmoBoxTuning.SinkDepth; // chỉnh trong GameConfig.ammoSinkDepth
+        public static float SinkDepth => AmmoBoxTuning.SinkDepth;
         MaterialPropertyBlock _mpb;
         Color _baseColor;
 
-        // Tư thế hộp (nghiêng / chiều dài cột / dịch / cỡ) dùng chung cho TẤT CẢ hộp – chỉnh trong GameConfig (ammoActivePose/ammoInactivePose).
         internal static Quaternion GridTilt => Quaternion.Euler(AmmoBoxTuning.Active.tiltX, 0f, 0f);
         int _tuningVersion = -1;
 
+        /// <summary>Xử lý khởi tạo hộp đạn theo dữ liệu, ô khay và màu</summary>
         public void Init(AmmoBoxData data, Vector2Int cell, float cellSize, GameConfig config, ColorLibrary colors)
         {
             Data = data;
@@ -91,12 +82,11 @@ namespace BounceBlast.Gameplay
             Transform q = _visual.Find("Qmark Model");
             _qmark = q != null ? q.gameObject : null;
 
-            // Game gốc chiếu jelly bằng đèn riêng (culling mask = layer Ammunation)
             int ammoLayer = LayerMask.NameToLayer("Ammunation");
             if (ammoLayer >= 0) foreach (Transform t in GetComponentsInChildren<Transform>(true)) t.gameObject.layer = ammoLayer;
 
             ComputeCapPoint();
-            AmmoFlightTube.Prewarm(_jelly);   // mesh gắn xương dựng sẵn → lần bay đầu không khựng
+            AmmoFlightTube.Prewarm(_jelly);
             Flight = gameObject.AddComponent<AmmoBoxFlight>();
             Flight.Init(this, config, _jelly, _mpb, _visual, _cell);
             if (data.IceHits > 0) CreateIce();
@@ -111,12 +101,12 @@ namespace BounceBlast.Gameplay
             ApplyScale();
         }
 
-        AmmoDoorView _door;              // cửa kính (chỉ hộp có /door)
-        float _doorSink;                 // 0..1, nội suy: hộp ĐÃ thông đường (đáng lẽ active) mà cửa đóng → thụt thêm sau cửa
-        bool _pathOpen;                  // hộp thông đường ra (kể cả khi cửa/băng đang chặn)
+        AmmoDoorView _door;
+        float _doorSink;
+        bool _pathOpen;
         float DoorSinkTarget => IsDoorClosed && _pathOpen ? 1f : 0f;
 
-        /// <summary>Mỗi lần bắn 1 hộp bất kỳ: cửa đảo trạng thái (gốc BlockerCover.OnAmmoUsed).</summary>
+        /// <summary>Mỗi lần bắn 1 hộp bất kỳ: cửa đảo trạng thái</summary>
         public void ToggleDoor()
         {
             if (Data.Door <= 0) return;
@@ -125,15 +115,14 @@ namespace BounceBlast.Gameplay
             _wobble = 1f;
         }
 
-        /// <summary>Đặt cửa lên miệng hố: tâm world, kích thước ô hố (bán kính bo góc không dùng – mesh gốc đã bo).</summary>
+        /// <summary>Đặt cửa lên miệng hố: tâm world, kích thước ô hố</summary>
         public void SetCoverPlacement(Vector3 worldCenter, Vector2 size, Quaternion plate) => _door?.Place(worldCenter, size, plate);
 
-        /// <summary>Tâm mặt nắp của cột jelly: trung bình các đỉnh ở đầu cột (trục dài nhất của mesh) quay về phía camera.</summary>
+        /// <summary>Tâm mặt nắp của cột jelly</summary>
         void ComputeCapPoint()
         {
             _cam = Camera.main;
             _hasCap = CapOf(_jelly, out _capLocal);
-            // hộp mù: mảnh "?" gốc (Qmark Model) là cột cùng cỡ jelly nhưng pivot khác → căn nắp của nó trùng nắp jelly
             _qRenderer = _qmark != null ? _qmark.GetComponentInChildren<Renderer>(true) : null;
             _hasQCap = CapOf(_qRenderer, out _qCapLocal);
         }
@@ -148,7 +137,6 @@ namespace BounceBlast.Gameplay
             int ax = b.extents.x >= b.extents.y && b.extents.x >= b.extents.z ? 0 : (b.extents.y >= b.extents.z ? 1 : 2);
             Vector3 axis = ax == 0 ? Vector3.right : (ax == 1 ? Vector3.up : Vector3.forward);
             Vector3 camFwd = _cam != null ? _cam.transform.forward : Vector3.forward;
-            // đầu cột nào đang hướng về camera (khi hộp ở tư thế nghiêng hiện tại)?
             float sign = Vector3.Dot(r.transform.TransformDirection(axis), camFwd) < 0f ? 1f : -1f;
             float ext = b.extents[ax], thr = b.center[ax] + sign * ext * 0.8f;
             Vector3 sum = Vector3.zero; int n = 0;
@@ -163,7 +151,7 @@ namespace BounceBlast.Gameplay
         Vector3 _qCapLocal;
         bool _hasQCap;
 
-        /// <summary>Đưa tâm mặt nắp về ĐÚNG tâm hố trên màn hình (camera ortho: chỉ cần dời trong mặt phẳng vuông góc hướng nhìn).</summary>
+        /// <summary>Đưa tâm mặt nắp về ĐÚNG tâm hố trên màn hình</summary>
         void CenterCapOnHole()
         {
             if (!_hasCap || _jelly == null) return;
@@ -171,12 +159,12 @@ namespace BounceBlast.Gameplay
             if (_cam == null) return;
             Vector3 view = _cam.transform.forward;
             Vector3 cap = _jelly.transform.TransformPoint(_capLocal);
-            Vector3 d = transform.position - cap;           // transform.position = tâm ô
+            Vector3 d = transform.position - cap;
             d -= view * Vector3.Dot(d, view);
             _visual.position += d;
         }
 
-        /// <summary>Băng (/ice-N): dùng nguyên "Ice Model" có sẵn trong prefab gốc – xem <see cref="IceBlockerView"/>.</summary>
+        /// <summary>Băng (/ice-N): dùng nguyên "Ice Model" có sẵn trong prefab gốc</summary>
         void CreateIce()
         {
             _ice = IceBlockerView.Attach(_visual, Data.IceHits);
@@ -199,21 +187,18 @@ namespace BounceBlast.Gameplay
             if (_qmark != null) _qmark.SetActive(hidden);
         }
 
-        // ------------------------------------------------------------------ Trạng thái trong khay
-        /// <param name="value">bấm được</param>
-        /// <param name="raised">nhô khỏi hố (tư thế active). Hộp đóng băng đã thông đường: nhô như hộp active nhưng chưa bấm được (như gốc)</param>
-        /// <param name="pathOpen">đường ra thông. Hộp cửa đóng mà CHƯA thông đường thì chỉ ở tư thế chưa active (cửa vẫn che, không thụt thêm); thông đường rồi mà cửa đóng thì mới thụt xuống sau cửa</param>
+        /// <summary>Xử lý trạng thái bấm được, nhô lên và tư thế của hộp</summary>
         public void SetClickable(bool value, bool raised, bool pathOpen, bool instant = false)
         {
             IsClickable = value;
             _pathOpen = pathOpen;
             _scaleTarget = raised ? _config.ammoActiveScale : _config.ammoInactiveScale;
-            _tintTarget = raised ? 1f : 0.92f; // Tươi sáng, phân biệt active qua độ nhô & scale
+            _tintTarget = raised ? 1f : 0.92f;
             _sinkTarget = raised ? 0f : 1f;
             if (instant) { _scaleNow = _scaleTarget; _tint = _tintTarget; _sink = _sinkTarget; _doorSink = DoorSinkTarget; ApplyScale(); ApplyTint(); }
         }
 
-        /// <summary>Lộ màu hộp "?" khi nó thông đường ra (gốc: Ammunation.InitializeQmark / IsHidden).</summary>
+        /// <summary>Lộ màu hộp "?" khi nó thông đường ra</summary>
         public void Reveal()
         {
             if (!Data.Hidden) return;
@@ -224,10 +209,10 @@ namespace BounceBlast.Gameplay
             AudioManager.Play(Sfx.QmarkReveal);
         }
 
-        /// <summary>Hộp kề (trên/dưới/trái/phải) vừa được bắn → băng nứt thêm 1 nấc (hình: <see cref="IceBlockerView"/>).</summary>
-        /// <summary>Nảy nhẹ (hiệu ứng booster: xáo màu, tay phép).</summary>
+        /// <summary>Hộp kề (trên/dưới/trái/phải) vừa được bắn → băng nứt thêm 1 nấc (hình</summary>
         public void Pop() => _wobble = 1f;
 
+        /// <summary>Xử lý nứt lớp băng bọc hộp</summary>
         public void CrackIce()
         {
             if (Data.IceHits <= 0) return;
@@ -237,10 +222,7 @@ namespace BounceBlast.Gameplay
             AudioManager.Play(Data.IceHits <= 0 ? Sfx.IceBreak : Sfx.IceCrack);
         }
 
-        /// <summary>
-        /// Nhấn giữ hộp (bấm được) → lắc lư như thạch; thả ra thì lắc tắt dần. Chỉ là hiệu ứng, việc bắn do InputManager quyết định.
-        /// Thông số trong GameConfig → "Hộp đạn – lắc khi nhấn giữ".
-        /// </summary>
+        /// <summary>Nhấn giữ hộp (bấm được) → lắc lư như thạch</summary>
         public void SetHeld(bool held)
         {
             if (held && (IsLaunched || _hover || Data == null)) return;
@@ -251,7 +233,6 @@ namespace BounceBlast.Gameplay
                 if (_jellyFx == null)
                 {
                     _jellyFx = _jelly.gameObject.AddComponent<JellyDeformer>();
-                    // nắp = đầu cột hướng về camera (cùng cách ComputeCapPoint chọn): nằm ở y lớn hay y nhỏ của mesh?
                     Mesh m = _jelly.GetComponent<MeshFilter>() != null ? _jelly.GetComponent<MeshFilter>().sharedMesh : null;
                     bool capAtMax = !_hasCap || m == null || _capLocal.y >= m.bounds.center.y;
                     if (!_jellyFx.Init(_config, capAtMax)) { Destroy(_jellyFx); _jellyFx = null; return; }
@@ -260,13 +241,14 @@ namespace BounceBlast.Gameplay
             _jellyFx.SetHeld(held);
         }
 
-        /// <summary>Phản hồi tức thì lúc chạm xuống hộp: hộp lún nhỏ lại; thả / huỷ thì bật lại. Không đụng tới logic bắn.</summary>
+        /// <summary>Phản hồi tức thì lúc chạm xuống hộp</summary>
         public void SetPressed(bool pressed)
         {
             if (pressed && (IsLaunched || _hover || Data == null)) return;
             _pressTarget = pressed ? 1f : 0f;
         }
 
+        /// <summary>Xử lý hiệu ứng lắc khi bấm vào hộp chưa bấm được</summary>
         public void PlayDenied()
         {
             _wobble = 1f;
@@ -306,32 +288,30 @@ namespace BounceBlast.Gameplay
             if (_press > 0f && _config != null) w *= 1f - _config.pressInScale * Mathf.SmoothStep(0f, 1f, _press);
 
             float kt = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_sink));
-            GameConfig.AmmoPose pose = AmmoBoxTuning.Lerp(1f - kt);   // active ↔ chưa active theo độ lún
+            GameConfig.AmmoPose pose = AmmoBoxTuning.Lerp(1f - kt);
             float s = _cell * _scaleNow * pose.scale * _config.ammoBoxVsHole;
             _visual.localRotation = Quaternion.Euler(pose.tiltX, 0f, 0f);
             if (_jelly != null) _jelly.transform.localScale = new Vector3(1f, pose.length, 1f);
-            if (_qRenderer != null) _qRenderer.transform.localScale = new Vector3(1f, pose.length, 1f); // hộp mù theo cùng chiều dài
+            if (_qRenderer != null) _qRenderer.transform.localScale = new Vector3(1f, pose.length, 1f);
             ModelUtil.FitVisualUniform(_visual, s * w);
             if (_sink > 0f)
             {
                 float k = Mathf.SmoothStep(0f, 1f, _sink);
-                // cửa đóng: hộp tụt sâu hẳn sau mặt khay như buồng thang máy, cửa 2 cánh khép trên miệng hố
                 float dz = (SinkDepth + _doorSink * _config.doorExtraSink) * _cell * k;
                 _visual.localPosition += new Vector3(0f, 0f, dz);
             }
             CenterCapOnHole();
-            // Dịch tay (AmmoLayoutTuner): x phải+, y lên+ trong mặt phẳng màn hình; z ra xa camera+ (đổi thứ tự che giữa các hộp)
             if (_cam != null)
             {
                 Vector3 o = pose.offset * _cell;
                 _visual.position += _cam.transform.right * o.x + _cam.transform.up * o.y + _cam.transform.forward * o.z;
             }
             AlignQmarkToJelly();
-            if (_ice != null && _jelly != null) _ice.FitCover(_jelly.bounds, _config, _cell);   // băng phủ kín cả hộp (kể cả thân dài)
+            if (_ice != null && _jelly != null) _ice.FitCover(_jelly.bounds, _config, _cell);
             _door?.Apply();
         }
 
-        /// <summary>Hộp mù: dời mảnh "?" để nắp của nó trùng đúng nắp jelly (jelly đang ẩn nhưng transform vẫn đúng tư thế).</summary>
+        /// <summary>Hộp mù: dời mảnh "?" để nắp của nó trùng đúng nắp jelly</summary>
         void AlignQmarkToJelly()
         {
             if (_qmark == null || !_qmark.activeSelf || !_hasQCap || !_hasCap || _qRenderer == null || _jelly == null) return;
@@ -353,26 +333,23 @@ namespace BounceBlast.Gameplay
             _jelly.SetPropertyBlock(_mpb);
         }
 
-        // ------------------------------------------------------------------ Bay lên máng / đậu dock
+        /// <summary>Xử lý bắt đầu bay của hộp lên máng</summary>
         public void BeginLaunch()
         {
             IsLaunched = true;
             if (_jellyFx != null) _jellyFx.ResetNow();
             _press = _pressTarget = 0f;
             _hover = false;
-            Flight.CancelUnlessHolding();   // đang dừng giữa chuyến bay (hết sức chứa) thì để nó bay tiếp
+            Flight.CancelUnlessHolding();
             _door?.Remove();
             _tint = 1f;
             _sink = _sinkTarget = 0f;
             ApplyTint();
         }
 
-        bool _hover;                 // đang dừng giữa chuyến bay (hết sức chứa): Update không đụng tới hình
+        bool _hover;
 
-        /// <summary>
-        /// Bấm hộp làm vượt sức chứa: chuẩn bị hộp trong khay (tắt nảy/lún, bỏ cửa) rồi cho <see cref="AmmoBoxFlight"/>
-        /// chạy hoạt ảnh bay và dừng giữa chừng (xem <see cref="AmmoBoxFlight.HoldAt"/>).
-        /// </summary>
+        /// <summary>Bấm hộp làm vượt sức chứa</summary>
         public void HoldFlightAt(Vector3 target, Quaternion dockRotation, float dockWidth, float duration, float holdU)
         {
             if (_hover || IsLaunched || Flight.IsHoldingFlight) return;
@@ -385,6 +362,7 @@ namespace BounceBlast.Gameplay
             Flight.HoldAt(target, dockRotation, dockWidth, duration, holdU);
         }
 
+        /// <summary>Xử lý kết thúc và huỷ hộp</summary>
         public void Finish()
         {
             Vfx.Spawn(_config.ammoLaunchVfx, transform.position, _colors.ColorOf(Data.ColorCode), 0.6f);

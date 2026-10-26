@@ -3,19 +3,13 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Thân hộp thạch khi bay lên máng - khi đậu ở máy xay. Game gốc dùng RiggedCube (mesh có chuỗi xương Bone → Bone.008)
-    /// để uốn hộp theo đường bay; bản rip mất bindpose nên ở đây GẮN LẠI XƯƠNG cho chính mesh gốc (Cube_1, trục dài Y):
-    /// 8 xương chia đều dọc trục, trọng số tuyến tính giữa 2 xương kề → mỗi frame chỉ đặt lại 8 transform, Unity tự skin
-    /// (không dựng lại mesh, không cấp phát). Mesh đã gắn xương được cache dùng chung cho mọi hộp.
-    /// Đường bay: các điểm gấp khúc bo Chaikin, đầu ống đi trước, đuôi bám theo (AmmoBox.FlyRoutine).
-    /// </summary>
+    /// <summary>Thân hộp thạch khi bay lên máng</summary>
     public class AmmoFlightTube : MonoBehaviour
     {
         const int Bones = 12;
 
         static readonly Dictionary<Mesh, Mesh> SkinnedCache = new Dictionary<Mesh, Mesh>();
-        static readonly Dictionary<Mesh, Vector2> AxisCache = new Dictionary<Mesh, Vector2>(); // yMin, yMax
+        static readonly Dictionary<Mesh, Vector2> AxisCache = new Dictionary<Mesh, Vector2>();
 
         Transform[] _bones;
         float _yMin, _yMax, _cross;
@@ -24,6 +18,7 @@ namespace BounceBlast.Gameplay
 
         public float Length => _cum != null ? _cum[_cum.Length - 1] : 0f;
 
+        /// <summary>Dựng ống bay từ mesh hộp nguồn</summary>
         public static AmmoFlightTube Create(Renderer source, MaterialPropertyBlock mpb)
         {
             var mf = source != null ? source.GetComponent<MeshFilter>() : null;
@@ -59,7 +54,7 @@ namespace BounceBlast.Gameplay
             return tube;
         }
 
-        /// <summary>Dựng sẵn mesh gắn xương (cache dùng chung) lúc nạp level để lần bấm hộp đầu tiên không bị khựng trên máy yếu.</summary>
+        /// <summary>Dựng sẵn mesh gắn xương (cache dùng chung) lúc nạp level để lần bấm hộp đầu tiên không bị khựng trên máy yếu</summary>
         public static void Prewarm(Renderer source)
         {
             var mf = source != null ? source.GetComponent<MeshFilter>() : null;
@@ -69,7 +64,7 @@ namespace BounceBlast.Gameplay
         static Mesh GetSkinned(Mesh src)
         {
             if (SkinnedCache.TryGetValue(src, out Mesh m) && m != null) return m;
-            m = Subdivide(src, 10); // 10 lát đủ mượt với 12 xương, giữ số đỉnh thấp (skin rẻ)
+            m = Subdivide(src, 10);
             m.name = src.name + " (skinned)";
             Vector3[] v = m.vertices;
             float yMin = float.MaxValue, yMax = float.MinValue;
@@ -92,10 +87,7 @@ namespace BounceBlast.Gameplay
             return m;
         }
 
-        /// <summary>
-        /// Mesh gốc Cube_1 chỉ có đỉnh ở 2 đầu cột (thân là các tam giác dài suốt chiều cao) → không uốn được.
-        /// Chia đôi cạnh dài theo Y (dùng chung điểm giữa để không hở) tới khi mọi cạnh ≤ chiều cao / slices.
-        /// </summary>
+        /// <summary>Mesh gốc Cube_1 chỉ có đỉnh ở 2 đầu cột</summary>
         static Mesh Subdivide(Mesh src, int slices)
         {
             var pos = new List<Vector3>(src.vertices);
@@ -134,7 +126,6 @@ namespace BounceBlast.Gameplay
                         float dm = Mathf.Max(d01, Mathf.Max(d12, d20));
                         if (dm <= maxDy) { o.Add(i0); o.Add(i1); o.Add(i2); continue; }
                         changed = true;
-                        // tách cạnh có chênh Y lớn nhất, giữ chiều quấn tam giác
                         if (dm == d01) { int m01 = Mid(i0, i1); o.Add(i0); o.Add(m01); o.Add(i2); o.Add(m01); o.Add(i1); o.Add(i2); }
                         else if (dm == d12) { int m12 = Mid(i1, i2); o.Add(i0); o.Add(i1); o.Add(m12); o.Add(i0); o.Add(m12); o.Add(i2); }
                         else { int m20 = Mid(i2, i0); o.Add(i0); o.Add(i1); o.Add(m20); o.Add(m20); o.Add(i1); o.Add(i2); }
@@ -156,10 +147,7 @@ namespace BounceBlast.Gameplay
             return m;
         }
 
-        /// <summary>
-        /// Quỹ đạo của ĐẦU ống: các điểm gấp khúc, mỗi góc bo bằng CUNG TRÒN bán kính ≥ minRadius (≈ 1.3 bề ngang thân) –
-        /// bán kính nhỏ hơn nửa bề ngang thì mặt trong khúc cua bị bóp nhọn khi skin.
-        /// </summary>
+        /// <summary>Quỹ đạo của ĐẦU ống: các điểm gấp khúc, mỗi góc bo bằng CUNG TRÒN bán kính ≥ minRadius</summary>
         public void SetPath(IList<Vector3> corners, float minRadius)
         {
             var pts = new List<Vector3> { corners[0] };
@@ -169,12 +157,11 @@ namespace BounceBlast.Gameplay
                 Vector3 d0 = (p1 - p0).normalized, d1 = (p2 - p1).normalized;
                 float turn = Vector3.Angle(d0, d1) * Mathf.Deg2Rad;
                 if (turn < 1e-3f) { pts.Add(p1); continue; }
-                // độ dài cắt mỗi cạnh = R·tan(θ/2), không quá 45% cạnh ngắn
                 float maxCut = 0.45f * Mathf.Min(Vector3.Distance(p0, p1), Vector3.Distance(p1, p2));
                 float r = Mathf.Min(minRadius, maxCut / Mathf.Tan(turn * 0.5f));
                 float cut = r * Mathf.Tan(turn * 0.5f);
                 Vector3 a0 = p1 - d0 * cut, a1 = p1 + d1 * cut;
-                Vector3 n = Vector3.Cross(Vector3.Cross(d0, d1), d0).normalized; // hướng vào tâm cung
+                Vector3 n = Vector3.Cross(Vector3.Cross(d0, d1), d0).normalized;
                 Vector3 c = a0 + n * r;
                 int steps = Mathf.Max(4, Mathf.CeilToInt(turn * 12f));
                 for (int k = 0; k <= steps; k++)
@@ -186,6 +173,7 @@ namespace BounceBlast.Gameplay
             for (int i = 1; i < _path.Length; i++) _cum[i] = _cum[i - 1] + Vector3.Distance(_path[i - 1], _path[i]);
         }
 
+        /// <summary>Dùng cho lấy điểm trên đường bay theo quãng đường</summary>
         public Vector3 PointAt(float s)
         {
             int i = 1;
@@ -202,8 +190,7 @@ namespace BounceBlast.Gameplay
 
         readonly Vector3[] _pos = new Vector3[Bones];
 
-        /// <summary>Uốn thân theo quỹ đạo từ tail tới head; bề ngang = width (đơn vị world), nội suy góc xoay startRot -> endRot.</summary>
-        /// <param name="toEnd">0..1: kéo góc xoay của MỌI xương về endRot (cuối chuyến bay = 1 → khớp đúng dáng thanh đậu <see cref="PoseStraight"/>, không còn bước nhảy lúc chuyển dáng)</param>
+        /// <summary>Uốn thân theo quỹ đạo từ tail tới head</summary>
         public void Build(float tail, float head, float width, Quaternion startRot, Quaternion endRot, float toEnd = 0f)
         {
             if (_bones == null) return;
@@ -232,25 +219,22 @@ namespace BounceBlast.Gameplay
             }
         }
 
+        /// <summary>Xử lý dựng lại mesh ống theo đuôi, đầu và bề ngang</summary>
         public void Build(float tail, float head, float width)
         {
             Build(tail, head, width, Quaternion.identity, Quaternion.identity);
         }
 
-        /// <summary>Thân đậu ở máy xay: đáy ở bottom, cao height, xoay khớp theo góc nghiêng của máy xay.</summary>
-        /// <summary>
-        /// Chuyến bay (Build) đi ĐẦU TRƯỚC: xương 11 dẫn đầu nên cuối chuyến bay xương 11 nằm ở ĐÁY máy xay, xương 0 ở trên.
-        /// Thanh đậu phải đặt cùng chiều đó, nếu không lúc chuyển từ bay sang đậu thân hộp bị lật đầu-đuôi (chỗ "giật" khi chui vào máy xay).
-        /// </summary>
+        /// <summary>Thân đậu ở máy xay: đáy ở bottom, cao height, xoay khớp theo góc nghiêng của máy xay</summary>
         public static bool HeadAtBottom = true;
 
+        /// <summary>Xử lý đặt ống thẳng đứng tại máy xay</summary>
         public void PoseStraight(Vector3 bottom, float height, float width, Quaternion rotation)
         {
             if (_bones == null) return;
             Vector3 up = rotation * Vector3.up;
             Vector3 fwd = rotation * Vector3.forward;
             float s = width / Mathf.Max(1e-4f, _cross);
-            // bone i ở vị trí i/(Bones-1) tính từ ĐUÔI (trên) xuống ĐẦU (đáy), xương hướng từ đuôi tới đầu như lúc bay
             Quaternion rot = HeadAtBottom ? Quaternion.LookRotation(fwd, -up) : Quaternion.LookRotation(fwd, up);
             for (int i = 0; i < Bones; i++)
             {
@@ -261,11 +245,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        /// <summary>
-        /// Pha lắng cuối chuyến bay: kéo từng xương (vị trí + góc xoay) từ dáng uốn theo quỹ đạo về ĐÚNG dáng thanh đậu của
-        /// <see cref="PoseStraight"/> theo hệ số <paramref name="blend"/> (0..1). Blend = 1 thì hai dáng trùng khít → chuyển sang
-        /// thanh đậu không còn bước nhảy (đoạn thẳng cuối của quỹ đạo có thể ngắn hơn chiều dài thanh đậu nên không thể tin vào quỹ đạo).
-        /// </summary>
+        /// <summary>Pha lắng cuối chuyến bay: kéo từng xương</summary>
         public void BlendToStraight(Vector3 bottom, float height, Quaternion rotation, float blend)
         {
             if (_bones == null || blend <= 0f) return;
@@ -280,6 +260,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
+        /// <summary>Xử lý đặt ống thẳng đứng tại máy xay</summary>
         public void PoseStraight(Vector3 bottom, float height, float width)
         {
             PoseStraight(bottom, height, width, Quaternion.identity);

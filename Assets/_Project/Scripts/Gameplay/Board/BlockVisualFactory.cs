@@ -4,11 +4,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Dựng HÌNH cho khối trên bàn (không có luật chơi): gạch 1 ô từ prefab cube gốc (mesh bo tròn, vân sáng tối),
-    /// khối nhiều ô giãn 9-slice, khối hình chữ L… thành một mesh liền theo viền, xiên mesh theo góc nhìn, nhãn số máu.
-    /// Cache mesh dùng chung giữa các màn. <see cref="BoardController"/> giữ một bản; các lớp loại khối (Board/Kinds) gọi qua board.Visuals.
-    /// </summary>
+    /// <summary>Dựng HÌNH cho khối trên bàn</summary>
     public class BlockVisualFactory
     {
         GameConfig _config;
@@ -18,18 +14,17 @@ namespace BounceBlast.Gameplay
         Material _fontMaterial;
         Material _labelMaterial;
 
-        /// <summary>Gọi mỗi lần dựng màn (cỡ ô đổi theo số cột của level).</summary>
+        /// <summary>Gọi mỗi lần dựng màn (cỡ ô đổi theo số cột của level)</summary>
         public void Setup(GameConfig config, ColorLibrary colors, float cell)
         {
             _config = config;
             _colors = colors;
             _cell = cell;
-            // TMP trong prefab rip bị mất script → dùng font của GameConfig
             _font = config.worldFont;
             _fontMaterial = _font != null ? _font.material : null;
         }
 
-        /// <summary>Khối nhiều ô / tường: xiên mesh thay vì xoay (xem ShearForView) → mặt trước phẳng khít lưới như gạch 1 ô.</summary>
+        /// <summary>Khối nhiều ô / tường: xiên mesh thay vì xoay</summary>
         public void ApplyViewShear(Transform visual)
         {
             if (visual == null) return;
@@ -41,7 +36,6 @@ namespace BounceBlast.Gameplay
         const int ShadeBuckets = 6;
 
         static readonly Dictionary<(Material, int), Material> ShadeMats = new Dictionary<(Material, int), Material>();
-        // Project tắt domain reload khi vào Play → cache tĩnh sống qua nhiều lần Play; xoá để đổi màu/vân trong vật liệu có hiệu lực ngay
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetCache() => ShadeMats.Clear();
 
@@ -55,6 +49,7 @@ namespace BounceBlast.Gameplay
             return m;
         }
 
+        /// <summary>Dựng hình khối theo loại và kích thước</summary>
         public Transform CreateVisual(Transform parent, BoardItemData item, Vector2 size, float forcedDepth = -1f)
         {
             GameObject v = Object.Instantiate(_config.cubePrefab, parent);
@@ -68,26 +63,16 @@ namespace BounceBlast.Gameplay
             Material mat = kind.Material(_config, _colors, item);
             if (rend != null && mat != null) rend.sharedMaterial = mat;
 
-            // Vân sáng/tối ngẫu nhiên cho từng cube nhỏ như game gốc (Colors_v3: MinOffset..MaxOffset).
-            // Tối ưu: shader rip không có biến thể instancing → MaterialPropertyBlock làm mỗi cube 1 draw call riêng.
-            // Thay bằng vài material dùng chung theo (màu, mức vân) → cube cùng material được dynamic batching gộp lại.
             if (rend != null && kind.CubeLook && mat != null)
             {
                 ColorLibrary.Entry e = _colors.Get(item.ColorCode);
-                Vector2 range = e != null ? e.shadeOffset : Vector2.zero;
+                Vector2 range = kind.ShadeRange(e);
                 rend.sharedMaterial = ShadeVariant(mat, range, UnityEngine.Random.Range(0, ShadeBuckets));
             }
 
-            // Game gốc nhìn bàn từ trên xuống: lật model để mặt trên (+Y) hướng về camera (-Z).
-            // Mesh CubeNew có sẵn nghiêng 10° nên vẫn lộ một chút mặt trước như trong video.
-            // Mặt trên (+Y) của mesh cube hướng thẳng về camera (camera nghiêng 20° → lật -70°).
-            // Mesh CubeNew có sẵn nghiêng 10° nên vẫn lộ chút mặt trước như game gốc.
             Transform model = v.transform.Find("Model");
             if (model != null) model.localRotation = kind.CubeLook ? Quaternion.Euler(-ViewSpace.LegacyPitch, 0f, 0f) : Quaternion.identity;
 
-            // Khối nhiều ô (CombinedCube/hòm/tường lớn): mesh gốc CombinedCubic được sinh lúc chạy bởi script đã bị
-            // strip → dùng mesh cube 1 ô nhưng giãn kiểu 9-slice (giữ nguyên phần vát), tránh vát bị kéo thành bát giác.
-            // Bù tỉ lệ mesh gốc pCube35 (chiều cao Y = 0.873 bề rộng X → cần nhân extents.x / extents.y = 1.145).
             float nx = size.x / _cell, ny = size.y / _cell;
             if (nx > 1.01f || ny > 1.01f)
             {
@@ -99,7 +84,7 @@ namespace BounceBlast.Gameplay
                     mf.sharedMesh = SlicedCubeMesh(mf.sharedMesh, nx, ny * aspectY);
                 }
 
-                if (model != null) model.localRotation = Quaternion.identity; // không xoay: mesh được xiên ở Spawn (ShearForView)
+                if (model != null) model.localRotation = Quaternion.identity;
 
                 Transform cubeNew = model != null ? model.Find("CubeNew") : v.transform.Find("Model/CubeNew");
                 if (cubeNew != null)
@@ -109,10 +94,6 @@ namespace BounceBlast.Gameplay
                 }
             }
 
-
-            // Viên đơn (1x1): co giãn ĐỀU như prefab (không ép từng trục) → giữ đúng tỉ lệ & pháp tuyến mặt vát của mesh gốc.
-            // Khối nhiều ô (nx > 1 hoặc ny > 1): mesh đã được giãn 9-slice chuẩn theo tỉ lệ (nx, ny), scale ĐỒNG ĐỀU
-            // theo bề ngang width = size.x để không bị méo trục Z khi Model xoay -20°, giữ mép 2 đầu chuẩn từng ô.
             if (kind.CubeLook && nx <= 1.01f && ny <= 1.01f)
             {
                 if (_config.cubeCornerRadius > 0f)
@@ -129,10 +110,7 @@ namespace BounceBlast.Gameplay
 
         readonly Dictionary<Vector2Int, Mesh> _slicedMeshes = new Dictionary<Vector2Int, Mesh>();
 
-        /// <summary>
-        /// Giãn mesh cube (pCube35 đứng thẳng: mặt trước -Z rộng theo x, cao theo y, sâu theo z) thành khối nx × ny ô:
-        /// đỉnh trong vùng vát (20% ngoài mỗi cạnh) giữ khoảng cách tới mép, phần giữa giãn tuyến tính.
-        /// </summary>
+        /// <summary>Giãn mesh cube (pCube35 đứng thẳng</summary>
         Mesh SlicedCubeMesh(Mesh src, float nx, float ny)
         {
             var key = new Vector2Int(Mathf.RoundToInt(nx * 100f), Mathf.RoundToInt(ny * 100f));
@@ -142,14 +120,11 @@ namespace BounceBlast.Gameplay
             for (int i = 0; i < vs.Length; i++)
             {
                 vs[i].x = Slice(vs[i].x, b.center.x, b.extents.x, nx);
-                vs[i].y = Slice(vs[i].y, b.center.y, b.extents.y, ny); // mặt trước nằm trong mặt phẳng X-Y của mesh
+                vs[i].y = Slice(vs[i].y, b.center.y, b.extents.y, ny);
             }
             var m = Object.Instantiate(src);
             m.name = src.name + $" {nx:0.##}x{ny:0.##}";
             m.vertices = vs;
-            // Mesh gốc ít đỉnh: pháp tuyến góc mặt trước được làm mượt chung với mặt vát → giãn ra thì cả mặt trước bị tô như
-            // mặt cong (tối, nhạt). Dựng thẳng pháp tuyến các đỉnh thuộc mặt trước (+Y), GIỮ pháp tuyến mặt cạnh/vát → mặt trước
-            // tươi đúng màu, vẫn có dải mặt trên & viền 3D như game gốc.
             FlattenFrontFace(m);
             m.RecalculateBounds();
             _slicedMeshes[key] = m;
@@ -164,6 +139,7 @@ namespace BounceBlast.Gameplay
             return center + Mathf.Sign(d) * r;
         }
 
+        /// <summary>Dựng chữ số máu của khối</summary>
         public TextMeshPro CreateLabel(Transform parent, BoardItemData item, Vector2 size)
         {
             if (_font == null) return null;
@@ -178,15 +154,14 @@ namespace BounceBlast.Gameplay
             tmp.color = Color.white;
             tmp.rectTransform.sizeDelta = size;
             float minSide = Mathf.Min(size.x, size.y);
-            tmp.fontSize = Mathf.Clamp(minSide * 4.3f, 1.6f, 7f);   // ảnh gốc Lv44: số "80" cao ~1/3 khối 3 ô
+            tmp.fontSize = Mathf.Clamp(minSide * 4.3f, 1.6f, 7f);
             tmp.sortingOrder = 5;
-            // viền tối để số vẫn đọc được trên khối trắng / vàng
             if (_labelMaterial == null && tmp.fontSharedMaterial != null)
             {
                 _labelMaterial = new Material(tmp.fontSharedMaterial);
-                _labelMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.05f);                 // nét vừa như gốc
+                _labelMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.05f);
                 _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.15f);
-                _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0f);                // viền sắc, không nhoè
+                _labelMaterial.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0f);
                 _labelMaterial.SetColor(ShaderUtilities.ID_OutlineColor, new Color(0.1f, 0.1f, 0.14f, 1f));
                 _labelMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
             }
@@ -194,19 +169,14 @@ namespace BounceBlast.Gameplay
             return tmp;
         }
 
-        // Dải vát & độ dày khối gộp: chỉnh trong GameConfig (dải mặt trên = depth·tan20 ≈ 0.4 ô ≈ gạch 1 ô)
         readonly Dictionary<string, Mesh> _solidMeshes = new Dictionary<string, Mesh>();
 
-        /// <summary>
-        /// Khối gộp (chữ nhật, chữ L, chữ T…) dựng thành MỘT mesh: mặt trước phẳng (đa giác viền thu vào 1 dải vát),
-        /// dải vát 45° + vách sau chạy liên tục quanh mép ngoài, rồi xiên theo góc nhìn như ShearForView → lộ dải mặt trên
-        /// & sáng tối y như gạch 1 ô, không còn mảnh ghép lệch cỡ ở chỗ nối.
-        /// </summary>
+        /// <summary>Khối gộp (chữ nhật, chữ L, chữ T…) dựng thành MỘT mesh</summary>
         public Transform CreateSolidVisual(Transform parent, BoardItemData item, RectInt r, HashSet<Vector2Int> cells)
         {
             var v = new GameObject("Visual").transform;
             v.SetParent(parent, false);
-            v.localPosition = new Vector3(0f, 0f, _config.blockFrontZ); // mặt trước ngang gạch 1 ô (mesh dựng với mặt trước ở z = 0)
+            v.localPosition = new Vector3(0f, 0f, _config.blockFrontZ);
             var keyB =new System.Text.StringBuilder().Append(r.width).Append('x').Append(r.height).Append(':');
             var sorted = new List<Vector2Int>(cells);
             sorted.Sort((p, q) => p.y != q.y ? p.y.CompareTo(q.y) : p.x.CompareTo(q.x));
@@ -231,7 +201,6 @@ namespace BounceBlast.Gameplay
 
         static Mesh BuildSolidMesh(HashSet<Vector2Int> cells, int w, int h, float cell, float bevelRatio, float depthRatio, float bottomExtraRatio, float topTrimRatio)
         {
-            // 1) viền ngoài (cạnh có hướng, CCW, bỏ cạnh chung)
             var edges = new Dictionary<Vector2Int, Vector2Int>();
             var dirs = new[] { (new Vector2Int(0, 0), new Vector2Int(1, 0)), (new Vector2Int(1, 0), new Vector2Int(1, 1)),
                                (new Vector2Int(1, 1), new Vector2Int(0, 1)), (new Vector2Int(0, 1), new Vector2Int(0, 0)) };
@@ -263,7 +232,6 @@ namespace BounceBlast.Gameplay
             var P = new Vector2[n];
             for (int i = 0; i < n; i++) P[i] = (outer[i] - off) * cell;
             float b = bevelRatio * cell, depth = depthRatio * cell;
-            // đỉnh thu vào: P + b·(pháp tuyến trong cạnh trước + cạnh sau) (đa giác vuông góc → góc lồi/lõm đều đúng)
             var Q = new Vector2[n];
             for (int i = 0; i < n; i++)
             {
@@ -281,10 +249,8 @@ namespace BounceBlast.Gameplay
             }
             void Quad(Vector3 a, Vector3 bb, Vector3 c, Vector3 d, Vector3 nrm) { Tri(a, bb, c, nrm); Tri(a, c, d, nrm); }
 
-            // 2) mặt trước (z = 0)
             foreach (int[] t in EarClip(Q))
                 Tri(Q[t[0]], Q[t[1]], Q[t[2]], Vector3.back);
-            // 3) dải vát + vách quanh viền
             for (int i = 0; i < n; i++)
             {
                 int j = (i + 1) % n;
@@ -295,7 +261,6 @@ namespace BounceBlast.Gameplay
                 Quad(new Vector3(P[i].x, P[i].y, b), new Vector3(P[j].x, P[j].y, b),
                      new Vector3(P[j].x, P[j].y, depth), new Vector3(P[i].x, P[i].y, depth), outN);
             }
-            // Kéo đáy ra thêm (gạch 1 ô nhô khỏi ô do cubeOverlap): dời các đỉnh ở đáy (viền ngoài + mép mặt trước) xuống cùng một đoạn
             float extra = bottomExtraRatio * cell;
             if (extra > 0f)
             {
@@ -304,7 +269,6 @@ namespace BounceBlast.Gameplay
                 for (int i = 0; i < V.Count; i++)
                     if (V[i].y <= minY + b + 1e-4f) { Vector3 q = V[i]; q.y -= extra; V[i] = q; }
             }
-            // Thụt đỉnh lại (dải mặt trên của khối gộp nhô cao hơn gạch 1 ô): dời các đỉnh ở đỉnh xuống cùng một đoạn
             float trimY = topTrimRatio * cell;
             if (trimY != 0f)
             {
@@ -313,11 +277,8 @@ namespace BounceBlast.Gameplay
                 for (int i = 0; i < V.Count; i++)
                     if (V[i].y >= maxY - b - 1e-4f) { Vector3 q = V[i]; q.y -= trimY; V[i] = q; }
             }
-            // 4) xiên theo góc nhìn (như ShearForView)
             float tan = ViewSpace.LegacyTan;
             Quaternion rot = Quaternion.Euler(-ViewSpace.LegacyPitch, 0f, 0f);
-            // Xiên đẩy mép dưới của dải vát (z = b) lên b·tan → đáy khối co lên khỏi mép ô, lộ khe + dải sẫm so với hàng gạch dưới.
-            // Hạ cả mesh xuống b·tan để mép dưới ngoài cùng đúng mép ô (mép trên chỉ dài thêm đúng bấy nhiêu).
             float drop = b * tan;
             for (int i = 0; i < V.Count; i++)
             {
@@ -353,7 +314,7 @@ namespace BounceBlast.Gameplay
             return a * 0.5f;
         }
 
-        /// <summary>Tam giác hoá đa giác đơn CCW bằng cắt tai.</summary>
+        /// <summary>Tam giác hoá đa giác đơn CCW bằng cắt tai</summary>
         static List<int[]> EarClip(Vector2[] pts)
         {
             var res = new List<int[]>();
@@ -368,7 +329,7 @@ namespace BounceBlast.Gameplay
                     int ia = idx[(k + idx.Count - 1) % idx.Count], ib = idx[k], ic = idx[(k + 1) % idx.Count];
                     Vector2 a = pts[ia], b = pts[ib], c = pts[ic];
                     float cr = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
-                    if (cr <= 1e-7f) continue; // góc lõm
+                    if (cr <= 1e-7f) continue;
                     bool inside = false;
                     foreach (int j in idx)
                     {
@@ -398,11 +359,7 @@ namespace BounceBlast.Gameplay
 
         readonly Dictionary<Mesh, Mesh> _shearedMeshes = new Dictionary<Mesh, Mesh>();
 
-        /// <summary>
-        /// Gạch 1 ô ngả -20° quanh tâm nên lộ dải mặt trên. Khối to mà xoay nguyên khối thì 2 đầu chìa khỏi mặt phẳng bàn
-        /// (không khít). Thay vào đó XIÊN mesh: giữ mặt trước (z min) đúng chỗ, đẩy phần sâu lên trên y += (z - zFront)·tan20,
-        /// pháp tuyến xoay Rx(-20) → nhìn thẳng thấy dải mặt trên & ánh sáng y hệt gạch 1 ô, mặt trước vẫn phẳng khít lưới.
-        /// </summary>
+        /// <summary>Gạch 1 ô ngả -20° quanh tâm nên lộ dải mặt trên</summary>
         Mesh ShearForView(Mesh src)
         {
             if (_shearedMeshes.TryGetValue(src, out Mesh cached) && cached != null) return cached;
@@ -421,18 +378,15 @@ namespace BounceBlast.Gameplay
             return m;
         }
 
-        /// <summary>
-        /// Khối lớn trong game gốc là tấm phẳng đồng màu (mesh CombinedCubic sinh lúc chạy). Mesh cube 1 ô có pháp tuyến bo
-        /// tròn, giãn to thì lộ dải sáng-tối → đặt mọi pháp tuyến = mặt trên (+Y mesh) cho màu đồng đều.
-        /// </summary>
+        /// <summary>Khối lớn trong game gốc là tấm phẳng đồng màu</summary>
         static void FlattenFrontFace(Mesh m)
         {
             Vector3[] n = m.normals;
-            for (int i = 0; i < n.Length; i++) if (n[i].z < -0.9f) n[i] = Vector3.back; // chỉ mặt trước (-Z); mép vát (z≈-0.7) giữ nguyên → khối lớn có viền 3D
+            for (int i = 0; i < n.Length; i++) if (n[i].z < -0.9f) n[i] = Vector3.back;
             m.normals = n;
         }
 
-        /// <summary>Chia tập ô thành ít hình chữ nhật lớn (quét trái→phải, kéo dài ngang rồi dọc).</summary>
+        /// <summary>Chia tập ô thành ít hình chữ nhật lớn</summary>
         public static List<RectInt> Decompose(List<Vector2Int> cells, int w, int h)
         {
             var free = new bool[w, h];
@@ -458,17 +412,12 @@ namespace BounceBlast.Gameplay
             return result;
         }
 
-        /// <summary>
-        /// Đường dựng mặc định cho khối theo prefab cube: khối chữ nhật → <see cref="CreateVisual"/> (gạch 1 ô / 9-slice);
-        /// khối có hình dạng (chữ L…) → một mesh liền theo viền + collider từng hình chữ nhật con, nhãn số đặt ở phần lớn nhất.
-        /// </summary>
+        /// <summary>Đường dựng mặc định cho khối theo prefab cube</summary>
         public BlockView BuildDefaultView(BoardItemData item, Transform parent, Vector2 size, List<RectInt> parts, bool withLabel)
         {
             if (parts == null || parts.Count <= 1)
                 return new BlockView { visual = CreateVisual(parent, item, size), label = withLabel ? CreateLabel(parent, item, size) : null };
 
-            // Khối hình chữ L…: một mesh LIỀN theo đường viền (không ghép mảnh → không lộ bậc/đường nối);
-            // collider là các hình chữ nhật con; nhãn số đặt giữa phần chữ nhật lớn nhất.
             RectInt r = item.Cells;
             var colliders = new List<Rect>();
             RectInt biggest = parts[0];

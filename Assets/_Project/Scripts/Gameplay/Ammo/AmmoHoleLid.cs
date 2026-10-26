@@ -4,14 +4,10 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Hố trống sau khi bắn một hộp (đối chiếu video gốc): lòng hố tối, thạch cùng màu hộp còn đọng ở mép trên
-    /// rồi nhỏ giọt xuống; ~0.5s sau một tấm nắp màu gạch trượt từ đáy lên đậy kín hố (ô trở thành gạch phẳng).
-    /// Dựng bằng mesh phẳng cùng mặt phẳng với mặt khay (AmmoGridController).
-    /// </summary>
+    /// <summary>Hố trống sau khi bắn một hộp</summary>
     public class AmmoHoleLid : MonoBehaviour
     {
-        /// <summary>AmmoGridController gán khi Init – 4 thông số dưới chỉnh trong GameConfig.</summary>
+        /// <summary>AmmoGridController gán khi Init</summary>
         GameConfig _config;
         float DripIn => _config != null ? _config.holeLidDripTime : 0.18f;
         float LidDelay => _config != null ? _config.holeLidDelay : 0.55f;
@@ -19,22 +15,17 @@ namespace BounceBlast.Gameplay
 
         Transform _lid;
         GameObject _dark;
-        // Lớp kem/thạch đọng ở mép trên miệng hố: MỘT dải liền, mép dưới lượn mềm với vài giọt tròn (như phết kem), dựng lại mỗi khung theo độ chảy
-        Mesh _cream;   // một lớp, đúng màu hộp
+        Mesh _cream;
         float _halfW, _radius, _band, _cell;
         float _phase;
 
-        /// <param name="halfW">nửa bề ngang miệng hố</param>
-        /// <param name="yBottom">mép dưới miệng hố (so với tâm ô)</param>
-        /// <param name="yTop">mép trên miệng hố (so với tâm ô)</param>
+        /// <summary>Xử lý khởi tạo nắp hố và lớp sốt đọng</summary>
         public void Init(float cell, float halfW, float yBottom, float yTop, float radius,
                          Material dark, Material jelly, Material lid, GameConfig config = null)
         {
             _config = config;
-            // lòng hố tối (sau cùng)
             _dark = Part("Dark", RoundedRectMesh(-halfW, yBottom, halfW, yTop, radius, radius, radius, radius), dark, 0.004f).gameObject;
 
-            // lớp kem đọng ở mép trên + vài giọt tròn chảy xuống
             _halfW = halfW;
             _radius = Mathf.Min(radius, halfW, (yTop - yBottom) * 0.5f);
             _band = cell * (config != null ? config.holeLidBand : 0.09f);
@@ -45,7 +36,6 @@ namespace BounceBlast.Gameplay
             AddCreamLayer("Cream", _cream, jelly, yTop, -0.002f);
             BuildCream(0f);
 
-            // nắp: pivot ở mép dưới, trượt lên phủ kín
             _lid = new GameObject("Lid").transform;
             _lid.SetParent(transform, false);
             _lid.localPosition = new Vector3(0f, yBottom, -0.006f);
@@ -111,14 +101,9 @@ namespace BounceBlast.Gameplay
             return m;
         }
 
-        /// <summary>
-        /// Dựng dải kem: mép trên bám theo mép trên miệng hố (kể cả góc bo), mép dưới = lớp nền mỏng + vài mảng lồi tròn rộng (chữ U).
-        /// </summary>
-        /// <param name="flow">0..1 mức đã chảy (độ sâu mảng lồi)</param>
-        /// <param name="spread">0..1 lớp kem phủ ra (mỏng → đủ dày)</param>
+        /// <summary>Dựng dải kem: mép trên bám theo mép trên miệng hố</summary>
         void BuildCream(float flow, float spread = 1f) => FillCream(_cream, flow, spread);
 
-        // Màng mỏng lượn sóng (2 sóng sin: chậm + gợn) – độ dày thay đổi 0.4–1.6 lần
         float BandBottom(float x, float top, float spread)
         {
             float taper = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((_halfW - Mathf.Abs(x)) / (_halfW * 0.06f)));
@@ -132,12 +117,11 @@ namespace BounceBlast.Gameplay
             var v = new List<Vector3>(); var tri = new List<int>();
             float flowK = Mathf.Sqrt(flow);
 
-            void Quad(int a, int b, int c, int d)   // a,b,c,d theo vòng; 2 mặt
+            void Quad(int a, int b, int c, int d)
             {
                 tri.AddRange(new[] { a, b, c, a, c, d, a, c, b, a, d, c });
             }
 
-            // lớp kem: dải bám mép trên miệng hố
             int start = v.Count;
             for (int i = 0; i <= N; i++)
             {
@@ -148,7 +132,6 @@ namespace BounceBlast.Gameplay
                 v.Add(new Vector3(x, Mathf.Min(bottom, top - 0.0005f), 0f));
                 if (i > 0) { int a0 = start + (i - 1) * 2, b0 = start + i * 2; Quad(a0, b0, b0 + 1, a0 + 1); }
             }
-
 
             mesh.Clear();
             mesh.SetVertices(v);
@@ -170,7 +153,7 @@ namespace BounceBlast.Gameplay
             mr.receiveShadows = false;
         }
 
-        /// <summary>Độ cao mép trên miệng hố tại x (so với mép trên, ≤ 0): phẳng ở giữa, cong xuống theo góc bo.</summary>
+        /// <summary>Độ cao mép trên miệng hố tại x</summary>
         static float TopEdge(float x, float halfW, float r)
         {
             float d = Mathf.Abs(x) - (halfW - r);

@@ -3,11 +3,7 @@ using UnityEngine.EventSystems;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Hiệu ứng rê chuột cho nút (chỉ có tác dụng khi dùng chuột – Editor / PC): nhấc nút lên <see cref="lift"/> đơn vị
-    /// và cho một vệt sáng (<see cref="UiShineSweep"/> đặt sẵn dưới nút) lướt qua một lượt. Phóng to khi rê chuột do
-    /// <see cref="UiButtonFeedback"/> (hoverScale) lo. Vị trí tính từ prefab, đứng yên không đụng tới.
-    /// </summary>
+    /// <summary>Hiệu ứng rê chuột cho nút</summary>
     [DisallowMultipleComponent]
     public class UiHoverHighlight : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
@@ -30,6 +26,7 @@ namespace BounceBlast.UI
             _saved = true;
         }
 
+        /// <summary>Xử lý sáng lên khi con trỏ vào</summary>
         public void OnPointerEnter(PointerEventData e)
         {
             Save();
@@ -37,6 +34,7 @@ namespace BounceBlast.UI
             if (shine != null) shine.SweepOnce();
         }
 
+        /// <summary>Xử lý tắt sáng khi con trỏ rời</summary>
         public void OnPointerExit(PointerEventData e) => _target = 0f;
 
         void OnDisable()
@@ -47,9 +45,9 @@ namespace BounceBlast.UI
 
         void Update()
         {
-            if (_rt == null || Mathf.Approximately(_cur, _target)) return;   // đứng yên: không đụng vị trí
+            if (_rt == null || Mathf.Approximately(_cur, _target)) return;
             _cur = Mathf.MoveTowards(_cur, _target, speed * Time.unscaledDeltaTime * Mathf.Max(0.1f, Mathf.Abs(_target - _cur)) + 0.001f);
-            float e = _cur * _cur * (3f - 2f * _cur);                      // smoothstep
+            float e = _cur * _cur * (3f - 2f * _cur);
             _rt.anchoredPosition = _basePos + new Vector2(0f, lift * e);
         }
     }

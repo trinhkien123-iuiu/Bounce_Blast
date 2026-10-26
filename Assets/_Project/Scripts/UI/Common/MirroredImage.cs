@@ -2,15 +2,7 @@ using UnityEngine;
 using UnityEngine.Sprites;
 using UnityEngine.UI;
 
-/// <summary>
-/// Khôi phục component "MirroredImage" của game gốc (cùng GUID 9ca8d92f… để prefab/scene rip tự nhận lại script).
-/// Sprite đuôi "_mir" chỉ chứa 1/2 (hoặc 1/4) hình; component này vẽ thêm phần đối xứng bằng cách lật UV:
-///  - MirrorHorizontally: nửa trái = sprite, nửa phải = sprite lật ngang.
-///  - MirrorVertically  : nửa dưới = sprite, nửa trên = sprite lật dọc (bật cả 2 → 4 góc; sprite gốc là góc DƯỚI-trái,
-///    VD LoadingBar_mir, off_mir – cạnh bo tròn nằm ở dưới).
-///  - UseSlicing        : mỗi phần vẽ 9-slice theo border của sprite.
-/// Tên field serialize giữ đúng như bản gốc.
-/// </summary>
+/// <summary>Khôi phục component "MirroredImage" của game gốc</summary>
 [AddComponentMenu("UI/Mirrored Image")]
 public class MirroredImage : Image
 {
@@ -35,7 +27,6 @@ public class MirroredImage : Image
 
         vh.Clear();
         Rect rect = GetPixelAdjustedRect();
-        // Image gốc chỉ giữ tỉ lệ cho kiểu Simple (Sliced bỏ qua preserveAspect)
         if (preserveAspect && type == Type.Simple && !m_UseSlicing) rect = FitToAspect(rect, sp);
         Color32 c = color;
 
@@ -43,12 +34,10 @@ public class MirroredImage : Image
         else PopulateSimple(vh, sp, rect, c);
     }
 
-    // Các phần cần vẽ: (rect con, lật X, lật Y)
     void ForEachPart(Rect rect, System.Action<Rect, bool, bool> draw)
     {
         float hw = m_MirrorHorizontally ? rect.width * 0.5f : rect.width;
         float hh = m_MirrorVertically ? rect.height * 0.5f : rect.height;
-        // góc dưới-trái dùng sprite gốc (sprite gốc vẽ phần dưới-trái), các phần còn lại lật gương
         draw(new Rect(rect.x, rect.y, hw, hh), false, false);
         if (m_MirrorHorizontally) draw(new Rect(rect.x + hw, rect.y, hw, hh), true, false);
         if (m_MirrorVertically)
@@ -58,8 +47,7 @@ public class MirroredImage : Image
         }
     }
 
-    /// <summary>Lùi UV mép nối (cạnh phải khi lật ngang, cạnh trên khi lật dọc) vào nửa texel để không ăn
-    /// pixel của sprite kế bên trong atlas → hết vạch mảnh giữa hình.</summary>
+    /// <summary>Lùi UV mép nối (cạnh phải khi lật ngang, cạnh trên khi lật dọc) vào nửa texel để không ăn pixel của sprite kế…</summary>
     Vector4 SeamInset(Vector4 uv, Sprite sp)
     {
         Texture t = sp.texture;
@@ -84,14 +72,11 @@ public class MirroredImage : Image
     {
         Vector4 outer = SeamInset(DataUtility.GetOuterUV(sp), sp);
         Vector4 inner = DataUtility.GetInnerUV(sp);
-        // Như Image.GenerateSlicedSprite: viền chia cho multipliedPixelsPerUnit (đã nhân m_PixelsPerUnitMultiplier,
-        // vd nút Replay/Home = 2.6). Dùng pixelsPerUnit thường thì viền to gấp 2.6 → nút thành viên thuốc dẹt.
         Vector4 border = sp.border / Mathf.Max(0.0001f, multipliedPixelsPerUnit);
 
-        // Lưới 9-slice của phần gốc (toạ độ local 0..w, 0..h). Cạnh nối giữa hình (seam) không có viền.
         float bl = border.x, bb = border.y;
         float br = m_MirrorHorizontally ? 0f : border.z;
-        float bt = m_MirrorVertically ? 0f : border.w; // phần gốc ở nửa dưới → seam ở cạnh trên
+        float bt = m_MirrorVertically ? 0f : border.w;
 
         ForEachPart(rect, (r, fx, fy) =>
         {
@@ -101,7 +86,6 @@ public class MirroredImage : Image
             float[] us = { outer.x, bl > 0f ? inner.x : outer.x, br > 0f ? inner.z : outer.z, outer.z };
             float[] vs = { outer.y, bb > 0f ? inner.y : outer.y, bt > 0f ? inner.w : outer.w, outer.w };
 
-            // Phần lật = phản chiếu hình học của lưới gốc
             if (fx) { lx = new[] { r.width - lx[3], r.width - lx[2], r.width - lx[1], r.width - lx[0] }; us = new[] { us[3], us[2], us[1], us[0] }; }
             if (fy) { ly = new[] { r.height - ly[3], r.height - ly[2], r.height - ly[1], r.height - ly[0] }; vs = new[] { vs[3], vs[2], vs[1], vs[0] }; }
 
@@ -159,6 +143,7 @@ public class MirroredImage : Image
         }
     }
 
+    /// <summary>Xử lý đặt kích thước theo ảnh gốc (nhân đôi nếu lật gương)</summary>
     public override void SetNativeSize()
     {
         Sprite sp = ActiveSprite;

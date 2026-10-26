@@ -3,12 +3,7 @@ using UnityEngine;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab SpeedUpCanvas – tách từ "TapToSpeedUp" của game gốc: viền trắng phủ màn hình
-    /// (Vignette Speed, sprite Vignette_mir) + dòng chữ báo "SPEED UP xN" hiện khi người chơi nhấn giữ để tăng tốc.
-    /// Hình (màu, độ đậm viền, kiểu chữ, vị trí) nằm sẵn trong prefab; code chỉ làm mờ CanvasGroup gốc giữa 0 (ẩn) và 1 (hiện),
-    /// cho viền nháy (độ đậm dao động blinkMin..1, <see cref="blinkPerSecond"/> lần/giây) còn chữ thì đứng yên, rõ chữ.
-    /// </summary>
+    /// <summary>Script quản lý của prefab SpeedUpCanvas</summary>
     [DisallowMultipleComponent]
     public class SpeedUpView : MonoBehaviour
     {
@@ -25,12 +20,13 @@ namespace BounceBlast.UI
         float _fade, _blinkStart;
         Vector3 _labelScale = Vector3.one;
 
+        /// <summary>Xử lý bật/tắt viền trắng tăng tốc</summary>
         public void SetOn(bool on, float speed = 1.5f)
         {
             if (on && !_on)
             {
-                _blinkStart = Time.unscaledTime;   // mỗi lần giữ bắt đầu nháy từ lúc sáng nhất
-                if (label != null) label.text = string.Format(System.Globalization.CultureInfo.InvariantCulture, labelFormat, speed);   // dấu chấm, không theo máy
+                _blinkStart = Time.unscaledTime;
+                if (label != null) label.text = string.Format(System.Globalization.CultureInfo.InvariantCulture, labelFormat, speed);
             }
             _on = on;
         }
@@ -38,7 +34,7 @@ namespace BounceBlast.UI
         void Awake()
         {
             if (group != null) { group.alpha = 0f; group.blocksRaycasts = false; group.interactable = false; }
-            if (label != null) _labelScale = label.rectTransform.localScale;   // cỡ trong prefab
+            if (label != null) _labelScale = label.rectTransform.localScale;
         }
 
         void Update()
@@ -50,7 +46,6 @@ namespace BounceBlast.UI
             float t = Time.unscaledTime - _blinkStart;
             if (vignette != null)
             {
-                // cos bắt đầu ở 1 (sáng nhất) rồi tối dần, lặp blinkPerSecond lần/giây
                 float k = 0.5f + 0.5f * Mathf.Cos(t * Mathf.PI * 2f * blinkPerSecond);
                 vignette.alpha = Mathf.Lerp(blinkMin, 1f, k);
             }
@@ -67,7 +62,7 @@ namespace BounceBlast.UI
             return 1f + c3 * Mathf.Pow(x - 1f, 3f) + c1 * Mathf.Pow(x - 1f, 2f);
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate() => group == null ? "group" : vignette == null ? "vignette" : label == null ? "label" : null;
     }
 }

@@ -4,19 +4,13 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Đọc level từ <see cref="LevelSet"/> (danh mục tham chiếu tới BoardProps_v3 / TunnelProps_v3 của từng chunk 5 level).
-    /// Quy ước đã đối chiếu với video game gốc (level 39, Multiplier = 2):
-    ///   - Mỗi ô CSV thành Multiplier x Multiplier ô trên lưới bàn.
-    ///   - Khối gộp (màu-hp-group) và hòm gỗ (cr-hp-id): máu = hp * Multiplier^2  (y-30 → 120, cr-50 → 200).
-    ///   - Hộp đạn: số bi = n * Multiplier^2 (p-10 → 40 bi; 40/240 capacity = 16% như trên thanh Capacity).
-    /// </summary>
+    /// <summary>Đọc level từ LevelSet (danh mục tham chiếu tới BoardProps_v3 / TunnelProps_v3 của từng chunk 5 level)</summary>
     public static class LevelParser
     {
         const int CubesStartCol = 5;
         const int AmmoColCount = 8;
 
-        /// <summary>Nạp level theo bộ đang chọn trong GameConfig (bộ gốc CSV hoặc bộ tự làm <see cref="LevelPack"/>).</summary>
+        /// <summary>Nạp level theo bộ đang chọn trong GameConfig</summary>
         public static LevelModel Load(GameConfig config, int levelId)
         {
             if (config != null && config.levelSource == LevelSource.Custom)
@@ -28,6 +22,7 @@ namespace BounceBlast.Gameplay
             return Load(config != null ? config.levels : null, levelId);
         }
 
+        /// <summary>Xử lý nạp level theo số từ bộ level</summary>
         public static LevelModel Load(LevelSet levelSet, int levelId)
         {
             if (levelSet == null)
@@ -44,9 +39,10 @@ namespace BounceBlast.Gameplay
             return Parse(chunk.board.text, chunk.tunnels != null ? chunk.tunnels.text : null, levelId);
         }
 
+        /// <summary>Xử lý đọc CSV thành dữ liệu level</summary>
         public static LevelModel Parse(string boardCsv, string tunnelCsv, int levelId) => Build(ReadTokens(boardCsv, tunnelCsv, levelId));
 
-        /// <summary>CSV gốc (BoardProps_v3 + TunnelProps_v3) → lưới mã của MỘT level. null nếu không có level đó.</summary>
+        /// <summary>CSV gốc (BoardProps_v3 + TunnelProps_v3) → lưới mã của MỘT level</summary>
         public static LevelTokens ReadTokens(string boardCsv, string tunnelCsv, int levelId)
         {
             List<string[]> rows = ReadCsv(boardCsv);
@@ -96,7 +92,7 @@ namespace BounceBlast.Gameplay
             return t;
         }
 
-        /// <summary>Lưới mã → LevelModel (dùng chung cho level gốc và level tự làm).</summary>
+        /// <summary>Lưới mã → LevelModel (dùng chung cho level gốc và level tự làm)</summary>
         public static LevelModel Build(LevelTokens t)
         {
             if (t == null) return null;
@@ -116,7 +112,6 @@ namespace BounceBlast.Gameplay
             return level;
         }
 
-        // ------------------------------------------------------------------ Bàn chơi
         static void ParseBoard(LevelModel level, LevelTokens t)
         {
             int lineCount = t.BoardLines, cubeCols = t.BoardDesignCols;
@@ -138,7 +133,6 @@ namespace BounceBlast.Gameplay
 
                     if (cell.StartsWith("/wl-"))
                     {
-                        // Cột nhà (ModularPrimitiveColumn gốc): "/wl-hp-id", các ô cùng id gộp thành một cột, máu = hp·m²
                         string[] w = cell.Substring(1).Split('-');
                         int whp = w.Length > 1 && int.TryParse(w[1], out int wh) ? wh : 25;
                         string key = "wl|" + (w.Length > 2 ? w[2] : "0");
@@ -157,7 +151,6 @@ namespace BounceBlast.Gameplay
                     }
                     if (cell.StartsWith("/"))
                     {
-                        // wl / bomb / lck / btu ... : chưa hỗ trợ cơ chế riêng → vật cản tĩnh
                         loose.Add(new BoardItemData { Kind = BoardItemKind.Wall, Cells = rect });
                         continue;
                     }
@@ -168,17 +161,30 @@ namespace BounceBlast.Gameplay
                     int hp = tk.Length > 1 && int.TryParse(tk[1], out int h) ? h : 1;
                     string group = tk.Length > 2 ? tk[2] : null;
 
-                    // Phần sau dấu '/': hòm gỗ che cube (cr-hp-id). st-/cur-: chưa hỗ trợ → bỏ qua lớp phủ.
                     string crateKey = null;
-                    int crateHp = 0;
+                    int crateHp = 0, stoneHp = 0;
                     for (int p = 1; p < parts.Length; p++)
                     {
                         string[] b = parts[p].Split('-');
+                        if (b[0] == "st") stoneHp = b.Length > 1 && int.TryParse(b[1], out int sh) ? sh : 3;
                         if (b[0] == "cr")
                         {
                             crateHp = b.Length > 1 && int.TryParse(b[1], out int ch) ? ch : 50;
                             crateKey = b.Length > 2 ? b[2] : "0";
                         }
+                    }
+
+                    if (stoneHp > 0)
+                    {
+                        for (int dy = 0; dy < mult; dy++)
+                            for (int dx = 0; dx < mult; dx++)
+                            {
+                                var one = new RectInt(rect.x + dx, rect.y + dy, 1, 1);
+                                var stone = new BoardItemData { Kind = BoardItemKind.Stone, Hp = stoneHp, Cells = one };
+                                stone.Contents.Add(new BoardItemData { Kind = BoardItemKind.Cube, ColorCode = color, Hp = hp, Cells = one });
+                                loose.Add(stone);
+                            }
+                        continue;
                     }
 
                     List<BoardItemData> target = loose;
@@ -214,7 +220,6 @@ namespace BounceBlast.Gameplay
                     }
                     else
                     {
-                        // ô thường → Multiplier^2 cube nhỏ
                         for (int dy = 0; dy < mult; dy++)
                             for (int dx = 0; dx < mult; dx++)
                                 target.Add(new BoardItemData
@@ -228,7 +233,6 @@ namespace BounceBlast.Gameplay
                 }
             }
 
-            // Nhóm gộp không phủ kín hình chữ nhật bao (vd "r-20-1" hình chữ L ở level 12) → lưu mặt nạ ô
             foreach (var kv in groupCells)
             {
                 BoardItemData g = kv.Key;
@@ -241,7 +245,6 @@ namespace BounceBlast.Gameplay
             level.BoardItems.AddRange(crates.Values);
         }
 
-        // ------------------------------------------------------------------ Khay đạn
         static void ParseAmmo(LevelModel level, LevelTokens t)
         {
             int mm = level.Multiplier * level.Multiplier;
@@ -340,7 +343,6 @@ namespace BounceBlast.Gameplay
             return result;
         }
 
-        // ------------------------------------------------------------------ Tiện ích
         static void ComputeTotals(LevelModel level)
         {
             foreach (BoardItemData item in level.BoardItems) AddHp(level, item);
@@ -356,7 +358,7 @@ namespace BounceBlast.Gameplay
 
         static void AddHp(LevelModel level, BoardItemData item)
         {
-            if (BlockKinds.Of(item.Kind).IsColorTarget)   // máu khối theo màu = ngân sách bi màu đó
+            if (BlockKinds.Of(item.Kind).IsColorTarget)
             {
                 level.HpByColor.TryGetValue(item.ColorCode, out int v);
                 level.HpByColor[item.ColorCode] = v + item.Hp;

@@ -5,14 +5,7 @@ using UnityEngine.UI;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab OnboardingCanvas – lớp hướng dẫn đè lên màn chơi ở những level đầu
-    /// (gốc: KPTutorialHelper tutorialBG + tutorialCircle + KPTutorialCPIHand). Gồm:
-    ///  - nền tối có lỗ sáng (spotlight bo góc) khoét đúng chỗ cần bấm – shader BounceBlast/UI/Spotlight;
-    ///  - bàn tay chỉ (sprite Magic Hand gốc) gõ nhấp nhô vào mục tiêu;
-    ///  - dòng chữ hướng dẫn và dòng "Tap To Continue".
-    /// Mọi node giữ bằng Inspector; ở đây chỉ đặt vị trí và diễn hoạt. Toạ độ nhận vào là toạ độ MÀN HÌNH (pixel).
-    /// </summary>
+    /// <summary>Script quản lý của prefab OnboardingCanvas</summary>
     [DisallowMultipleComponent]
     public class OnboardingView : MonoBehaviour
     {
@@ -47,7 +40,7 @@ namespace BounceBlast.UI
             if (dim != null) { _mat = new Material(dim.material); dim.material = _mat; }
         }
 
-        /// <summary>Bật lớp hướng dẫn. radius/half theo pixel màn hình; spot=false thì không tối nền (chỉ chữ).</summary>
+        /// <summary>Bật lớp hướng dẫn. radius/half theo pixel màn hình</summary>
         public void Show(string text, Vector2 screenPos, Vector2 halfSizePx, float roundPx, bool spot, bool showHand, bool showContinue, float textOffsetY)
         {
             gameObject.SetActive(true);
@@ -60,19 +53,20 @@ namespace BounceBlast.UI
             {
                 message.text = text;
                 message.gameObject.SetActive(!string.IsNullOrEmpty(text));
-                message.rectTransform.anchoredPosition = ToCanvas(new Vector2(Screen.width * 0.5f, screenPos.y + textOffsetY));   // chữ luôn căn giữa màn hình
+                message.rectTransform.anchoredPosition = ToCanvas(new Vector2(Screen.width * 0.5f, screenPos.y + textOffsetY));
             }
             _handTarget = ToCanvas(screenPos);
             StartCoroutine(FadeIn());
         }
 
-        /// <summary>Dời lỗ sáng / bàn tay tới vị trí mới (mục tiêu đang nhúc nhích).</summary>
+        /// <summary>Dời lỗ sáng / bàn tay tới vị trí mới</summary>
         public void Move(Vector2 screenPos)
         {
             _center = screenPos;
             _handTarget = ToCanvas(screenPos);
         }
 
+        /// <summary>Xử lý tắt lớp hướng dẫn</summary>
         public void Hide()
         {
             StopAllCoroutines();
@@ -85,7 +79,7 @@ namespace BounceBlast.UI
             _fade = 1f;
         }
 
-        /// <summary>Đổi toạ độ màn hình → toạ độ trong canvas (tương thích cả Overlay và Screen Space Camera).</summary>
+        /// <summary>Đổi toạ độ màn hình → toạ độ trong canvas</summary>
         Vector2 ToCanvas(Vector2 screen)
         {
             Camera cam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
@@ -107,7 +101,6 @@ namespace BounceBlast.UI
             }
             if (_handOn && hand != null)
             {
-                // gõ nhấp nhô: tay lùi ra rồi chạm xuống mục tiêu (đầu ngón = pivot)
                 float k = Mathf.Abs(Mathf.Sin(Time.unscaledTime * 3.4f));
                 hand.anchoredPosition = _handTarget + new Vector2(tapAmplitude * 0.5f, -tapAmplitude * 0.4f) * k;
                 hand.localScale = Vector3.one * Mathf.Lerp(0.92f, 1.05f, k);
@@ -118,6 +111,7 @@ namespace BounceBlast.UI
             }
         }
 
+        /// <summary>Kiểm tra các ô tham chiếu còn trống</summary>
         public string Validate()
         {
             var miss = new System.Collections.Generic.List<string>();

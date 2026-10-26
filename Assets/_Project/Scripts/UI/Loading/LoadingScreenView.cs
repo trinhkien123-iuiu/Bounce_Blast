@@ -4,10 +4,7 @@ using UnityEngine.UI;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab LoadingCanvas – màn loading gốc (TSPreloadScene: ảnh Splash + thanh tiến độ + %).
-    /// Mọi hình nằm sẵn trong prefab; code chỉ đổ tiến độ (fillAmount + chữ %) và số phiên bản.
-    /// </summary>
+    /// <summary>Script quản lý của prefab LoadingCanvas</summary>
     [DisallowMultipleComponent]
     public class LoadingScreenView : MonoBehaviour
     {
@@ -21,7 +18,7 @@ namespace BounceBlast.UI
             if (versionText != null) versionText.text = string.Format(versionFormat, Application.version);
         }
 
-        /// <param name="progress">0..1</param>
+        /// <summary>Xử lý cập nhật thanh tiến độ loading</summary>
         public void SetProgress(float progress)
         {
             progress = Mathf.Clamp01(progress);
@@ -29,7 +26,7 @@ namespace BounceBlast.UI
             if (percentText != null) percentText.text = Mathf.FloorToInt(progress * 100f) + "%";
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate() => fillBar == null ? "fillBar" : percentText == null ? "percentText" : null;
     }
 }

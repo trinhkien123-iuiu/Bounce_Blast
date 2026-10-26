@@ -7,15 +7,11 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của popup MUA BOOSTER – hiện khi bấm nút booster đã hết lượt (gắn trên gốc BoosterBuyPopup.prefab).
-    /// Một khung dùng chung cho 4 booster: chỉ đổi tên, icon, dòng mô tả, giá và số lượt theo <see cref="Entry"/>.
-    /// Bản clone chưa có cửa hàng coin: bấm nút mua là nhận booster luôn (giá chỉ để hiển thị như game gốc).
-    /// </summary>
+    /// <summary>Script quản lý của popup MUA BOOSTER</summary>
     [DisallowMultipleComponent]
     public class BoosterBuyPopupView : PopupViewBase
     {
-        /// <summary>Nội dung hiển thị của một booster (chữ lấy từ Localization.txt của game gốc).</summary>
+        /// <summary>Nội dung hiển thị của một booster</summary>
         [Serializable]
         public class Entry
         {
@@ -37,19 +33,20 @@ namespace BounceBlast.UI
         [SerializeField] TMP_Text countText;
         [SerializeField] List<Entry> entries = new List<Entry>();
 
-        /// <summary>Bấm mua (bản clone: miễn phí) – kèm loại booster và số lượt được nhận.</summary>
-        public event Action<BoosterType, int> OnBuy;
+        /// <summary>Bấm mua (bản clone: miễn phí)</summary>
+        public event Action<BoosterType, int, int> OnBuy;
         public event Action OnClose;
 
         BoosterType _type;
-        int _count;
+        int _count, _price;
 
         void Awake()
         {
             if (closeButton != null) closeButton.onClick.AddListener(() => { AudioManager.Play(Sfx.Button); OnClose?.Invoke(); });
-            if (buyButton != null) buyButton.onClick.AddListener(() => { AudioManager.Play(Sfx.Button); OnBuy?.Invoke(_type, _count); });
+            if (buyButton != null) buyButton.onClick.AddListener(() => { AudioManager.Play(Sfx.Button); OnBuy?.Invoke(_type, _count, _price); });
         }
 
+        /// <summary>Xử lý hiện popup mua booster</summary>
         public void Show(BoosterType type, LevelDifficulty difficulty)
         {
             Entry e = entries.Find(x => x != null && x.type == type);
@@ -57,6 +54,7 @@ namespace BounceBlast.UI
             {
                 _type = type;
                 _count = e.count;
+                _price = e.price;
                 if (titleText != null) titleText.text = e.title;
                 if (descriptionText != null) descriptionText.text = e.description;
                 if (iconImage != null && e.icon != null) iconImage.sprite = e.icon;

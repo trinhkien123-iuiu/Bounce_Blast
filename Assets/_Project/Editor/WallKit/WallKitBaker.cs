@@ -6,12 +6,12 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.WallTools
 {
-    /// <summary>Gộp từng biến thể của prefab tường gốc thành 1 mesh (từ wall_variants.json do script rip xuất) và lưu vào WallKit.asset.</summary>
+    /// <summary>Gộp từng biến thể của prefab tường gốc thành 1 mesh</summary>
     public static class WallKitBaker
     {
         const string Dir = "Assets/_Project/Art/Ammo/Meshes/Wall";
 
-
+        /// <summary>Xử lý nung bộ mảnh tường module</summary>
         [MenuItem("Tools/Bounce Blast/Bake Wall Kit")]
         public static void Bake()
         {
@@ -21,7 +21,7 @@ namespace BounceBlast.WallTools
             var cache = new Dictionary<string, Mesh>();
             var keys = new List<string>(); var meshes = new List<Mesh>();
             string kitPath = Dir + "/WallKit.asset";
-            var kit = AssetDatabase.LoadAssetAtPath<WallKit>(kitPath);   // giữ asset cũ (GUID) để GameConfig không mất tham chiếu
+            var kit = AssetDatabase.LoadAssetAtPath<WallKit>(kitPath);
             if (kit == null) { kit = ScriptableObject.CreateInstance<WallKit>(); AssetDatabase.CreateAsset(kit, kitPath); }
             else foreach (Object o in AssetDatabase.LoadAllAssetRepresentationsAtPath(kitPath)) Object.DestroyImmediate(o, true);
             foreach (var kv in variants)
@@ -39,7 +39,7 @@ namespace BounceBlast.WallTools
                 }
                 var mesh = new Mesh { name = "Wall_" + kv.Key };
                 mesh.CombineMeshes(combine.ToArray(), true, true);
-                if (kv.Key == "") FitToCell(mesh);   // 4xRounded trong prefab gốc có cỡ 2 ô, lệch tâm → đưa về 1 ô như các biến thể khác
+                if (kv.Key == "") FitToCell(mesh);
                 mesh.RecalculateBounds();
                 AssetDatabase.AddObjectToAsset(mesh, kit);
                 keys.Add(kv.Key); meshes.Add(mesh);
@@ -58,7 +58,6 @@ namespace BounceBlast.WallTools
             mesh.vertices = v;
         }
 
-        // JSON tối giản (object/array/number/string) – tránh phụ thuộc thư viện
         static object MiniJson(string s) { int i = 0; return Val(s, ref i); }
         static void Ws(string s, ref int i) { while (char.IsWhiteSpace(s[i])) i++; }
         static object Val(string s, ref int i)

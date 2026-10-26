@@ -1,14 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Sao lấp lánh quanh đống xu ở bảng thắng (video coin_panel gốc: vài ngôi sao trắng 4 cánh liên tục hiện–tắt
-/// ngẫu nhiên trong vùng quanh xu). Gắn trên <c>SparkleLayer</c> (có Canvas lồng riêng để bảng thắng không phải dựng lại lưới);
-/// các ngôi sao là con nằm SẴN trong prefab (lưu tắt) – đổi ảnh/màu sao, thêm bớt sao ngay trong Hierarchy.
-/// Lúc chạy chỉ bật sao ở vị trí/cỡ ngẫu nhiên rồi cho nó hiện–tắt.
-/// </summary>
+/// <summary>Sao lấp lánh quanh đống xu ở bảng thắng</summary>
 public class UiSparkles : MonoBehaviour
 {
+    /// <summary>Dùng cho một ngôi sao lấp lánh</summary>
     class Star { public RawImage img; public float age, life; public bool live; }
 
     [Tooltip("Các ngôi sao (con của object này, lưu tắt sẵn). Chuột phải ▸ \"Tạo sao\" để sinh thêm theo số lượng dưới")] [SerializeField] RawImage[] stars = new RawImage[0];
@@ -25,7 +21,7 @@ public class UiSparkles : MonoBehaviour
     float _acc;
     bool _running;
 
-    /// <summary>Bắt đầu lấp lánh (gọi khi bảng thắng hiện).</summary>
+    /// <summary>Bắt đầu lấp lánh (gọi khi bảng thắng hiện)</summary>
     public void Play()
     {
         if (_state.Length != stars.Length)
@@ -37,6 +33,7 @@ public class UiSparkles : MonoBehaviour
         _running = true;
     }
 
+    /// <summary>Xử lý dừng sao lấp lánh</summary>
     public void Stop()
     {
         _running = false;
@@ -57,7 +54,7 @@ public class UiSparkles : MonoBehaviour
             s.age += dt;
             float t = s.age / s.life;
             if (t >= 1f) { s.live = false; s.img.gameObject.SetActive(false); continue; }
-            float k = Mathf.Sin(t * Mathf.PI);                 // hiện rồi tắt
+            float k = Mathf.Sin(t * Mathf.PI);
             RectTransform rt = s.img.rectTransform;
             rt.localScale = Vector3.one * k;
             rt.localEulerAngles = new Vector3(0f, 0f, t * 90f);
@@ -79,7 +76,7 @@ public class UiSparkles : MonoBehaviour
             s.img.gameObject.SetActive(true);
             return true;
         }
-        return false;   // đủ sao đang sáng
+        return false;
     }
 
 #if UNITY_EDITOR

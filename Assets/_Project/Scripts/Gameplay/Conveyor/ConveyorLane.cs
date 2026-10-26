@@ -3,30 +3,24 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Một máng (trái hoặc phải). Mô phỏng dòng chảy hạt chất lỏng (Fluid Stream Simulation):
-    /// - Không sinh theo trung tuyến: sinh thành luồng hạt đa làn (multi-lane packed stream) với độ lệch ngang,
-    ///   jitter hữu cơ và dao động sóng nước (wave undulation).
-    /// - Quán tính góc cua: khi gặp khúc rẽ (lên góc trên và rẽ vào cửa phun), lực ly tâm ép các viên bi
-    ///   đập vào thành ngoài rồi trôi bo theo mép cong.
-    /// - Hội tụ ở cửa phun: cuối đường máng hẹp dần, dồn bi về mũi nhọn (triangle divider) và tách luồng tự nhiên.
-    /// </summary>
+    /// <summary>Một máng (trái hoặc phải)</summary>
     public class ConveyorLane : MonoBehaviour
     {
+        /// <summary>Dùng cho lưu trạng thái một bi trên máng</summary>
         struct LaneBall
         {
             public Ball ball;
-            public float s;                     // Quãng đường dọc theo trục máng [0..length]
-            public float baseLateral;           // Độ lệch làn cơ sở [-0.22 .. +0.22]
-            public float organicLateralJitter;  // Jitter lệch ngang hữu cơ
-            public float organicLongJitter;     // Jitter dọc hữu cơ
-            public float wavePhase;             // Pha sóng nước
-            public float waveFreq;              // Tần số sóng
-            public float waveLateralAmp;        // Biên độ sóng ngang
-            public float inertiaCoeff;          // Hệ số quán tính riêng của từng hạt
-            public float swirlSeed;             // Seed xoáy nước ngẫu nhiên
-            public float distTravelled;         // Quãng đường lăn thực tế
-            public float currentLateral;        // Toạ độ lệch ngang tức thời
+            public float s;
+            public float baseLateral;
+            public float organicLateralJitter;
+            public float organicLongJitter;
+            public float wavePhase;
+            public float waveFreq;
+            public float waveLateralAmp;
+            public float inertiaCoeff;
+            public float swirlSeed;
+            public float distTravelled;
+            public float currentLateral;
         }
 
         Vector3[] _pts;
@@ -35,13 +29,10 @@ namespace BounceBlast.Gameplay
         GameConfig _config;
         BallManager _balls;
         readonly List<LaneBall> _onLane = new List<LaneBall>();
-        /// <summary>
-        /// ĐƯỜNG ỐNG hộp của máng, theo thứ tự bấm: [0] = hộp đang xay (hoặc sắp xay), [1..] = hàng chờ phía trên máy xay.
-        /// Hộp vào đường ống NGAY khi bấm (<see cref="Reserve"/>) và bay thẳng tới chỗ của nó → không bay chồng lên hộp đang xay.
-        /// </summary>
+        /// <summary>ĐƯỜNG ỐNG hộp của máng, theo thứ tự bấm</summary>
         readonly List<AmmoBox> _pipe = new List<AmmoBox>();
-        readonly HashSet<AmmoBox> _ready = new HashSet<AmmoBox>();   // đầu ống đã chạm chỗ của mình
-        bool _preloaded;                                             // hộp kế đã được kéo xuống sát máy xay
+        readonly HashSet<AmmoBox> _ready = new HashSet<AmmoBox>();
+        bool _preloaded;
         AmmoBox _docked;
         int _dockedTotal;
         int _dockedRemaining;
@@ -50,16 +41,17 @@ namespace BounceBlast.Gameplay
 
         float _lastSide = 1f;
 
-        /// <summary>Còn chừng này bi thì kéo hộp kế xuống máy xay (≈ 0.2 s trước khi hộp hiện tại cạn).</summary>
+        /// <summary>Còn chừng này bi thì kéo hộp kế xuống máy xay</summary>
         const int PreloadBalls = 4;
 
-        LaneArrows _arrows;   // mũi tên trôi trên mặt máng (chỉ là hình) – xem LaneArrows.cs
+        LaneArrows _arrows;
 
         public Vector3 DockPosition { get; private set; }
         public Quaternion DockRotation { get; set; } = Quaternion.identity;
         public CrusherFx Crusher { get; set; }
         public float DockWidth { get; set; }
 
+        /// <summary>Dùng cho vị trí chờ của bi thứ n</summary>
         public Vector3 WaitPosition(int index)
         {
             float ratio = _config != null ? _config.dockHeightRatio : AmmoBoxFlight.DefaultDockHeightRatio;
@@ -68,7 +60,7 @@ namespace BounceBlast.Gameplay
             return DockPosition + dockUp * (step * (index + 1));
         }
 
-        /// <summary>Chỗ của hộp thứ <paramref name="slot"/> trong đường ống: 0 = trong máy xay, 1.. = hàng chờ.</summary>
+        /// <summary>Chỗ của hộp thứ slot trong đường ống</summary>
         Vector3 SlotPosition(int slot) => slot <= 0 ? DockPosition : WaitPosition(slot - 1);
 
         public int PendingBalls
@@ -83,6 +75,7 @@ namespace BounceBlast.Gameplay
 
         public bool IsBusy => _pipe.Count > 0 || _onLane.Count > 0;
 
+        /// <summary>Xử lý khởi tạo đường máng</summary>
         public void Init(GameConfig config, BallManager balls, Vector3[] path, Vector3 dock)
         {
             _config = config;
@@ -94,7 +87,7 @@ namespace BounceBlast.Gameplay
             _length = _cum[path.Length - 1];
         }
 
-        /// <summary>Hộp vừa được bấm: xếp vào cuối đường ống, trả về chỗ nó phải bay tới (máy xay nếu đang trống, không thì chỗ chờ).</summary>
+        /// <summary>Hộp vừa được bấm: xếp vào cuối đường ống, trả về chỗ nó phải bay tới</summary>
         public Vector3 Reserve(AmmoBox box)
         {
             box.Flight.DockRotation = DockRotation;
@@ -102,10 +95,10 @@ namespace BounceBlast.Gameplay
             return SlotPosition(_pipe.Count - 1);
         }
 
-        /// <summary>Đầu ống đã tới chỗ của mình (gọi sớm, trước khi đuôi lắng): hộp ở đầu hàng thì máy xay chạy ngay.</summary>
+        /// <summary>Đầu ống đã tới chỗ của mình</summary>
         public void HeadArrived(AmmoBox box) { if (box != null) _ready.Add(box); }
 
-        /// <summary>Ống đã yên vị hẳn. Hộp đang chờ thì hiện số bi còn lại.</summary>
+        /// <summary>Ống đã yên vị hẳn. Hộp đang chờ thì hiện số bi còn lại</summary>
         public void Arrived(AmmoBox box)
         {
             if (box == null) return;
@@ -115,19 +108,19 @@ namespace BounceBlast.Gameplay
 
         float BaseInterval => _config.laneBallSpacing / _config.laneSpeed;
 
-        /// <summary>Hộp vào máy xay. <paramref name="keepCadence"/>: nối tiếp hộp trước → giữ nhịp nhả bi, không nhả dồn cũng không hụt nhịp.</summary>
+        /// <summary>Hộp vào máy xay. keepCadence</summary>
         void Dock(AmmoBox box, bool keepCadence)
         {
             _docked = box;
             _preloaded = false;
             _dockedTotal = _dockedRemaining = box.Data.Balls;
-            if (!keepCadence) _sinceEmit = BaseInterval;   // viên đầu nhả ngay, viên sau theo nhịp
+            if (!keepCadence) _sinceEmit = BaseInterval;
             box.Flight.MoveTo(DockPosition, 0.12f);
             box.Flight.ShowDocked(1f, _dockedRemaining);
             if (Crusher != null) Crusher.OnBoxEnter(_balls != null ? _balls.ColorOf(box.Data.ColorCode) : Color.white);
         }
 
-        /// <summary>Hộp xay xong: bỏ khỏi đường ống, dồn hàng chờ xuống một chỗ.</summary>
+        /// <summary>Hộp xay xong: bỏ khỏi đường ống, dồn hàng chờ xuống một chỗ</summary>
         void Retire()
         {
             AmmoBox done = _docked;
@@ -138,19 +131,22 @@ namespace BounceBlast.Gameplay
             for (int i = 0; i < _pipe.Count; i++) if (_pipe[i] != null) _pipe[i].Flight.MoveTo(SlotPosition(i), 0.15f);
         }
 
-        /// <summary>Chiều dài đường máng (đv thế giới).</summary>
+        /// <summary>Chiều dài đường máng (đv thế giới)</summary>
         public float Length => _length;
-        /// <summary>Quãng đường tới góc cua đầu tiên của máng.</summary>
+        /// <summary>Quãng đường tới góc cua đầu tiên của máng</summary>
         public float CornerDistance => _cum != null && _cum.Length > 1 ? _cum[1] : _length;
 
+        /// <summary>Dựng các mũi tên chạy dọc máng</summary>
         public void CreateArrows(Sprite sprite, Color color, Vector3 scale, int sortingOrder)
         {
             _arrows = new LaneArrows(this, _config);
             _arrows.Create(sprite, color, scale, sortingOrder);
         }
 
+        /// <summary>Xử lý đổi màu mũi tên máng</summary>
         public void SetArrowColor(Color color) => _arrows?.SetColor(color);
 
+        /// <summary>Dùng cho điểm giữa máng tại quãng đường s</summary>
         public Vector3 EvalCenter(float s)
         {
             if (_pts == null || _pts.Length == 0) return Vector3.zero;
@@ -167,6 +163,7 @@ namespace BounceBlast.Gameplay
             return _pts[_pts.Length - 1];
         }
 
+        /// <summary>Dùng cho hướng máng tại quãng đường s</summary>
         public Vector3 EvalTangent(float s)
         {
             const float ds = 0.05f;
@@ -176,16 +173,9 @@ namespace BounceBlast.Gameplay
             return diff.sqrMagnitude > 1e-6f ? diff.normalized : Vector3.up;
         }
 
-        /// <summary>
-        /// Tính toạ độ 3D theo mô hình dòng chảy chất lỏng tự nhiên (Fluid Stream Dynamics):
-        /// - Giữ nguyên độ dày/bề ngang luồng chảy (Multi-strand fluid thickness across the bend)
-        /// - Lực ly tâm chỉ dạt nhẹ cả luồng, KHÔNG ép chập mọi hạt thành 1 hàng đơn điệu
-        /// - Mỗi hạt có quán tính, dao động và nhiễu loạn xoáy nước riêng (per-particle turbulence)
-        /// - Hội tụ thu hẹp mượt mà khi vào phễu cửa phun đỉnh
-        /// </summary>
+        /// <summary>Tính toạ độ 3D theo mô hình dòng chảy chất lỏng tự nhiên</summary>
         void EvalFluidBall(ref LaneBall lb, float time, out Vector3 worldPos, out Vector3 forwardDir)
         {
-            // 1) Co giãn dọc hữu cơ theo mật độ dòng nước
             float longWave = Mathf.Sin(time * 3.2f + lb.wavePhase + lb.s * 2.8f) * 0.025f;
             float s = Mathf.Clamp(lb.s + lb.organicLongJitter + longWave, 0f, _length);
             Vector3 center = EvalCenter(s);
@@ -193,29 +183,23 @@ namespace BounceBlast.Gameplay
 
             Vector3 lateralUnit = new Vector3(-forwardDir.y, forwardDir.x, 0f);
 
-            // 2) Tính độ cong & lực ly tâm
             const float cds = 0.12f;
             Vector3 tPrev = EvalTangent(Mathf.Max(0f, s - cds));
             Vector3 tNext = EvalTangent(Mathf.Min(_length, s + cds));
             Vector3 curvatureVec = (tNext - tPrev) / (2f * cds);
             float centrifugalForce = Vector3.Dot(-curvatureVec, lateralUnit);
 
-            // 3) Dao động dòng nước tự nhiên (Continuous fluid turbulence & wave sloshing):
             float slosh1 = Mathf.Sin(time * lb.waveFreq + lb.wavePhase + s * 2.8f) * lb.waveLateralAmp;
             float slosh2 = Mathf.Cos(time * (lb.waveFreq * 0.7f) + lb.swirlSeed + s * 1.6f) * (lb.waveLateralAmp * 0.6f);
             float turbulence = (Mathf.PerlinNoise(s * 1.4f + lb.swirlSeed, time * 1.6f) - 0.5f) * 0.055f;
 
-            // 4) Độ dạt quán tính tự nhiên khi qua khúc cua (KHÔNG ép bẻ góc cứng nhắc):
-            // Lực ly tâm dịch chuyển mềm mại cả luồng hạt theo hệ số quán tính riêng của từng hạt
             float centrifugalDrift = centrifugalForce * (0.05f * lb.inertiaCoeff);
 
             float lat = lb.baseLateral + lb.organicLateralJitter + slosh1 + slosh2 + turbulence + centrifugalDrift;
 
-            // Giới hạn trong lòng rãnh máng
             const float wallLimit = 0.24f;
             lat = Mathf.Clamp(lat, -wallLimit, wallLimit);
 
-            // 5) Thu hẹp luồng khi tới vòi phun ở cuối (Funneling into outlet nozzle)
             float distToEnd = _length - s;
             if (distToEnd < 1.0f)
             {
@@ -224,7 +208,6 @@ namespace BounceBlast.Gameplay
                 lat *= taperScale;
             }
 
-            // Độ nhấp nhô 3D bồng bềnh
             float zBob = Mathf.Sin(time * 4.2f + lb.wavePhase + s * 3.5f) * 0.025f;
 
             lb.currentLateral = lat;
@@ -236,8 +219,6 @@ namespace BounceBlast.Gameplay
             Ball b = _balls.Get(_docked.Data.ColorCode);
             b.EnterLane();
 
-            // Sinh ngẫu nhiên đa làn hữu cơ (True Multi-Strand Fluid Stream):
-            // Phân bổ tự nhiên thành luồng dày 3-4 làn đan xen trên bề rộng máng [-0.20 .. +0.20]
             _lastSide = -_lastSide;
             float strandCenter = _lastSide * Random.Range(0.06f, 0.17f);
             float randomSpread = Random.Range(-0.045f, 0.045f);
@@ -280,11 +261,9 @@ namespace BounceBlast.Gameplay
             float dt = Time.deltaTime;
             _arrows?.Tick(dt);
 
-            // 0) Máy xay trống mà hộp đầu hàng đã tới → xay luôn
             if (_docked == null && _pipe.Count > 0 && _pipe[0] != null && _ready.Contains(_pipe[0]))
                 Dock(_pipe[0], false);
 
-            // 1) Hộp đang xay nhả bi tự nhiên, có phương sai nhịp nhàng (organic cadence)
             if (_docked != null)
             {
                 _sinceEmit += dt;
@@ -297,7 +276,6 @@ namespace BounceBlast.Gameplay
                     EmitBall();
                 }
 
-                // sắp hết bi → kéo hộp kế xuống sát máy xay đúng lúc hộp này cạn, để nối tiếp liền mạch
                 if (!_preloaded && _dockedRemaining > 0 && _dockedRemaining <= PreloadBalls && _pipe.Count > 1 && _pipe[1] != null)
                 {
                     _preloaded = true;
@@ -311,7 +289,6 @@ namespace BounceBlast.Gameplay
                 }
             }
 
-            // 2) Cập nhật dòng bi chạy dọc máng theo động lực học chất lỏng
             float step = _config.laneSpeed * dt;
             float time = Time.time;
             for (int i = _onLane.Count - 1; i >= 0; i--)
@@ -331,6 +308,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
+        /// <summary>Xử lý xoá toàn bộ bi trên máng</summary>
         public void ClearAll()
         {
             _onLane.Clear();

@@ -49,7 +49,6 @@ MonoBehaviour:
     conveyorGround: {fileID: 0}
     ammoCell: {fileID: 2100000, guid: 146db588e8865c048b36edc48d1f6d97, type: 2}
     ammoWall: {fileID: 2100000, guid: c1891f37c87d521429ddd7b065438f7f, type: 2}
-    hudTint: {r: 1, g: 1, b: 1, a: 1}
     groundColor: {r: 0.28235295, g: 0.3137255, b: 0.68235296, a: 1}
     arrowColor: {r: 0.227, g: 0.243, b: 0.373, a: 1}
     pinsColor: {r: 0.282, g: 0.322, b: 0.706, a: 1}
@@ -72,7 +71,6 @@ MonoBehaviour:
     conveyorGround: {fileID: 0}
     ammoCell: {fileID: 2100000, guid: 2c778a8f00cbd7d479ebe0cd6d1d8e66, type: 2}
     ammoWall: {fileID: 2100000, guid: f8db6810bbfdf2541b2fd4da455c623d, type: 2}
-    hudTint: {r: 1, g: 1, b: 1, a: 1}
     groundColor: {r: 0.62352943, g: 0.2509804, b: 0.22745098, a: 1}
     arrowColor: {r: 0.553, g: 0.153, b: 0.18, a: 1}
     pinsColor: {r: 0.514, g: 0.196, b: 0.157, a: 1}
@@ -95,7 +93,6 @@ MonoBehaviour:
     conveyorGround: {fileID: 0}
     ammoCell: {fileID: 2100000, guid: 6d6a1a78f08f7d545bdd75893dcddb0a, type: 2}
     ammoWall: {fileID: 2100000, guid: 0156dee634e09eb44aa99644dfffa96f, type: 2}
-    hudTint: {r: 1, g: 1, b: 1, a: 1}
     groundColor: {r: 0.2901961, g: 0.2901961, b: 0.2901961, a: 1}
     arrowColor: {r: 0.196, g: 0.192, b: 0.204, a: 1}
     pinsColor: {r: 0.165, g: 0.165, b: 0.165, a: 1}
@@ -248,6 +245,24 @@ MonoBehaviour:
     volume: 0.9
     minInterval: 0.1
     pitch: {x: 1, y: 1}
+  - id: 24
+    clips:
+    - {fileID: 8300000, guid: 931b386f67a05414b8e2812b28ddb39f, type: 3}
+    volume: 0.9
+    minInterval: 0.08
+    pitch: {x: 1, y: 1}
+  - id: 25
+    clips:
+    - {fileID: 8300000, guid: 931b386f67a05414b8e2812b28ddb39f, type: 3}
+    volume: 0.45
+    minInterval: 0.06
+    pitch: {x: 1.25, y: 1.6}
+  - id: 26
+    clips:
+    - {fileID: 8300000, guid: a1d8e91c2dc6a484d858e166c6c6433d, type: 3}
+    volume: 0.7
+    minInterval: 0.04
+    pitch: {x: 0.95, y: 1.35}
   musicMenu: {fileID: 8300000, guid: b0dcdc52ce75d28459a3db1f84ba6b5b, type: 3}
   musicNormal: {fileID: 8300000, guid: 8e322a3bced0fa64b91b5bfa61482e34, type: 3}
   musicHard: {fileID: 8300000, guid: 193665d9fde220f4dba7772f8f1250ca, type: 3}
@@ -263,7 +278,6 @@ MonoBehaviour:
   ballRadius: 0.17
   ballSpeed: 18
   ballSpawnSpread: 55
-  homingStrength: 0.12
   ballMinVerticalSpeed: 1.6
   ballDeflectDeg: 8
   ballAimMinBounces: 3
@@ -346,11 +360,34 @@ MonoBehaviour:
   hammerWaveDelay: 0.045
   boosterFxUnit: 1.5
   iceStageScale: {x: 1.13, y: 2.119927, z: 0.79747}
-  iceStagePos: {x: 0.02, y: -0.14, z: -0.01}
-  icePadSide: 0.01
+  iceStagePos: {x: 0, y: -0.14, z: -0.01}
+  icePadSide: 0.07
   icePadTop: 0.22
   icePadBottom: 0.05
   tunnelSize: 1.15
+  tunnelPoseRight:
+    use: 1
+    position: {x: -0.32, y: -0.09, z: 0.08}
+    euler: {x: 340.171, y: -0.194, z: 14.076}
+    scale: {x: 1.3782, y: 1.3782, z: 1.3782}
+  tunnelPoseLeft:
+    use: 1
+    position: {x: 0.38, y: 0.55, z: -0.29}
+    euler: {x: -28.323, y: 1.219, z: -19.384}
+    scale: {x: 1.36128, y: 1.36128, z: 1.36128}
+  tunnelPoseUp:
+    use: 1
+    position: {x: 0, y: 0.32, z: -0.12}
+    euler: {x: -15.563, y: -0.193, z: 0.005}
+    scale: {x: 1.40364, y: 1.40364, z: 1.40364}
+  tunnelPoseDown:
+    use: 1
+    position: {x: 0, y: 0.52, z: -0.48}
+    euler: {x: -31.6, y: 0, z: 0}
+    scale: {x: 1.40364, y: 1.40364, z: 1.40364}
+  tunnelBackShift: 0.4
+  tunnelLabelShift: 0
+  tunnelRimOverhang: 0.03
   tunnelTiltX: -70
   tunnelAngleUp: 0
   tunnelAngleDown: 180
@@ -405,4 +442,3 @@ MonoBehaviour:
   holeLidDripTime: 0.18
   holeLidDelay: 0.55
   holeLidTime: 0.22
-  fallSpeed: 9

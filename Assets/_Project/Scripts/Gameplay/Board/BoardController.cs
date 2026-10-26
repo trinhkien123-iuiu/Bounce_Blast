@@ -4,13 +4,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Điều phối bàn chơi: dựng màn, cho khối mất chỗ đỡ rơi xuống, xử lý bi trúng / khối vỡ, báo thắng khi bàn sạch.
-    /// Việc chi tiết giao cho các lớp riêng:
-    /// <see cref="BoardGrid"/> (ô nào có khối nào) · <see cref="BoardTargeting"/> (bi ngắm khối nào) ·
-    /// <see cref="BlockVisualFactory"/> (dựng hình khối) · <see cref="BlockBreakFx"/> (hiệu ứng vỡ) ·
-    /// <c>Board/Kinds</c> (luật + cách dựng + cách vỡ riêng của từng loại khối).
-    /// </summary>
+    /// <summary>Điều phối bàn chơi: dựng màn, cho khối mất chỗ đỡ rơi xuống, xử lý bi trúng / khối vỡ, báo thắng khi bàn sạch</summary>
     public class BoardController : MonoBehaviour
     {
         public event Action OnBoardCleared;
@@ -21,7 +15,7 @@ namespace BounceBlast.Gameplay
         BoardGrid _grid;
         BoardTargeting _targeting;
         readonly List<BoardBlock> _blocks = new List<BoardBlock>();
-        readonly BlockVisualFactory _visuals = new BlockVisualFactory();   // giữ qua các màn để dùng lại cache mesh
+        readonly BlockVisualFactory _visuals = new BlockVisualFactory();
         readonly BlockBreakFx _breakFx = new BlockBreakFx();
         bool _settleRequested;
         bool _cleared;
@@ -30,18 +24,18 @@ namespace BounceBlast.Gameplay
         public int DestructibleCount { get; private set; }
         public IReadOnlyList<BoardBlock> Blocks => _blocks;
 
-        // Dành cho các lớp loại khối (Board/Kinds)
         public GameConfig Config => _config;
         public ColorLibrary Colors => _colors;
         public BlockVisualFactory Visuals => _visuals;
         public BlockBreakFx BreakFx => _breakFx;
 
+        /// <summary>Xử lý dựng bàn chơi theo level</summary>
         public void Build(LevelModel level, GameConfig config, ColorLibrary colors)
         {
             _config = config;
             _colors = colors;
             float cell = config.arena.width / level.BoardCols;
-            var origin = new Vector2(config.arena.xMin, config.arena.yMin + config.boardOffsetY); // nâng lên khỏi gờ sàn của khung
+            var origin = new Vector2(config.arena.xMin, config.arena.yMin + config.boardOffsetY);
             _grid = new BoardGrid(level.BoardCols, level.BoardRows, origin, cell);
             _targeting = new BoardTargeting(_grid, _blocks);
             _visuals.Setup(config, colors, cell);
@@ -53,9 +47,10 @@ namespace BounceBlast.Gameplay
             _settleRequested = true;
         }
 
+        /// <summary>Dùng cho đổi ô lưới sang toạ độ thế giới</summary>
         public Vector2 CellToWorld(RectInt r) => _grid.CellToWorld(r);
 
-        // ------------------------------------------------------------------ Dựng khối
+        /// <summary>Xử lý tạo một khối từ dữ liệu</summary>
         public BoardBlock Spawn(BoardItemData item)
         {
             RectInt r = item.Cells;
@@ -72,7 +67,7 @@ namespace BounceBlast.Gameplay
             Vector2 size = new Vector2(r.width, r.height) * _grid.Cell;
             List<RectInt> parts = item.Mask != null ? BlockVisualFactory.Decompose(item.Mask, r.width, r.height) : null;
             BlockKind kind = BlockKinds.Of(item.Kind);
-            BlockView view = kind.Build(this, item, go.transform, size, parts);   // mỗi loại khối tự dựng hình (Board/Kinds)
+            BlockView view = kind.Build(this, item, go.transform, size, parts);
             if (kind.ShearMesh) _visuals.ApplyViewShear(view.visual);
 
             var block = go.AddComponent<BoardBlock>();
@@ -82,7 +77,6 @@ namespace BounceBlast.Gameplay
             return block;
         }
 
-        // ------------------------------------------------------------------ Rơi
         void Settle()
         {
             _blocks.Sort((a, c) => a.Cells.yMin.CompareTo(c.Cells.yMin));
@@ -114,16 +108,15 @@ namespace BounceBlast.Gameplay
             Settle();
         }
 
-        // ------------------------------------------------------------------ Va chạm
-        /// <summary>Bi màu <paramref name="color"/> chạm khối. Trả về true nếu bi bị tiêu hao (đã trừ máu).</summary>
+        /// <summary>Bi màu color chạm khối. Trả về true nếu bi bị tiêu hao</summary>
         public bool HandleBallHit(BoardBlock block, string color)
         {
             if (block == null || !block.Accepts(color)) return false;
             if (block.TakeHit()) DestroyBlock(block);
-            // Hòm gỗ / cột nhà: ngân sách bi của level chỉ đủ cho cube (tổng bi == tổng HP cube) → bi trừ máu rồi nảy tiếp, không bị tiêu hao
             return !block.IsFreeHit;
         }
 
+        /// <summary>Xử lý phá một khối và hiệu ứng</summary>
         public void DestroyBlock(BoardBlock block)
         {
             if (block == null) return;
@@ -131,7 +124,7 @@ namespace BounceBlast.Gameplay
             _grid.Occupy(block, false);
             _blocks.Remove(block);
 
-            block.Rules.OnBroken(this, block);   // hiệu ứng / hệ quả riêng của từng loại khối (Board/Kinds)
+            block.Rules.OnBroken(this, block);
 
             Destroy(block.gameObject);
             OnBlockDestroyed?.Invoke(block);
@@ -152,31 +145,33 @@ namespace BounceBlast.Gameplay
             DestructibleCount = n;
         }
 
-        // ------------------------------------------------------------------ Truy vấn (chuyển cho BoardTargeting)
+        /// <summary>Kiểm tra còn khối cùng màu để bắn</summary>
         public bool HasTargetFor(string color) => _targeting != null && _targeting.HasTargetFor(color);
 
+        /// <summary>Dùng cho tìm khối cùng màu gần nhất</summary>
         public bool TryGetNearestTarget(string color, Vector2 from, out Vector2 point)
         {
             point = default;
             return _targeting != null && _targeting.TryGetNearestTarget(color, from, out point);
         }
 
+        /// <summary>Dùng cho tìm khối cùng màu nhìn thấy được</summary>
         public bool TryGetLineOfSightTarget(string color, Vector2 from, float radius, int mask, out Vector2 point)
         {
             point = default;
             return _targeting != null && _targeting.TryGetLineOfSightTarget(color, from, radius, mask, out point);
         }
 
-        /// <summary>Booster búa: khối tại điểm chạm.</summary>
+        /// <summary>Booster búa: khối tại điểm chạm</summary>
         public BoardBlock BlockAt(Vector2 world)
         {
             Collider2D hit = Physics2D.OverlapPoint(world);
             return hit != null ? hit.GetComponent<BoardBlock>() : null;
         }
 
+        /// <summary>Xử lý xoá toàn bộ bàn chơi</summary>
         public void ClearAll()
         {
-            // tắt ngay (Destroy chỉ chạy cuối frame) → nạp lại màn trong cùng frame không bị chồng 2 bàn
             foreach (BoardBlock b in _blocks) if (b != null) { b.gameObject.SetActive(false); Destroy(b.gameObject); }
             _blocks.Clear();
         }

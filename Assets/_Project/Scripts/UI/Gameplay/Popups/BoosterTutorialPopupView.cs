@@ -7,15 +7,11 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của popup HƯỚNG DẪN BOOSTER – hiện một lần khi booster vừa được mở khoá theo level
-    /// (gốc: CgTutorial của KPBoosterDependencies, có nút Close và nút Use). Cùng khung với popup Mua booster
-    /// (gắn trên gốc BoosterTutorialPopup.prefab) nhưng không có giá: nút xanh là "Use" – dùng booster ngay.
-    /// </summary>
+    /// <summary>Script quản lý của popup HƯỚNG DẪN BOOSTER</summary>
     [DisallowMultipleComponent]
     public class BoosterTutorialPopupView : PopupViewBase
     {
-        /// <summary>Nội dung của một booster (chữ tutorial_booster_* trong Localization.txt của game gốc).</summary>
+        /// <summary>Nội dung của một booster (chữ tutorial_booster_* trong Localization.txt của game gốc)</summary>
         [Serializable]
         public class Entry
         {
@@ -36,7 +32,7 @@ namespace BounceBlast.UI
         [SerializeField] TMP_Text countText;
         [SerializeField] List<Entry> entries = new List<Entry>();
 
-        /// <summary>Bấm Use – kèm loại booster.</summary>
+        /// <summary>Bấm Use – kèm loại booster</summary>
         public event Action<BoosterType> OnUse;
         public event Action OnClose;
 
@@ -48,6 +44,7 @@ namespace BounceBlast.UI
             if (useButton != null) useButton.onClick.AddListener(() => { AudioManager.Play(Sfx.Button); OnUse?.Invoke(_type); });
         }
 
+        /// <summary>Xử lý hiện popup hướng dẫn booster mới mở</summary>
         public void Show(BoosterType type, LevelDifficulty difficulty, int freeCount = 0)
         {
             Entry e = entries.Find(x => x != null && x.type == type);
@@ -64,7 +61,7 @@ namespace BounceBlast.UI
             OpenBase(difficulty);
         }
 
-        /// <summary>Popup "New Feature" cho một cơ chế mới (không gắn với booster): tên + mô tả + icon, nút OK chỉ để đóng.</summary>
+        /// <summary>Popup "New Feature" cho một cơ chế mới</summary>
         public void ShowFeature(string title, string description, Sprite icon, LevelDifficulty difficulty)
         {
             if (titleText != null) titleText.text = title.ToUpperInvariant();

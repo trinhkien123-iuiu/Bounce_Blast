@@ -2,15 +2,11 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Lưới chiếm chỗ của bàn chơi: ô nào đang có khối nào (hàng 0 = đáy), đổi toạ độ ô ↔ thế giới, khối lộ ra / có thể rơi.
-    /// Không biết luật bi hay hình ảnh – chỉ là dữ liệu chỗ đứng. <see cref="Version"/> tăng mỗi khi lưới đổi
-    /// (để các bộ nhớ đệm như <see cref="BoardTargeting"/> biết lúc nào phải tính lại).
-    /// </summary>
+    /// <summary>Lưới chiếm chỗ của bàn chơi</summary>
     public class BoardGrid
     {
         readonly BoardBlock[,] _cells;
-        readonly int _rows;   // số hàng THẬT của level (mảng có thể cao hơn để khối rơi/đặt tạm không tràn)
+        readonly int _rows;
 
         public Vector2 Origin { get; }
         public float Cell { get; }
@@ -24,13 +20,15 @@ namespace BounceBlast.Gameplay
             Cell = cell;
         }
 
+        /// <summary>Dùng cho đổi ô lưới sang toạ độ thế giới</summary>
         public Vector2 CellToWorld(RectInt r) =>
             Origin + new Vector2((r.x + r.width * 0.5f) * Cell, (r.y + r.height * 0.5f) * Cell);
 
+        /// <summary>Kiểm tra vùng ô nằm trong lưới</summary>
         public bool Contains(RectInt r) =>
             r.xMin >= 0 && r.xMax <= _cells.GetLength(0) && r.yMin >= 0 && r.yMax <= _cells.GetLength(1);
 
-        /// <summary>Khối đang chiếm ô chứa điểm thế giới này (null nếu trống, ngoài lưới hoặc khối đã vỡ).</summary>
+        /// <summary>Khối đang chiếm ô chứa điểm thế giới này</summary>
         public BoardBlock BlockAtWorld(Vector2 p)
         {
             int x = Mathf.FloorToInt((p.x - Origin.x) / Cell), y = Mathf.FloorToInt((p.y - Origin.y) / Cell);
@@ -39,7 +37,7 @@ namespace BounceBlast.Gameplay
             return b == null || b.IsDestroyed ? null : b;
         }
 
-        /// <summary>Đặt (on = true) hoặc gỡ khối khỏi các ô nó chiếm.</summary>
+        /// <summary>Đặt (on = true) hoặc gỡ khối khỏi các ô nó chiếm</summary>
         public void Occupy(BoardBlock b, bool on)
         {
             Version++;
@@ -47,7 +45,7 @@ namespace BounceBlast.Gameplay
                 _cells[c.x, c.y] = on ? b : (_cells[c.x, c.y] == b ? null : _cells[c.x, c.y]);
         }
 
-        /// <summary>Khối có thể rơi xuống một hàng: không tĩnh, không ô nào ở đáy hay bị khối khác đỡ.</summary>
+        /// <summary>Khối có thể rơi xuống một hàng</summary>
         public bool CanFall(BoardBlock b)
         {
             if (b.IsStatic) return false;
@@ -60,7 +58,7 @@ namespace BounceBlast.Gameplay
             return true;
         }
 
-        /// <summary>Khối có ít nhất một ô lộ ra (trên / trái / phải trống hoặc là mép bàn) – bi chạm tới được.</summary>
+        /// <summary>Khối có ít nhất một ô lộ ra</summary>
         public bool IsExposed(BoardBlock b)
         {
             int cols = _cells.GetLength(0);

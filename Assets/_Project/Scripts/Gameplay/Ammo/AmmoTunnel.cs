@@ -3,11 +3,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Tunnel trong khay đạn (/tu-XD): chứa hàng đợi hộp (TunnelProps_v3), mỗi khi ô phía trước
-    /// (theo hướng D) trống thì nhả hộp kế tiếp ra ô đó. Số trên tunnel = số hộp còn lại.
-    /// (gốc: BlockerAmmoTunnel + TrainHandlerTunnelToGrid)
-    /// </summary>
+    /// <summary>Tunnel trong khay đạn (/tu-XD)</summary>
     public class AmmoTunnel : MonoBehaviour
     {
         public AmmoTunnelData Data { get; private set; }
@@ -21,13 +17,14 @@ namespace BounceBlast.Gameplay
         float _punch;
         float _cell;
 
-        /// <summary>Slot vật liệu của VÀNH miệng ống (mesh Tunnel gốc có 2 slot: thân thép xanh + vành). Thân giữ nguyên Tunnel_0, vành mang màu hộp kế tiếp.</summary>
+        /// <summary>Slot vật liệu của VÀNH miệng ống</summary>
         const int RimSlot = 0;
 
         Renderer _tube;
         Material _tubeMat;
         ColorLibrary _colors;
 
+        /// <summary>Xử lý khởi tạo ống nhả hộp theo dữ liệu</summary>
         public void Init(AmmoTunnelData data, Vector2Int cell, float cellSize, GameConfig config, ColorLibrary colors = null)
         {
             _colors = colors;
@@ -49,14 +46,15 @@ namespace BounceBlast.Gameplay
             Transform tube = _visual.Find("Model/Tunnel");
             if (tube != null) { _tube = tube.GetComponent<Renderer>(); _tubeMat = _tube.sharedMaterials.Length > RimSlot ? _tube.sharedMaterials[RimSlot] : null; }
 
-            // Mesh "Tunnel" gốc là ống hở 1 đầu; nghiêng tunnelTiltX thì miệng ống hướng lên màn hình (= U, về phía lối ra).
-            // Xoay quanh trục nhìn cho miệng ống quay đúng hướng nhả hộp (/tu-XR → phải, /tu-XL → trái…).
-            // (Direction tính trong lưới đạn: y tăng xuống dưới.)
             float angle = data.Direction.x < 0 ? config.tunnelAngleLeft : data.Direction.x > 0 ? config.tunnelAngleRight
                         : data.Direction.y < 0 ? config.tunnelAngleUp : config.tunnelAngleDown;
             _visual.localRotation = Quaternion.Euler(0f, 0f, angle) * Quaternion.Euler(config.tunnelTiltX, 0f, 0f);
-            // Giữ đúng tỉ lệ mesh (FitVisual khối vuông làm ống nằm ngang bị bẹp) – cạnh lớn nhất trên màn hình = tunnelSize ô
             FitMaxExtent(_visual, cellSize * config.tunnelSize);
+            AlignRimToHoleEdge(data.Direction, cellSize, config.tunnelRimOverhang);
+            _config = config;
+            _tubeNode = tube;
+            _baseZ = transform.position.z - config.tunnelBackShift * cellSize;
+            ApplyLive();
 
             var labelGo = new GameObject("Count");
             labelGo.transform.SetParent(transform, false);
@@ -64,10 +62,43 @@ namespace BounceBlast.Gameplay
             _label = labelGo.AddComponent<TextMeshPro>();
             if (config.worldFont != null) _label.font = config.worldFont;
             _label.alignment = TextAlignmentOptions.Center;
-            _label.fontSize = cellSize * 6f;   // ảnh gốc Lv19: số cao ~0.45 ô
+            _label.fontSize = cellSize * 6f;
             _label.rectTransform.sizeDelta = new Vector2(cellSize, cellSize);
             _label.sortingOrder = 6;
+            CenterLabelOnBody(data.Direction, cellSize, config.tunnelLabelShift);
             Refresh();
+        }
+
+        /// <summary>Xử lý đặt số đếm vào giữa thân ống (theo hình ống đã đặt), có thể xê dịch dọc hướng nhả</summary>
+        void CenterLabelOnBody(Vector2Int dir, float cell, float shift)
+        {
+            Bounds b = default; bool has = false;
+            foreach (Renderer r in _visual.GetComponentsInChildren<Renderer>())
+            {
+                if (r is ParticleSystemRenderer || r is SpriteRenderer || r.GetComponent<TextMeshPro>() != null || !r.gameObject.activeInHierarchy) continue;
+                if (!has) { b = r.bounds; has = true; } else b.Encapsulate(r.bounds);
+            }
+            if (!has) return;
+            Vector2 d = new Vector2(dir.x, -dir.y);
+            Vector2 p = (Vector2)b.center + d * shift * cell;
+            _label.transform.position = new Vector3(p.x, p.y, _label.transform.position.z);
+        }
+
+        /// <summary>Xử lý dời ống để vành miệng (đầu nhả hộp) trùng mép hố phía hướng nhả, thân ống nằm trong hố như game gốc</summary>
+        void AlignRimToHoleEdge(Vector2Int dir, float cell, float overhang)
+        {
+            Bounds b = default; bool has = false;
+            foreach (Renderer r in _visual.GetComponentsInChildren<Renderer>())
+            {
+                if (r is ParticleSystemRenderer || r is SpriteRenderer || r.GetComponent<TextMeshPro>() != null || !r.gameObject.activeInHierarchy) continue;
+                if (!has) { b = r.bounds; has = true; } else b.Encapsulate(r.bounds);
+            }
+            if (!has) return;
+            Vector2 d = new Vector2(dir.x, -dir.y);
+            float half = Mathf.Abs(d.x) * b.extents.x + Mathf.Abs(d.y) * b.extents.y;
+            float center = Vector2.Dot((Vector2)(b.center - transform.position), d);
+            float shift = cell * 0.5f + overhang * cell - half - center;
+            _visual.position += (Vector3)(d * shift);
         }
 
         static void FitMaxExtent(Transform v, float size)
@@ -87,6 +118,7 @@ namespace BounceBlast.Gameplay
             v.localPosition = off * s;
         }
 
+        /// <summary>Xử lý lấy hộp kế tiếp ra khỏi ống</summary>
         public AmmoBoxData Pop()
         {
             if (Data.Queue.Count == 0) return null;
@@ -102,7 +134,6 @@ namespace BounceBlast.Gameplay
         void Refresh()
         {
             _label.SetText("{0}", Data.Queue.Count);
-            // Vành ống mang màu hộp sắp nhả (ảnh gốc: viền hồng/đỏ/xanh quanh số)
             if (_tube != null && _colors != null && _tube.sharedMaterials.Length > RimSlot)
             {
                 Material[] mats = _tube.sharedMaterials;
@@ -112,8 +143,29 @@ namespace BounceBlast.Gameplay
             }
         }
 
+        GameConfig _config;
+        Transform _tubeNode;
+        float _baseZ;
+
+        /// <summary>Xử lý đọc lại tư thế thân ống và độ lùi từ GameConfig mỗi khung hình (chỉnh lúc Play thấy ngay)</summary>
+        void ApplyLive()
+        {
+            if (_config == null) return;
+            Vector3 p = transform.position;
+            p.z = _baseZ + _config.tunnelBackShift * _cell;
+            transform.position = p;
+            GameConfig.TunnelPose pose = _config.TunnelPoseOf(Data.Direction);
+            if (pose.use && _tubeNode != null)
+            {
+                _tubeNode.localPosition = pose.position;
+                _tubeNode.localEulerAngles = pose.euler;
+                _tubeNode.localScale = pose.scale;
+            }
+        }
+
         void Update()
         {
+            ApplyLive();
             if (_punch <= 0f) return;
             _punch = Mathf.Max(0f, _punch - Time.deltaTime * 4f);
             transform.localScale = Vector3.one * (1f + Mathf.Sin(_punch * Mathf.PI) * 0.15f);

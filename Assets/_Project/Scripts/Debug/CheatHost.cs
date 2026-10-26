@@ -3,13 +3,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.Cheats
 {
-    /// <summary>
-    /// Cổng vào của công cụ cheat (gắn trên gốc prefab CheatPanel, đặt sẵn trong scene Gameplay).
-    /// - Code cheat chỉ được biên dịch ở Editor, Development Build, hoặc khi thêm Scripting Define Symbol <c>BB_CHEATS</c>
-    ///   (Project Settings ▸ Player). Bản phát hành không có code cheat; object này tự huỷ ngay khi vào game.
-    /// - Mở panel: chạm 5 lần liên tiếp vào góc trên-trái màn hình, hoặc chạm 3 ngón cùng lúc (Editor: phím F1).
-    /// Thiết kế đầy đủ: Docs/thiet-ke/cheat-tool.md.
-    /// </summary>
+    /// <summary>Cổng vào của công cụ cheat</summary>
     public class CheatHost : MonoBehaviour
     {
         [SerializeField] CheatPanelView panel;
@@ -56,12 +50,12 @@ namespace BounceBlast.Cheats
 
         void Toggle()
         {
-            if (Time.unscaledTime - _lastToggle < 0.5f) return;   // chống kích hoạt kép (3 ngón + chạm góc)
+            if (Time.unscaledTime - _lastToggle < 0.5f) return;
             _lastToggle = Time.unscaledTime;
             panel.Toggle();
         }
 #else
-        void Awake() => Destroy(gameObject);   // bản phát hành: không có cheat
+        void Awake() => Destroy(gameObject);
 #endif
     }
 }

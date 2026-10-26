@@ -2,21 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Pháo giấy trong UI – dựng lại plugin UI-particle của game gốc (component đã bị strip khi build, chỉ còn RectTransform).
-/// Gắn SẴN trên object pháo trong prefab (cùng một Canvas lồng riêng để bảng thắng không phải dựng lại lưới theo từng mảnh);
-/// mọi thông số nằm trong Inspector, mặc định lấy theo dữ liệu gốc trong ManagerScene:
-///  - Burst (LogoArea/Confetti/ConfettiBurst): nổ 100 mảnh, texture confetti 3×3 (frame ngẫu nhiên),
-///    size 40–65, sống 1s, tốc độ 2–10 (giảm dần về 0), trọng lực 9.8, xoay ngẫu nhiên + quay tới 1200°/s.
-///  - Rain (UI Particle ConfettiFullscreen): trễ 1s, rate 300/s trong 1s, rải trên mép trên của object,
-///    mảnh chữ nhật 10×30 màu cầu vồng, sống 2–4s, rơi 1–7 + trọng lực, lật 360–720°/s.
-/// Đơn vị tốc độ/trọng lực của plugin nhân 100 ra pixel canvas.
-/// Các mảnh giấy là HẠT (giống ParticleSystem): sinh trong pool lúc chạy, không nằm trong Hierarchy – chỉnh qua thông số ở đây.
-/// </summary>
+/// <summary>Pháo giấy trong UI – dựng lại plugin UI-particle của game gốc</summary>
 public class UiConfetti : MonoBehaviour
 {
+    /// <summary>Dùng cho kiểu pháo giấy: nổ hoặc rơi</summary>
     public enum Mode { Burst, Rain }
 
+    /// <summary>Dùng cho một mảnh pháo giấy</summary>
     class P
     {
         public RectTransform rt;
@@ -42,13 +34,12 @@ public class UiConfetti : MonoBehaviour
         new Color(0f, 1f, 0.941f), new Color(0f, 0.777f, 1f), new Color(0f, 0.476f, 1f)
     };
 
-    // Pool: mảnh được tái dùng (không Instantiate/Destroy mỗi mảnh → không GC giật).
     readonly Stack<P> _pool = new Stack<P>();
     readonly List<P> _live = new List<P>();
     float _delay, _emitLeft, _emitAcc;
     bool _pendingBurst;
 
-    /// <summary>Phát pháo sau <paramref name="delay"/> giây.</summary>
+    /// <summary>Phát pháo sau delay giây</summary>
     public void Play(float delay = 0f)
     {
         gameObject.SetActive(true);
@@ -67,7 +58,7 @@ public class UiConfetti : MonoBehaviour
 
     void Update()
     {
-        float dt = Mathf.Min(Time.unscaledDeltaTime, 0.05f); // khung bị khựng không làm mảnh giấy nhảy cóc
+        float dt = Mathf.Min(Time.unscaledDeltaTime, 0.05f);
         if (_delay > 0f)
         {
             _delay -= dt;
@@ -96,8 +87,7 @@ public class UiConfetti : MonoBehaviour
             float s;
             if (mode == Mode.Burst)
             {
-                v = p.dir * p.speed0 * (1f - t) + Vector2.down * gravity * p.age;   // speedOverLifetime 1 → 0
-                // sizeOverLifetime gốc: 0.76 → 0.98 (t 0.64) → 0
+                v = p.dir * p.speed0 * (1f - t) + Vector2.down * gravity * p.age;
                 s = t < 0.64f ? Mathf.Lerp(0.76f, 0.98f, t / 0.64f) : Mathf.Lerp(0.98f, 0f, (t - 0.64f) / 0.36f);
             }
             else
@@ -125,7 +115,7 @@ public class UiConfetti : MonoBehaviour
         else
         {
             var go = new GameObject("confetti", typeof(RectTransform));
-            go.hideFlags = HideFlags.DontSave;   // hạt lúc chạy – không bao giờ lưu vào scene/prefab
+            go.hideFlags = HideFlags.DontSave;
             go.transform.SetParent(transform, false);
             go.layer = gameObject.layer;
             var rt = (RectTransform)go.transform;

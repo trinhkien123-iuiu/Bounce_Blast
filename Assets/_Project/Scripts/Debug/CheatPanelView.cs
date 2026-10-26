@@ -6,11 +6,7 @@ using UnityEngine.UI;
 
 namespace BounceBlast.Cheats
 {
-    /// <summary>
-    /// View của prefab CheatPanel: tab theo nhóm + danh sách dòng cuộn được. Không chứa luật cheat – chỉ vẽ các
-    /// <see cref="CheatItem"/> do <see cref="CheatRegistry"/> cung cấp và gọi hàm của chúng.
-    /// Mọi node cần dùng giữ bằng [SerializeField] (prefab dựng bằng menu Tools ▸ Bounce Blast ▸ Cheat ▸ Build panel prefab).
-    /// </summary>
+    /// <summary>View của prefab CheatPanel</summary>
     public class CheatPanelView : MonoBehaviour
     {
         [SerializeField] GameObject panelRoot;
@@ -46,10 +42,14 @@ namespace BounceBlast.Cheats
             if (panelRoot != null) panelRoot.SetActive(false);
         }
 
+        /// <summary>Nhận danh sách mục cheat để hiển thị</summary>
         public void SetItems(List<CheatItem> items) => _items = items ?? new List<CheatItem>();
 
+        /// <summary>Xử lý mở bảng cheat</summary>
         public void Show() { if (panelRoot != null) { panelRoot.SetActive(true); SelectTab(_tab); } }
+        /// <summary>Xử lý đóng bảng cheat</summary>
         public void Hide() { if (panelRoot != null) panelRoot.SetActive(false); }
+        /// <summary>Xử lý bật/tắt bảng cheat</summary>
         public void Toggle() { if (IsOpen) Hide(); else Show(); }
 
         void SelectTab(int index)

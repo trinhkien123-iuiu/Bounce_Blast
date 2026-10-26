@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace BounceBlast.UI
 {
-    /// <summary>Sprite/font UI gốc (Assets/_Ripped/UI) – được điền tự động bởi menu Setup.</summary>
+    /// <summary>Sprite/font UI gốc (Assets/_Ripped/UI)</summary>
     [CreateAssetMenu(menuName = "Bounce Blast/UI Skin")]
     public class UiSkin : ScriptableObject
     {
@@ -20,12 +20,9 @@ namespace BounceBlast.UI
         public TMP_FontAsset font;
         public Material fontOutlineMaterial;
 
-        // Sprite badge Level + nút Settings theo độ khó nay nằm trong HudView (GameCanvas.prefab), không còn ở đây.
         [Header("Thanh sức chứa")]
         public Sprite capacityBg;
         public Sprite capacityFill;
-
-        // 4 texture hiệu ứng màn thắng (pháo giấy, quầng sáng, tia, sao) nay nằm trong SuccessPopupView (SuccessCanvas.prefab).
 
         [Header("Lớp UI phủ lên bàn chơi")]
         [Tooltip("Assets/_Project/UI/Prefabs/OverlayCanvas.prefab - Canvas + BoosterBar + Vignette + Toast. " +

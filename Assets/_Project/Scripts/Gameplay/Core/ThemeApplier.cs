@@ -2,13 +2,10 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Đổi màu khung máng / nền theo độ khó (Normal giữ art config gốc của scene, Hard tông đỏ, Super Hard tông tối
-    /// – gốc: KPHardLevelUIElement + ArtConfig). Field nào trong Theme để trống thì dùng lại material gốc.
-    /// </summary>
+    /// <summary>Đổi màu khung máng / nền theo độ khó</summary>
     public class ThemeApplier : MonoBehaviour
     {
-        const float BackdropZ = 8f;   // độ sâu đặt nền chuyển màu (sau khay/hộp, trước Environment Base)
+        const float BackdropZ = 8f;
         Renderer _conveyor;
         Renderer _plane;
         SpriteRenderer _gradient;
@@ -22,13 +19,14 @@ namespace BounceBlast.Gameplay
         Color _normalGround = new Color(0.282f, 0.314f, 0.682f);
         readonly System.Collections.Generic.Dictionary<Color, Material[]> _crusherCache = new System.Collections.Generic.Dictionary<Color, Material[]>();
 
-        /// <summary>Vỏ máy xay nhìn thấy (Shredder/Plane.028, material "Tunnel") và cụm vỏ dự phòng polySurface11 ("Blue" + đế). Chỉ đổi các slot đầu, không đụng lưỡi cắt.</summary>
+        /// <summary>Vỏ máy xay nhìn thấy (Shredder/Plane.028, material "Tunnel") và cụm vỏ dự phòng polySurface11 ("Blue" + đế)</summary>
         struct CrusherHousing { public Renderer renderer; public Material[] original; public int slots; }
         Sprite _origMask;
         Renderer _pins;
         MaterialPropertyBlock _mpb;
         ConveyorSystem _conveyorSystem;
 
+        /// <summary>Xử lý khởi tạo áp theme</summary>
         public void Init(Transform boardRoot, Camera cam)
         {
             _cam = cam;
@@ -56,21 +54,17 @@ namespace BounceBlast.Gameplay
             if (grad != null)
             {
                 _gradient = grad.GetComponent<SpriteRenderer>(); _origGradient = _gradient.color;
-                // Nền chuyển màu chỉ là phông: đẩy ra SAU mọi vật chơi (camera ortho nhìn thẳng → hình không đổi). Nằm ở z ≈ 0 thì nó che
-                // hộp đạn đặt sâu trong hố của khay gốc (hàng trên z ≈ 3.6). Vẫn trước tấm nền xa nhất (Environment Base, z ≈ 9.8).
                 grad.position += new Vector3(0f, 0f, BackdropZ - _gradient.bounds.center.z);
             }
         }
 
+        /// <summary>Nhận hệ máng để đổi màu theo theme</summary>
         public void SetConveyor(ConveyorSystem conveyor) => _conveyorSystem = conveyor;
 
-        /// <summary>groundColor của theme Normal – mốc để tính hướng đổi màu cho các theme khác.</summary>
+        /// <summary>groundColor của theme Normal</summary>
         public void SetReferenceGround(Color normalGround) => _normalGround = normalGround;
 
-        /// <summary>
-        /// Vỏ máy xay Normal là xanh thép. Theme khác đổi theo CÙNG hướng với nền: tông (hue) dời bằng chênh lệch hue của groundColor,
-        /// độ bão hòa nhân theo tỉ lệ bão hòa, độ sáng nhân căn bậc hai tỉ lệ sáng (Super Hard xám tối → vỏ xám tối).
-        /// </summary>
+        /// <summary>Vỏ máy xay Normal là xanh thép</summary>
         void ApplyCrusher(GameConfig.Theme theme)
         {
             if (_housings.Count == 0) return;
@@ -84,7 +78,6 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        // cache theo (material gốc, màu nền) để các renderer dùng chung bản đã tô
         readonly System.Collections.Generic.Dictionary<string, Material> _recolored = new System.Collections.Generic.Dictionary<string, Material>();
 
         Material RecolorCached(Material src, GameConfig.Theme theme)
@@ -121,15 +114,11 @@ namespace BounceBlast.Gameplay
             return m;
         }
 
-        /// <summary>
-        /// Theo ArtConfig gốc: ColorModularWallBoardGround là màu nền sau bàn (camera + gradient) và tông khung
-        /// (Wall dùng chung material c1 cho mọi theme nên phải tô theo màu này); tam giác chia bi cùng tông;
-        /// mũi tên máng = ColorConveyorArrows.
-        /// </summary>
+        /// <summary>Theo ArtConfig gốc: ColorModularWallBoardGround là màu nền sau bàn</summary>
         void ApplyGround(GameConfig.Theme theme)
         {
             if (theme == null) return;
-            if (_mpb == null) _mpb = new MaterialPropertyBlock(); // Apply có thể chạy trước Init (LoadLevel sớm ngay khi vào Play)
+            if (_mpb == null) _mpb = new MaterialPropertyBlock();
             if (_wall != null)
             {
                 _wall.GetPropertyBlock(_mpb);
@@ -148,6 +137,7 @@ namespace BounceBlast.Gameplay
             if (_conveyorSystem != null) _conveyorSystem.SetArrowColor(theme.arrowColor);
         }
 
+        /// <summary>Xử lý áp theme theo độ khó</summary>
         public void Apply(GameConfig.Theme theme)
         {
             ApplyGround(theme);
@@ -161,14 +151,12 @@ namespace BounceBlast.Gameplay
                     if (theme.conveyorSide) mats[1] = theme.conveyorSide;
                     if (theme.conveyorGround) mats[3] = theme.conveyorGround;
                 }
-                // slot 2 = dải mảnh dọc 2 mép khung: dùng vật liệu mặt trên thì hiện thành viền xám trắng nhìn như lỗi → cho trùng vật liệu thành bên
                 if (mats.Length >= 3) mats[2] = mats[1];
                 _conveyor.sharedMaterials = mats;
             }
             if (_plane != null) _plane.sharedMaterial = theme != null && theme.plane ? theme.plane : _origPlane;
             if (_gradient != null)
             {
-                // Sprite Mask/MaskHard/MaskSuperHard đã mang sẵn màu gradient gốc → để trắng (đo khớp ảnh gốc)
                 if (_origMask == null) _origMask = _gradient.sprite;
                 _gradient.sprite = theme != null && theme.backgroundMask != null ? theme.backgroundMask : _origMask;
                 _gradient.color = new Color(1f, 1f, 1f, theme != null ? theme.maskAlpha : 1f);

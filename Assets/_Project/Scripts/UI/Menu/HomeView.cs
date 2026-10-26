@@ -7,12 +7,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab MenuHomeCanvas – trang Home của MenuGame (gắn trên gốc prefab).
-    /// Giữ nút Play (3 kiểu theo độ khó), thanh xu / tim, avatar (bấm mở popup Profile) và thanh Bounce Streak (<see cref="StreakBarView"/>, View con).
-    /// Chỉ báo ra ngoài bằng sự kiện; đổi scene / mở Shop là việc của <c>MenuManager</c>.
-    /// Các trang khác (Shop, Settings), thanh tab và Toast là prefab riêng đặt cạnh trong Hierarchy.
-    /// </summary>
+    /// <summary>Script quản lý của prefab MenuHomeCanvas</summary>
     [DisallowMultipleComponent]
     public class HomeView : MonoBehaviour
     {
@@ -54,10 +49,10 @@ namespace BounceBlast.UI
             if (profileButton != null) profileButton.onClick.AddListener(() => { AudioManager.Play(Sfx.Button); OnOpenProfile?.Invoke(); });
         }
 
+        /// <summary>Xử lý đổi ảnh avatar</summary>
         public void SetAvatar(Sprite sprite) { if (avatarImage != null && sprite != null) avatarImage.sprite = sprite; }
 
-        // ------------------------------------------------------------------ API cho MenuManager
-        /// <summary>Hiện level kế tiếp: bật đúng kiểu nút Play theo độ khó.</summary>
+        /// <summary>Hiện level kế tiếp: bật đúng kiểu nút Play theo độ khó</summary>
         public void SetLevel(int level, LevelDifficulty difficulty)
         {
             if (playNormal != null) playNormal.gameObject.SetActive(difficulty == LevelDifficulty.Normal);
@@ -66,16 +61,19 @@ namespace BounceBlast.UI
             foreach (TMP_Text t in levelTexts) if (t != null) t.text = "Level " + level;
         }
 
+        /// <summary>Xử lý hiện số xu</summary>
         public void SetCoins(int coins) { if (coinText != null) coinText.text = coins.ToString(); }
 
-        /// <summary>Số tim + ô đồng hồ: "Full" khi đầy, hoặc thời gian tim vô hạn còn lại.</summary>
-        public void SetHearts(int hearts, TimeSpan infiniteLeft)
+        /// <summary>Số tim + ô đồng hồ: thời gian tim vô hạn còn lại, hoặc đếm ngược tới tim kế, hoặc "Full"</summary>
+        public void SetHearts(int hearts, TimeSpan infiniteLeft, TimeSpan nextHeartIn)
         {
-            if (heartText != null) heartText.text = hearts.ToString();
-            if (heartTimerText != null) heartTimerText.text = infiniteLeft > TimeSpan.Zero ? ShopPanelView.FormatSpan(infiniteLeft) : "Full";
+            if (heartText != null) heartText.text = infiniteLeft > TimeSpan.Zero ? "\u221e" : hearts.ToString();
+            if (heartTimerText != null)
+                heartTimerText.text = infiniteLeft > TimeSpan.Zero ? ShopPanelView.FormatSpan(infiniteLeft)
+                                    : nextHeartIn > TimeSpan.Zero ? ShopPanelView.FormatSpan(nextHeartIn) : "Full";
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

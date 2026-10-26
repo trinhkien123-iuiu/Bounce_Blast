@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using BounceBlast.Gameplay;
 using UnityEditor;
 using UnityEngine;
@@ -8,12 +7,10 @@ using Box = BounceBlast.Gameplay.LevelData.Box;
 
 namespace BounceBlast.EditorTools
 {
-    /// <summary>
-    /// Tab "Khay đạn" của Level Editor: đặt hộp / ô trống / tường / tunnel, sửa từng hộp (băng, "?", cửa), hàng chờ tunnel.
-    /// Ô bấm được ngay lúc bắt đầu (theo đúng luật thông đường của game – <see cref="AmmoPathRules"/>) có viền xanh.
-    /// </summary>
+    /// <summary>Tab "Khay đạn" của Level Editor</summary>
     public class TrayPainter
     {
+        /// <summary>Dùng cho công cụ vẽ khay đạn</summary>
         public enum Tool { Box, Empty, Wall, Off, Tunnel, Edit }
 
         public Tool tool = Tool.Box;
@@ -34,6 +31,7 @@ namespace BounceBlast.EditorTools
         static readonly Color EmptyColor = new Color(0.36f, 0.38f, 0.62f);
         static readonly Color OpenColor = new Color(0.3f, 1f, 0.45f);
 
+        /// <summary>Xử lý vẽ thanh công cụ khay đạn</summary>
         public void DrawToolbar(LevelData d, ColorLibrary colors)
         {
             EditorGUILayout.BeginHorizontal();
@@ -68,6 +66,7 @@ namespace BounceBlast.EditorTools
 
         static int Mul(LevelData d) => Mathf.Max(1, d.multiplier) * Mathf.Max(1, d.multiplier);
 
+        /// <summary>Xử lý vẽ lưới khay đạn</summary>
         public void DrawGrid(Rect area, LevelData d, ColorLibrary colors, System.Action changed)
         {
             d.EnsureSize();
@@ -143,7 +142,7 @@ namespace BounceBlast.EditorTools
             EditorUtility.SetDirty(d);
         }
 
-        /// <summary>Ô có hộp lấy ra được ngay lúc bắt đầu (luật thông đường thật, chưa tính băng/cửa).</summary>
+        /// <summary>Ô có hộp lấy ra được ngay lúc bắt đầu</summary>
         static bool[,] OpenCells(LevelData d)
         {
             var kind = new AmmoCellKind[d.ammoCols, d.ammoRows];
@@ -162,7 +161,7 @@ namespace BounceBlast.EditorTools
             return open;
         }
 
-        // ------------------------------------------------------------------ Bảng bên phải: ô đang sửa + tunnel
+        /// <summary>Xử lý vẽ bảng thuộc tính ô đang chọn</summary>
         public void DrawInspector(LevelData d, ColorLibrary colors)
         {
             if (tool == Tool.Edit && _selected.x >= 0 && _selected.x < d.ammoCols && _selected.y < d.ammoRows)

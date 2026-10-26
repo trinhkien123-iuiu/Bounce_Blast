@@ -1,8 +1,3 @@
-// ĐÃ NGỪNG DÙNG (tái cấu trúc, Docs/lich-su/tai-cau-truc.md).
-// Đây là script khởi tạo MỘT LẦN: dựng GameConfig / UiSkin / ColorLibrary bằng đường dẫn cứng tới Assets/_Ripped/... và
-// Assets/_Project/Configs. Nay các asset cấu hình là NGUỒN SỰ THẬT (đã chỉnh tay, đã nối prefab) và file đã được chuyển chỗ,
-// nên chạy lại script này sẽ vừa hỏng đường dẫn vừa GHI ĐÈ các giá trị đã chỉnh. Muốn dùng lại: thêm BB_LEGACY_SETUP vào
-// Project Settings > Player > Scripting Define Symbols và sửa đường dẫn theo cấu trúc mới.
 #if BB_LEGACY_SETUP
 using System.Collections.Generic;
 using System.IO;
@@ -15,12 +10,7 @@ using BounceBlast.UI;
 
 namespace BounceBlast.EditorTools
 {
-    /// <summary>
-    /// Menu Tools/Bounce Blast/Setup Gameplay Scene:
-    ///  1. Sinh/ cập nhật ColorLibrary, GameConfig, UiSkin trong Assets/_Project/Configs (tìm asset gốc theo tên).
-    ///  2. Gắn GameManager mới vào scene Gameplay, gỡ component core cũ.
-    /// Chạy lại bao nhiêu lần cũng được.
-    /// </summary>
+    /// <summary>Menu Tools/Bounce Blast/Setup Gameplay Scene</summary>
     public static class GameplaySetup
     {
         const string ConfigDir = "Assets/_Project/Configs";
@@ -29,7 +19,6 @@ namespace BounceBlast.EditorTools
         const string IconDir = "Assets/_Ripped/UI/Icons";
         const string AudioDir = "Assets/_Ripped/AudioClip";
 
-        // GUID shader port (Assets/_Project/Shaders/Ripped) – dùng để chọn đúng biến thể material màu
         const string ShaderCubeIsolated = "e7fad1f9215b16a44a29bd6d1ee85412";
         const string ShaderCubeOutline = "bee1af360cf57ea4aadd60c745f066dc";
         const string ShaderCube = "a5be2a8d227cdb248aa675723f78a2f9";
@@ -45,6 +34,7 @@ namespace BounceBlast.EditorTools
             ("c", "Cyan", -0.075f, 0.075f),
         };
 
+        /// <summary>Xử lý dựng sẵn scene Gameplay</summary>
         [MenuItem("Tools/Bounce Blast/Setup Gameplay Scene")]
         public static void Setup()
         {
@@ -72,7 +62,6 @@ namespace BounceBlast.EditorTools
             return asset;
         }
 
-        // ------------------------------------------------------------------ Màu
         static void FillColors(ColorLibrary lib)
         {
             lib.entries.Clear();
@@ -80,7 +69,7 @@ namespace BounceBlast.EditorTools
             {
                 var e = new ColorLibrary.Entry { code = c.code, name = c.name, shadeOffset = new Vector2(c.min, c.max) };
                 e.cubeMaterial = FindColorMat(c.name, ShaderCubeIsolated, ShaderDirectional, ShaderCube);
-                e.ammoMaterial = FindColorMat(c.name, ShaderCube, ShaderCubeOutline, ShaderDirectional); // ảnh gốc: hộp đạn KHÔNG có viền đen
+                e.ammoMaterial = FindColorMat(c.name, ShaderCube, ShaderCubeOutline, ShaderDirectional);
                 e.ballMaterial = FindColorMat(c.name, ShaderCube, ShaderCubeOutline, ShaderDirectional);
                 Material any = e.cubeMaterial ?? e.ammoMaterial ?? e.ballMaterial;
                 e.color = any != null && any.HasProperty("_BaseColor") ? any.GetColor("_BaseColor") : Color.white;
@@ -92,7 +81,7 @@ namespace BounceBlast.EditorTools
             EditorUtility.SetDirty(lib);
         }
 
-        /// <summary>Tìm "Blue.mat", "Blue_0.mat"... có shader đúng thứ tự ưu tiên.</summary>
+        /// <summary>Tìm "Blue.mat", "Blue_0.mat"</summary>
         static Material FindColorMat(string colorName, params string[] shaderGuids)
         {
             var candidates = new List<Material>();
@@ -111,7 +100,6 @@ namespace BounceBlast.EditorTools
 
         static Material Mat(string name) => AssetDatabase.LoadAssetAtPath<Material>($"{MatDir}/{name}.mat");
 
-        // ------------------------------------------------------------------ Config
         static void FillConfig(GameConfig c)
         {
             c.cubePrefab = Prefab("Assets/Resources/prefabs/Cube.prefab");
@@ -134,7 +122,6 @@ namespace BounceBlast.EditorTools
             c.qmarkMaterial = Mat("QMark Mat Cube");
             c.trailMaterial = TrailMaterial();
 
-            // Bộ material theo độ khó của game gốc: Hole-1/2/3 = ô khay đạn, M-Plane/2/3 = nền, Surface_0/Side_0 = máng Normal
             c.normalTheme = new GameConfig.Theme
             {
                 useColors = true,
@@ -142,11 +129,10 @@ namespace BounceBlast.EditorTools
                 backgroundBottom = new Color(0.17f, 0.18f, 0.42f),
                 conveyorSurface = Mat("Surface_0"),
                 conveyorSide = Mat("Side_0"),
-                plane = Mat("t4-surface"),   // ArtConfig type 6: nền trong lòng bàn (đo khớp ảnh gốc)
-                ammoCell = Mat("M-Plane"),   // sàn rãnh xanh sáng
-                ammoWall = Mat("BG"),        // tường nổi navy tối
-                // ArtConfig gốc (material configs/original/ArtConfig 1 - Normal)
-                groundColor = new Color(0.282f, 0.314f, 0.682f), arrowColor = new Color(0.227f, 0.243f, 0.373f) /* mũi tên ≈ 0.66 × màu mặt máng (đo ảnh gốc) */,
+                plane = Mat("t4-surface"),
+                ammoCell = Mat("M-Plane"),
+                ammoWall = Mat("BG"),
+                groundColor = new Color(0.282f, 0.314f, 0.682f), arrowColor = new Color(0.227f, 0.243f, 0.373f) ,
                 pinsColor = new Color(0.282f, 0.322f, 0.706f), backgroundMask = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Ripped/Sprite/Mask.asset"), trayWall = Mat("t4-wall"), trayPanel = Mat("t4-bg"), trayHole = Mat("Hole-1"),
             };
             c.hardTheme = new GameConfig.Theme
@@ -218,7 +204,6 @@ namespace BounceBlast.EditorTools
         static SoundEntry Snd(Sfx id, float volume, float interval, string clip) =>
             new SoundEntry { id = id, volume = volume, minInterval = interval, clips = new[] { Clip(clip) } };
 
-        // ------------------------------------------------------------------ UI
         static void FillSkin(UiSkin s)
         {
             const string ui = "Assets/_Project/UI/Prefabs/";
@@ -226,13 +211,12 @@ namespace BounceBlast.EditorTools
             s.successPrefab = Prefab(ui + "SuccessCanvas.prefab");
             s.failPrefab = Prefab(ui + "FailCanvas.prefab");
             s.settingsPrefab = Prefab(ui + "SettingsCanvas.prefab");
-            s.outOfCapacityPrefab = Prefab(ui + "OutOfCapacityPopup.prefab"); // bản bọc Canvas + OutOfCapacityPopupView, lồng OutOfCapacityPanel gốc
+            s.outOfCapacityPrefab = Prefab(ui + "OutOfCapacityPopup.prefab");
             s.capacityBarPrefab = Prefab(ui + "CapacityBar.prefab");
             s.font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/_Ripped/Font/TMP/Fredoka-Bold SDF.asset");
             s.fontOutlineMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Ripped/Font/TMP/Fredoka-Bold Atlas Material - Buttons.mat");
             s.capacityBg = Spr("CapacityBg");
             s.capacityFill = Spr("CapacityWhite") ?? Spr("CapacityGreen");
-            // Lớp UI là prefab (Canvas + BoosterBar + Vignette + Toast, sprite nằm sẵn trong đó)
             s.overlayCanvasPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/UI/Prefabs/OverlayCanvas.prefab");
             s.popupNormal = Spr("Normal Pop-up (2)");
             s.popupHard = Spr("Hard Pop-up (1)_mir");
@@ -262,14 +246,12 @@ namespace BounceBlast.EditorTools
         static Sprite Icon(string name) =>
             AssetDatabase.LoadAssetAtPath<Sprite>($"{IconDir}/{name}.asset") ?? AssetDatabase.LoadAssetAtPath<Sprite>($"{IconDir}/{name}.png");
 
-        // ------------------------------------------------------------------ Scene
         static void SetupScene(GameConfig config, ColorLibrary colors, UiSkin skin)
         {
             var scene = EditorSceneManager.GetActiveScene();
             GameObject board = GameObject.Find("Board - Default");
             GameObject host = GameObject.Find("GameManager") ?? new GameObject("GameManager");
 
-            // Gỡ core cũ khỏi scene (code cũ vẫn giữ trong project để tham khảo)
             foreach (MonoBehaviour mb in host.GetComponents<MonoBehaviour>())
                 if (mb != null && mb.GetType().Name == "GameplayManager") Object.DestroyImmediate(mb);
             if (board != null)

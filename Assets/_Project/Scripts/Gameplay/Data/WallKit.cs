@@ -3,10 +3,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Bộ khối tường module gốc (ModularPrimitiveAmmoWall - Wallbase): mỗi biến thể là 1 mesh đã gộp sẵn, đặt tên theo tập
-    /// ô tường lân cận (L, TL, T, TR, R, BR, B, BL). Mesh nằm quanh gốc ô trong mặt phẳng XZ (T = +Z), 1 ô = 1 đơn vị.
-    /// </summary>
+    /// <summary>Bộ khối tường module gốc (ModularPrimitiveAmmoWall</summary>
     [CreateAssetMenu(menuName = "Bounce Blast/Wall Kit")]
     public class WallKit : ScriptableObject
     {
@@ -17,7 +14,7 @@ namespace BounceBlast.Gameplay
         public Mesh[] meshes;
         readonly Dictionary<int, int> _cache = new Dictionary<int, int>();
 
-        /// <summary>Biến thể khớp nhất với tập lân cận (mask các bit L..BL): trùng tên thì lấy luôn, thiếu thì chọn bản ít lệch nhất (cạnh vuông góc nặng hơn góc chéo).</summary>
+        /// <summary>Biến thể khớp nhất với tập lân cận</summary>
         public Mesh Get(int mask) => meshes[Index(mask)];
 
         int Index(int mask)
@@ -28,7 +25,7 @@ namespace BounceBlast.Gameplay
             {
                 int diff = Mask(keys[i]) ^ mask, cost = 0;
                 for (int b = 0; b < 8; b++)
-                    if ((diff & (1 << b)) != 0) cost += b % 2 == 0 ? 4 : 1;   // bit chẵn = L,T,R,B
+                    if ((diff & (1 << b)) != 0) cost += b % 2 == 0 ? 4 : 1;
                 if (cost < bestCost) { bestCost = cost; best = i; }
             }
             return _cache[mask] = best;
@@ -37,7 +34,7 @@ namespace BounceBlast.Gameplay
         static int Mask(string key)
         {
             int mask = 0;
-            foreach (string part in key.Split(new[] { '-' }, System.StringSplitOptions.RemoveEmptyEntries)) mask |= 1 << System.Array.IndexOf(Names, part);   // "" = ô tường đứng một mình
+            foreach (string part in key.Split(new[] { '-' }, System.StringSplitOptions.RemoveEmptyEntries)) mask |= 1 << System.Array.IndexOf(Names, part);
             return mask;
         }
     }

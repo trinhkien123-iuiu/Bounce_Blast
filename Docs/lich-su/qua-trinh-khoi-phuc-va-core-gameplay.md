@@ -945,3 +945,27 @@ Không có video/ảnh onboarding của game gốc trong thư mục asset; dựn
 - **Quà mở khoá**: mỗi booster mở khoá được tặng `GameConfig.freeBoosterOnUnlock` (2) lượt; số lượt mặc định ban đầu = 0 (trước đây 2); popup hướng dẫn hiện nhãn cam "x2" trên nút Use.
 - **Chuyển cảnh Out Of Capacity** đo từ `lose_coche.mp4` (f540 = bắt đầu tối nền, 30 fps): nền tối ease-out 0,3 s (alpha cuối 0,8); 0,30 s Play On trượt từ mép trái, Give Up từ mép phải (~0,4 s); 0,47 s chữ rơi từ trên xuống (~0,23 s, ~41 px/khung). Bỏ hiệu ứng nảy cũ. Thông số chỉnh trên `OutOfCapacityPopupView`.
 - **SFX**: tách âm thanh video gốc ra WAV (WinRT MediaTranscoder) rồi so phổ với toàn bộ clip rip: khớp **`SFX 290725 fail 2`** (0,79–0,88), bắt đầu ~0,37 s sau khi nền bắt đầu tối (lúc nút trượt vào); thêm `Sfx.OutOfCapacity` (id 23). Tiếng Error lúc hộp vượt sức chứa giữ nguyên. Chưa kiểm panel Fail cuối cùng (Give Up) vì không có video gốc riêng.
+
+## Dọn dự án (26/10, mức "trung bình")
+- Đã xoá: field GameConfig không ai dùng `homingStrength`, `fallSpeed`, `Theme.hudTint`; 6 dòng `using` thừa (AmmoBox, JellyDeformer, ModelUtil, GameUI, UiButtonFeedbackInstaller, TrayPainter). Biên dịch sạch.
+- Chờ duyệt (chưa xoá): 66 asset trong `_Project` không có tham chiếu nào (~2 MB: mesh tường cũ `Art/Ammo/Meshes/Wall`, sprite Menu/Popup/Shop/Win thừa, 3 âm thanh `SFX Error`, `SFX_Error01`, `magic (1)`, 3 prefab `BoosterBuyPanel`, `OutOfCapacityPanel`, `StreakRewardBar`); field serialized không dùng `LevelData.sourceImage`, `LevelPack.packName`, `UiSkin.boosterBuyPrefab`.
+- Thư mục cục bộ không vào git: `Captures` 273 MB, `Screenshots` 41 MB.
+- **Đã dọn xong asset (26/10)**: xoá 20 file (mesh tường cũ, 3 âm thanh trùng, 2 prefab Panel bọc trong Popup, 5 sprite Win tên rác); chuyển 46 file còn lại vào `Assets/_Archive/ChuaDung` (giữ GUID, có README). Đã kiểm không scene/prefab nào còn trỏ tới file đã xoá; console không lỗi.
+- **Dọn comment (26/10)**: xoá toàn bộ comment `//`, `/* */` trong `Scripts/` và `Editor/` (129 file); mỗi class/hàm có tài liệu chỉ giữ một dòng `/// <summary>` (câu đầu, ≤110 ký tự). Quy tắc mới ở `CODING_CONVENTION.md`. Lý do/số đo chi tiết xem lịch sử này hoặc git.
+- **Bổ sung mô tả (26/10)**: thêm một dòng `/// <summary>` ('Xử lý…' / 'Dùng cho…') cho 272 class và hàm public còn thiếu; không còn class/hàm public nào thiếu mô tả.
+
+## Cơ chế Stone `/st` (26/10, video `stone.mp4`)
+- Token `màu-1/st-3`: cube phủ đá 3 máu. Mỗi ô nhỏ (1 cube) là một viên đá riêng, bi màu nào cũng trừ máu (không tiêu hao bi), vỡ thì lộ đúng cube bên dưới (`StoneKind`, `BoardItemKind.Stone`, `LevelParser`, hook `BlockKind.OnHit`).
+- Đo từ video gốc: viên đá là cube **màu be** (~RGB 215,196,186), cùng dáng cube thường, không phải tảng đá nâu của prefab `BlockerStone` (đã trả về `_Archive/TinhNangChuaLam`). Dựng bằng cube trắng nhuộm be (`_BaseColor` 0.84,0.77,0.72).
+- SFX vỡ: `SFX 241025 CPI Stone Break` (`Sfx.StoneBreak`, id 24). Level đầu có đá: 91.
+- Chưa làm: dấu nứt theo máu (video không thấy rõ), popup New Feature cho Stone.
+- **VFX đá (26/10, sửa theo video `stone.mp4`)**: game gốc không có vòng sóng/tia lửa; đá vỡ thành các **mảnh đá be nhỏ** văng rồi rơi. Bỏ VFX lấy từ prefab BlockerStone; `StoneKind.Chips` văng 2 mảnh khi trúng, 6 mảnh khi vỡ (khối be nhỏ + `DebrisFx.Fling`). SFX: `Sfx.StoneHit` (id 25, clip vỡ đá cao tông, nhỏ) và `Sfx.StoneBreak`.
+- **Bề mặt đá (26/10)**: thêm `StoneDecal` – lớp sprite sần + vết nứt (vẽ bằng code, 3 giai đoạn × 3 biến thể) phủ mặt cube be; nứt thêm mỗi lần trúng (3 máu → 3 giai đoạn) để người chơi nhận ra đây là cơ chế đá.
+- **Ống Tunnel (26/10)**: ống lệch khỏi hố vì canh giữa theo bounds. Theo ảnh gốc, thân ống nằm trong hố của nó và **vành miệng (đầu nhả hộp) trùng mép hố phía hướng nhả**. `AmmoTunnel.AlignRimToHoleEdge` dời ống theo hướng nhả; chỉnh nhô ra/lõm vào bằng `GameConfig.tunnelRimOverhang` (0,03 ô). Đã kiểm 4 hướng ở level 13 (trái/phải) và 45 (trên/dưới).
+- **Tư thế ống theo hướng (26/10)**: lấy số người dùng chỉnh tay ở Lv92 cho node `Model/Tunnel`, lưu vào `GameConfig.tunnelPoseRight/Left/Up/Down` (phải: pos -0.32,-0.09,0.08 · rot 340.171,-0.194,14.076 · scale 1.3782; lên: 0,0.32,-0.12 · -15.563,-0.193,0.005 · 1.40364; trái: 0.38,0.55,-0.29 · -28.323,1.219,-19.384 · 1.36128). Hướng xuống chưa đo (use tắt). Lưu ý: chỉnh lúc Play sẽ mất khi dừng Play.
+
+## Home / xu / tim (26/10)
+- **Tim** (`PlayerData`): 5 tim tối đa, hồi 1 tim / 30 phút (lưu `bb_hearts`, `bb_heart_next`); thua một level (`GameManager.Lose`) trừ 1 tim, không trừ khi đang tim vô hạn (Bounce Streak / Shop). Hết tim: bấm Play ở Home báo "Out of hearts! Next in …" và mở Shop; Thử lại sau khi thua mà hết tim thì về Menu. Home hiện số tim (∞ khi vô hạn) + đồng hồ đếm ngược tới tim kế hoặc "Full".
+- **Xu**: người chơi mới có 600 xu (video gốc). Chi xu thật: mua booster (giá theo popup, không đủ xu thì báo "Not enough coins!"), nút Play On khi hết sức chứa 900 xu (không đủ thì hiện lại popup). Thưởng xu như cũ: thắng 50 xu, Shop, xu miễn phí.
+- Đã test logic bằng script: hồi tim theo giờ, trừ xu, tim vô hạn không bị trừ. Chưa thử bằng tay trong Menu/Gameplay.
+- Lưu ý: lúc test mình lỡ xoá save xu/tim vô hạn rồi đã khôi phục lại đúng giá trị cũ (2119550 xu).

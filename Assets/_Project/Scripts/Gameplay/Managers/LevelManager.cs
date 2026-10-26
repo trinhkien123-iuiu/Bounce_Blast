@@ -5,11 +5,7 @@ using BounceBlast.UI;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Quản lý LEVEL: nạp / dựng lại bàn chơi và khay đạn cho một level, cân camera, áp theme + nhạc theo độ khó, báo UI.
-    /// Phát hai sự kiện để các manager khác tự phản ứng (Observer): <see cref="OnLevelLoading"/> (sắp dọn level cũ) và
-    /// <see cref="OnLevelLoaded"/> (level mới đã dựng xong). Không biết gì về luật thắng/thua hay bấm hộp.
-    /// </summary>
+    /// <summary>Quản lý LEVEL: nạp / dựng lại bàn chơi và khay đạn cho một level, cân camera, áp theme + nhạc theo độ khó…</summary>
     public class LevelManager : MonoBehaviour
     {
         [Header("Level đầu tiên")]
@@ -21,9 +17,9 @@ namespace BounceBlast.Gameplay
         [Header("Debug (read only)")]
         public int currentLevel;
 
-        /// <summary>Sắp dọn level cũ (dừng coroutine, đóng popup…).</summary>
+        /// <summary>Sắp dọn level cũ (dừng coroutine, đóng popup…)</summary>
         public event Action OnLevelLoading;
-        /// <summary>Level mới đã dựng xong (bàn, khay, theme, nhạc, UI).</summary>
+        /// <summary>Level mới đã dựng xong (bàn, khay, theme, nhạc, UI)</summary>
         public event Action<LevelModel> OnLevelLoaded;
 
         public LevelModel Level { get; private set; }
@@ -39,6 +35,7 @@ namespace BounceBlast.Gameplay
         ThemeApplier _theme;
         CameraFitter _fitter;
 
+        /// <summary>Xử lý khởi tạo quản lý level</summary>
         public void Init(GameConfig config, ColorLibrary colors, GameUI ui, BoardController board, AmmoGridController grid,
                          ConveyorSystem conveyor, BallManager balls, ThemeApplier theme, CameraFitter fitter)
         {
@@ -48,11 +45,8 @@ namespace BounceBlast.Gameplay
 
         IEnumerator Start()
         {
-            // Đợi 1 khung hình cho Canvas của UI có kích thước màn hình thật: CameraFitter đo vị trí hàng HUD và hàng booster
-            // trên màn hình để cân bàn chơi, ở khung hình đầu các canvas chưa layout nên đo ra sai và bàn bị nhỏ hơn mức cần.
             yield return null;
 #if UNITY_EDITOR
-            // Level Editor ▸ "Chơi thử": chơi đúng level đang sửa (asset LevelData), không đụng startLevel / bộ level của GameConfig
             string playtest = UnityEditor.SessionState.GetString(PlaytestKey, "");
             if (playtest.Length > 0)
             {
@@ -64,10 +58,11 @@ namespace BounceBlast.Gameplay
             LoadLevel(continueFromSave || SceneFlow.FromMenu ? PlayerData.Level : startLevel);
         }
 
-        /// <summary>Khoá SessionState mà Level Editor ghi đường dẫn LevelData cần chơi thử.</summary>
+        /// <summary>Khoá SessionState mà Level Editor ghi đường dẫn LevelData cần chơi thử</summary>
         public const string PlaytestKey = "BB.Playtest.LevelPath";
-        LevelData _playtest;   // đang chơi thử từ Level Editor: Restart / Next đều chơi lại level này
+        LevelData _playtest;
 
+        /// <summary>Xử lý nạp và dựng một level</summary>
         public void LoadLevel(int id)
         {
             OnLevelLoading?.Invoke();
@@ -101,9 +96,10 @@ namespace BounceBlast.Gameplay
             SceneFlow.MarkLevelReady();
         }
 
+        /// <summary>Xử lý chơi lại level hiện tại</summary>
         public void Restart() => LoadLevel(currentLevel);
 
-        /// <summary>Sang level kế (tối đa level cuối).</summary>
+        /// <summary>Sang level kế (tối đa level cuối)</summary>
         public void LoadNext() => LoadLevel(Mathf.Min(currentLevel + 1, _config.MaxLevel));
 
         [ContextMenu("Debug/Next level")] void DebugNext() => LoadLevel(currentLevel + 1);

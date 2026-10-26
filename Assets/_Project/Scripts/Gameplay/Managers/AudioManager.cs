@@ -4,14 +4,15 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>Sự kiện âm thanh – map sang clip gốc theo enum KPAudioName của game (xem Docs/tham-khao/ripped-assets-analysis.md §4.5).</summary>
+    /// <summary>Sự kiện âm thanh – map sang clip gốc theo enum KPAudioName của game</summary>
     public enum Sfx
     {
         Button, Error, TapAmmo, BoxLaunch, BallHit, BigBlockBreak, CrateBreak,
         IceCrack, IceBreak, QmarkReveal, TunnelOut, CapacityWarning, Win, Lose, Confetti, Hammer, Magic,
-        HammerSwing, ShuffleWhoosh, ShufflePop, MagicHandTap, CapacityUp, BoosterUnlock, OutOfCapacity   // booster (thêm cuối: id lưu trong GameConfig)
+        HammerSwing, ShuffleWhoosh, ShufflePop, MagicHandTap, CapacityUp, BoosterUnlock, OutOfCapacity, StoneBreak, StoneHit, CoinCollect
     }
 
+    /// <summary>Dùng cho cấu hình một âm thanh</summary>
     [Serializable]
     public class SoundEntry
     {
@@ -22,6 +23,7 @@ namespace BounceBlast.Gameplay
         public Vector2 pitch = new Vector2(1f, 1f);
     }
 
+    /// <summary>Xử lý phát âm thanh và nhạc nền</summary>
     public class AudioManager : MonoBehaviour
     {
         static AudioManager _instance;
@@ -44,9 +46,9 @@ namespace BounceBlast.Gameplay
         AudioSource _music;
         int _next;
 
+        /// <summary>Xử lý khởi tạo bảng âm thanh</summary>
         public static void Init(GameObject host, SoundEntry[] sounds)
         {
-            // dùng AudioManager đặt sẵn trong scene (nếu host đã có), chưa có thì gắn mới
             if (_instance == null)
             {
                 _instance = host.GetComponent<AudioManager>();
@@ -80,6 +82,7 @@ namespace BounceBlast.Gameplay
             if (_music != null) _music.mute = !MusicOn;
         }
 
+        /// <summary>Xử lý phát một hiệu ứng âm thanh</summary>
         public static void Play(Sfx id)
         {
             if (_instance == null || !_instance._table.TryGetValue(id, out SoundEntry e) || e.clips == null || e.clips.Length == 0) return;
@@ -93,6 +96,7 @@ namespace BounceBlast.Gameplay
             src.PlayOneShot(e.clips[UnityEngine.Random.Range(0, e.clips.Length)], e.volume);
         }
 
+        /// <summary>Xử lý phát nhạc nền</summary>
         public static void PlayMusic(AudioClip clip)
         {
             if (_instance == null || clip == null || _instance._music.clip == clip) return;

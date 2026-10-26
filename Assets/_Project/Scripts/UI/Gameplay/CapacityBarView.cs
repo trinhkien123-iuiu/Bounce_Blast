@@ -5,13 +5,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab CapacityBar – gắn ngay trên gốc prefab.
-    ///
-    /// Giữ tham chiếu tới thanh fill / chữ % / icon vô hạn bằng Inspector, và tự lo phần hiển thị.
-    /// GameUI chỉ gọi <see cref="SetFill"/>. Tư thế (vị trí, xoay, cỡ), camera, font, màu chữ và độ bù dẹt của chữ
-    /// (scale y 1.33 – camera game ép dọc cos20) đều lưu sẵn trong prefab/scene; code không đặt lại.
-    /// </summary>
+    /// <summary>Script quản lý của prefab CapacityBar</summary>
     [DisallowMultipleComponent]
     public class CapacityBarView : MonoBehaviour
     {
@@ -26,9 +20,7 @@ namespace BounceBlast.UI
 
         int _shownKey = int.MinValue;
 
-        /// <param name="fill01">0..1 phần sức chứa đã dùng</param>
-        /// <param name="started">đã thả quả bi đầu tiên chưa</param>
-        /// <param name="infinite">level không giới hạn sức chứa</param>
+        /// <summary>Xử lý cập nhật thanh sức chứa và chữ %</summary>
         public void SetFill(float fill01, bool started, bool infinite)
         {
             float shown = Mathf.Clamp01(fill01);
@@ -39,7 +31,6 @@ namespace BounceBlast.UI
             }
             if (label != null)
             {
-                // chỉ dựng chuỗi khi số % đổi (trước đây cấp phát chuỗi mới mỗi frame)
                 int key = infinite ? -2 : !started ? -1 : Mathf.RoundToInt(fill01 * 100f);
                 if (key != _shownKey)
                 {
@@ -51,7 +42,7 @@ namespace BounceBlast.UI
             if (infiniteIcon != null) infiniteIcon.SetActive(infinite);
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (gọi khi dựng để lỗi hiện sớm, rõ ràng).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new System.Collections.Generic.List<string>();

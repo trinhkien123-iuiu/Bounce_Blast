@@ -3,21 +3,13 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Hiển thị HÒM GỖ (/cr-hp-id) bằng asset gốc:
-    /// <list type="bullet">
-    /// <item>Thân hòm: mảnh của <c>ModularPrimitiveCrate</c> (CrateCorner/CrateSide/CrateMid) ghép theo hàng xóm từng ô – <see cref="ModularPrimitiveBuilder"/>.</item>
-    /// <item>Ván chéo mặt trước: <c>CombinedCubicCrate/Model/Planes</c> (PlaneLeft/PlaneMid/PlaneRight) phủ cả hòm.</item>
-    /// <item>Vỡ: mảnh <c>Model/Exploder/CrateFracture</c> (CrateMid.002_cell…) văng ra ở từng ô.</item>
-    /// </list>
-    /// Luật hòm (bi màu nào cũng trừ máu, vỡ thì lộ vật bên trong) nằm ở BoardController/BoardBlock.
-    /// </summary>
+    /// <summary>Hiển thị HÒM GỖ (/cr-hp-id) bằng asset gốc</summary>
     public class CrateView : MonoBehaviour
     {
         Transform _fracture;
         readonly List<Transform> _cells = new List<Transform>();
 
-        /// <summary>Dựng hình hòm dưới <paramref name="parent"/>. <paramref name="modular"/> = prefab ModularPrimitiveCrate, <paramref name="combined"/> = CombinedCubicCrate.</summary>
+        /// <summary>Dựng hình hòm dưới parent</summary>
         public static CrateView Build(Transform parent, BoardItemData item, float cell, GameObject modular, GameObject combined, int layer)
         {
             var root = new GameObject("Visual").transform;
@@ -42,16 +34,12 @@ namespace BounceBlast.Gameplay
             return view;
         }
 
-        const float PlankWidthCells = 0.65f;   // bề ngang ván chéo (ô) – đo từ ảnh gốc Mechanics/hộp gỗ.jpg
-        const float PlankDepthCells = 0.12f;   // độ nhô của ván
-        const float PlankMarginCells = 0.3f;   // ván bắt đầu/kết thúc cách góc hòm
+        const float PlankWidthCells = 0.65f;
+        const float PlankDepthCells = 0.12f;
+        const float PlankMarginCells = 0.3f;
         float _cellSize;
 
-        /// <summary>
-        /// Ván chéo từ góc dưới-trái lên góc trên-phải (ảnh gốc: một dải gỗ sẫm chạy chéo cả hòm). CombinedCubic gốc đặt thanh
-        /// <c>PlaneMid</c> giữa hai cột <c>PlaneLeft/PlaneRight</c>; script đó bị strip nên ở đây dùng đúng mesh PlaneMid,
-        /// xoay theo đường chéo và kéo dài/bè theo kích thước hòm.
-        /// </summary>
+        /// <summary>Ván chéo từ góc dưới-trái lên góc trên-phải</summary>
         void AddPlanks(GameObject combined, Vector2 size)
         {
             Transform mid = combined.transform.Find("Model/Planes/PlaneMid/PlaneMid");
@@ -62,12 +50,12 @@ namespace BounceBlast.Gameplay
             GameObject bar = Instantiate(mid.gameObject, anchor, false);
             ModelUtil.StripPhysics(bar);
             bar.transform.localPosition = Vector3.zero;
-            bar.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);   // thanh dựng đứng trong mặt XY
+            bar.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
             bar.transform.localScale = Vector3.one;
             Renderer r = bar.GetComponentInChildren<Renderer>();
             if (r == null) return;
-            Bounds b = r.bounds;                                            // kích thước thanh ở scale 1 (x = bề ngang, y = chiều dài, z = độ dày)
-            bar.transform.localPosition = -(b.center - anchor.position);    // tâm thanh về gốc anchor
+            Bounds b = r.bounds;
+            bar.transform.localPosition = -(b.center - anchor.position);
             float m = PlankMarginCells * cell;
             Vector2 d = new Vector2(size.x - 2f * m, size.y - 2f * m);
             float len = d.magnitude;
@@ -80,7 +68,7 @@ namespace BounceBlast.Gameplay
             foreach (Transform t in anchor.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = gameObject.layer;
         }
 
-        /// <summary>z cục bộ của mặt trước thân hòm (nhỏ nhất) – để ván nằm ngay trên mặt.</summary>
+        /// <summary>z cục bộ của mặt trước thân hòm</summary>
         float FrontZ()
         {
             float minZ = 0f; bool has = false;
@@ -93,7 +81,7 @@ namespace BounceBlast.Gameplay
             return has ? minZ - 0.01f : -0.5f;
         }
 
-        /// <summary>Hòm vỡ: ẩn thân + ván, mỗi ô văng một bộ mảnh CrateFracture gốc.</summary>
+        /// <summary>Hòm vỡ: ẩn thân + ván, mỗi ô văng một bộ mảnh CrateFracture gốc</summary>
         public void Break()
         {
             Vector3 center = transform.position;

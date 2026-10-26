@@ -1,12 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Vệt sáng chéo quét ngang qua nút theo chu kỳ (video coin_panel gốc: nút Continue / x2 lóe một dải sáng
-/// nghiêng ~25° chạy trái → phải mỗi ~2.4s). Gắn trên nút; lớp mặt nạ <c>ShineMask</c> (cùng hình nút) và dải <c>ShineBand</c>
-/// nằm SẴN trong prefab dưới nút – sửa màu / độ rộng / góc nghiêng của dải ngay trong Hierarchy.
-/// Lúc chạy chỉ bật dải và trượt nó ngang qua nút. Dùng cho nút màn Thắng (code gọi Restart) và nền thẻ gói Shop (playOnEnable). Nút mới chưa có lớp: chuột phải component ▸ "Tạo lớp vệt sáng".
-/// </summary>
+/// <summary>Vệt sáng chéo quét ngang qua nút theo chu kỳ</summary>
 public class UiShineSweep : MonoBehaviour
 {
     [Tooltip("Dải sáng (con của ShineMask) – lưu tắt sẵn")] [SerializeField] RectTransform band;
@@ -20,7 +15,7 @@ public class UiShineSweep : MonoBehaviour
     bool _bandYSaved;
     bool _running, _once;
 
-    /// <summary>Bắt đầu quét (gọi khi nút hiện ra).</summary>
+    /// <summary>Bắt đầu quét (gọi khi nút hiện ra)</summary>
     public void Restart()
     {
         _t = 0f;
@@ -29,16 +24,17 @@ public class UiShineSweep : MonoBehaviour
         _once = false;
     }
 
-    /// <summary>Quét đúng một lượt ngay (VD khi rê chuột vào nút) rồi dừng.</summary>
+    /// <summary>Quét đúng một lượt ngay (VD khi rê chuột vào nút) rồi dừng</summary>
     public void SweepOnce()
     {
-        if (_running && !_once) return;   // đang quét theo chu kỳ thì thôi
+        if (_running && !_once) return;
         _t = 0f;
         _delay = 0f;
         _running = true;
         _once = true;
     }
 
+    /// <summary>Xử lý dừng vệt sáng quét</summary>
     public void Stop()
     {
         _running = false;
@@ -61,17 +57,16 @@ public class UiShineSweep : MonoBehaviour
         if (band.gameObject.activeSelf != on) band.gameObject.SetActive(on);
         if (!on) return;
         float w = ((RectTransform)transform).rect.width;
-        if (!_bandYSaved) { _bandY = band.anchoredPosition.y; _bandYSaved = true; }   // Y trong prefab
+        if (!_bandYSaved) { _bandY = band.anchoredPosition.y; _bandYSaved = true; }
         band.anchoredPosition = new Vector2(Mathf.Lerp(-travel, travel, _t / sweep) * w, _bandY);
     }
 
 #if UNITY_EDITOR
-    /// <summary>Dựng ShineMask + ShineBand dưới nút (chỉ dùng trong Editor, kết quả lưu vào prefab).</summary>
+    /// <summary>Dựng ShineMask + ShineBand dưới nút</summary>
     [ContextMenu("Tạo lớp vệt sáng")]
     void CreateLayers()
     {
         if (band != null) return;
-        // Lớp mặt nạ riêng cùng hình nút (không đặt Mask lên chính nút: sẽ cắt luôn icon thò ra ngoài như clapperboard)
         var maskGo = new GameObject("ShineMask", typeof(RectTransform));
         UnityEditor.Undo.RegisterCreatedObjectUndo(maskGo, "Tạo lớp vệt sáng");
         maskGo.transform.SetParent(transform, false);
@@ -98,7 +93,7 @@ public class UiShineSweep : MonoBehaviour
         }
         maskImg.raycastTarget = false;
         maskGo.AddComponent<Mask>().showMaskGraphic = false;
-        mrt.SetSiblingIndex(0); // dưới chữ/icon, trên nền nút
+        mrt.SetSiblingIndex(0);
 
         var go = new GameObject("ShineBand", typeof(RectTransform));
         go.transform.SetParent(maskGo.transform, false);

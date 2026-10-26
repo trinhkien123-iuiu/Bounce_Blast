@@ -6,14 +6,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Hiệu ứng hình + tiếng cho 4 booster. Dựng hoàn toàn bằng sprite sinh lúc chạy (vòng sóng, sao, tia, quầng) + ParticleSystem,
-    /// ghép với icon booster gốc (búa, bàn tay, mũi tên xáo, dấu cộng) – không cần prefab riêng, mọi cỡ/độ lâu chỉnh trong GameConfig → "Booster VFX".
-    ///  - Búa: búa to vung lên, đập xuống; sóng xung kích + nứt toả tia + rung camera; khối quanh điểm đập vỡ lan dần từ tâm ra.
-    ///  - Magic Hand: bàn tay phép hiện trên hộp, gõ một cái → vòng sáng + sao bay lên cùng màu hộp.
-    ///  - Shuffle: xoáy sao + mũi tên xáo quay ở giữa khay, từng hộp "nổ" sao theo vòng xoáy.
-    ///  - Capacity: dấu cộng bật to trên thanh Capacity, tia sáng xoay, hạt xanh bay lên, thanh nảy.
-    /// </summary>
+    /// <summary>Hiệu ứng hình + tiếng cho 4 booster</summary>
     public class BoosterFx : MonoBehaviour
     {
         public static BoosterFx Instance { get; private set; }
@@ -24,9 +17,10 @@ namespace BounceBlast.Gameplay
         Sprite _soft, _ring, _star, _streak;
         int _shakeId;
 
-        const int Order = 600;   // trên chữ HP (5–6) và mọi sprite khác
-        const float Z = -4f;     // trước bàn & khay (camera ở z = -24.8 nhìn +Z)
+        const int Order = 600;
+        const float Z = -4f;
 
+        /// <summary>Dựng đối tượng hiệu ứng booster</summary>
         public static BoosterFx Create(GameConfig config, Camera cam, Transform parent)
         {
             var go = new GameObject("BoosterFx");
@@ -45,7 +39,7 @@ namespace BounceBlast.Gameplay
             _ring = MakeSprite(128, (x, y, r) => Mathf.Clamp01(1f - Mathf.Abs(r - 0.82f) / 0.1f) * Mathf.Clamp01((1f - r) * 8f + 0.2f));
             _star = MakeSprite(128, (x, y, r) =>
             {
-                float v = Mathf.Sqrt(Mathf.Abs(x)) + Mathf.Sqrt(Mathf.Abs(y));   // đường astroid → sao 4 cánh nhọn
+                float v = Mathf.Sqrt(Mathf.Abs(x)) + Mathf.Sqrt(Mathf.Abs(y));
                 return Mathf.Clamp01(1f - v * 1.05f) * Mathf.Clamp01(1.4f - r) + Mathf.Pow(Mathf.Clamp01(1f - r * 2.2f), 2f);
             });
             _streak = MakeSprite(128, (x, y, r) => Mathf.Pow(Mathf.Clamp01(1f - Mathf.Abs(y) * 5f), 2f) * Mathf.Clamp01(1f - Mathf.Abs(x)));
@@ -53,11 +47,7 @@ namespace BounceBlast.Gameplay
 
         void OnDestroy() { if (Instance == this) Instance = null; }
 
-        // ------------------------------------------------------------------ BÚA
-        /// <summary>
-        /// Búa vung xuống điểm <paramref name="point"/>. <paramref name="onImpact"/> gọi đúng khoảnh khắc búa chạm (lúc đó mới phá khối).
-        /// Trả về coroutine đã chạy; có thể chờ để biết khi nào xong cả hiệu ứng.
-        /// </summary>
+        /// <summary>Búa vung xuống điểm point</summary>
         public Coroutine Hammer(Vector3 point, float radius, Action onImpact)
         {
             return StartCoroutine(HammerRoutine(new Vector3(point.x, point.y, Z), radius, onImpact));
@@ -68,15 +58,13 @@ namespace BounceBlast.Gameplay
             float c = Mathf.Max(radius, 0.5f);
             AudioManager.Play(Sfx.HammerSwing);
 
-            // vùng sẽ vỡ: vòng cảnh báo mờ thu nhỏ lại khi búa hạ xuống
             SpriteRenderer warn = Spawn(_ring, p, new Color(1f, 0.85f, 0.3f, 0f), radius * 2.6f, Order - 2);
 
             Sprite icon = _config != null ? _config.boosterHammerSprite : null;
             Transform hammer = null;
-            Vector2 d = Vector2.zero;   // từ chỗ cầm (cuối cán đỏ) tới mặt đầu búa (đầu vàng), theo đơn vị world đã nhân cỡ
+            Vector2 d = Vector2.zero;
             if (icon != null)
             {
-                // Sprite búa gốc: đầu vàng ở trên-trái, cán đỏ ở dưới-phải. Gốc của object cha = chỗ cầm, quay quanh đó → ĐẦU búa là thứ chạm đất.
                 hammer = new GameObject("Hammer").transform;
                 hammer.SetParent(transform, false);
                 float sz = Mathf.Clamp(c * 3.4f, 1.8f, 3f) / Mathf.Max(icon.bounds.size.x, icon.bounds.size.y);
@@ -94,12 +82,10 @@ namespace BounceBlast.Gameplay
                 shadow.transform.localScale = sr.transform.localScale; shadow.transform.localPosition = sr.transform.localPosition + new Vector3(0.12f, -0.18f, 0.01f);
             }
 
-            // Vị trí chỗ cầm sao cho mặt đầu búa nằm đúng điểm p khi búa xoay góc rot
             Func<float, Vector3> gripFor = rot => p - (Vector3)(Quaternion.Euler(0f, 0f, rot) * d);
-            const float rotBack = -40f, rotHit = 90f;   // 0° = tư thế sprite gốc (mặt đầu quay sang trái); +90° = mặt đầu quay xuống
+            const float rotBack = -40f, rotHit = 90f;
             Vector3 high = gripFor(rotBack) + new Vector3(c * 0.5f, c * 1.6f, 0f);
             Vector3 far = high + new Vector3(c * 1.8f, c * 1.4f, 0f);
-            // 1) lấy đà: búa bay vào từ xa, nhấc cao ra sau (đầu búa hướng lên)
             yield return Anim(0.28f, t =>
             {
                 float e = EaseOutBack(t);
@@ -108,7 +94,6 @@ namespace BounceBlast.Gameplay
                 warn.transform.localScale = Vector3.one * radius * 2.6f * Mathf.Lerp(1.5f, 1f, t);
             });
             yield return new WaitForSeconds(0.05f);
-            // 2) vung xuống nhanh (ease-in): xoay quanh chỗ cầm, đầu búa vạch cung rồi đập xuống p
             Vector3 hitGrip = gripFor(rotHit);
             yield return Anim(0.13f, t =>
             {
@@ -116,7 +101,6 @@ namespace BounceBlast.Gameplay
                 if (hammer != null) { hammer.position = Vector3.Lerp(high, hitGrip, e); hammer.rotation = Quaternion.Euler(0f, 0f, Mathf.Lerp(rotBack, rotHit, e)); }
             });
 
-            // 3) VA CHẠM
             onImpact?.Invoke();
             AudioManager.Play(Sfx.Hammer);
             Shake(c * 0.34f, 0.42f);
@@ -130,7 +114,6 @@ namespace BounceBlast.Gameplay
             Particles(p, _soft, new Color(1f, 1f, 1f, 0.6f), new Color(0.8f, 0.8f, 0.9f, 0f), 18, c * 3.2f, 1f, c * 1.3f, 0f, 0f);
             if (hammer != null)
             {
-                // nảy ngược nhẹ rồi mờ dần
                 Vector3 from = hammer.position; float rot0 = hammer.eulerAngles.z;
                 var renderers = hammer.GetComponentsInChildren<SpriteRenderer>();
                 yield return Anim(0.3f, t =>
@@ -143,7 +126,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        // ------------------------------------------------------------------ MAGIC HAND
+        /// <summary>Xử lý hiệu ứng Magic Hand trên hộp</summary>
         public void MagicHand(Vector3 point, Color tint)
         {
             StartCoroutine(MagicHandRoutine(new Vector3(point.x, point.y, Z), tint));
@@ -157,7 +140,7 @@ namespace BounceBlast.Gameplay
             Sprite icon = _config != null ? _config.boosterMagicSprite : null;
             SpriteRenderer hand = null, shadow = null;
             float baseS = 1f;
-            Vector3 tip = Vector3.zero;   // từ tâm sprite tới đầu ngón trỏ (đã nhân cỡ) – đầu ngón chạm đúng tâm hộp
+            Vector3 tip = Vector3.zero;
             if (icon != null)
             {
                 baseS = u * 1.7f / Mathf.Max(icon.bounds.size.x, icon.bounds.size.y);
@@ -165,7 +148,6 @@ namespace BounceBlast.Gameplay
                 hand = Spawn(icon, p, Color.white, baseS, Order + 5);
                 shadow = Spawn(icon, p, new Color(0f, 0f, 0f, 0.3f), baseS, Order + 4);
             }
-            // gõ tức thì (cùng lúc hộp bay lên): tay hiện từ trên-phải, nhấn xuống hộp, rồi nhấc lên – giữ nguyên tỉ lệ, chỉ phóng đều
             Vector3 from = p + new Vector3(u * 0.35f, u * 0.55f, 0f);
             Action<Vector3, float, float> place = (target, scale, alpha) =>
             {
@@ -174,7 +156,6 @@ namespace BounceBlast.Gameplay
                 shadow.transform.position = hand.transform.position + new Vector3(0.1f, -0.14f, 0.01f); shadow.transform.localScale = hand.transform.localScale; shadow.color = new Color(0f, 0f, 0f, 0.3f * alpha);
             };
             yield return Anim(0.07f, t => place(Vector3.Lerp(from, p, t * t), Mathf.Lerp(1.15f, 1f, t), Mathf.Clamp01(t * 4f)));
-            // chạm: vòng sáng + sao cùng màu hộp
             Flash(p, glow, u * 2.2f, 0.25f);
             Ring(p, new Color(glow.r, glow.g, glow.b, 0.95f), u * 0.3f, u * 2.4f, 0.5f);
             Ring(p, new Color(1f, 1f, 1f, 0.8f), u * 0.2f, u * 1.6f, 0.4f, 0.06f);
@@ -185,9 +166,7 @@ namespace BounceBlast.Gameplay
             if (hand != null) { Destroy(hand.gameObject); Destroy(shadow.gameObject); }
         }
 
-        // ------------------------------------------------------------------ SHUFFLE
-        /// <param name="center">tâm khay</param>
-        /// <param name="boxes">vị trí (world) các hộp để nổ sao</param>
+        /// <summary>Xử lý hiệu ứng xáo màu khay</summary>
         public void Shuffle(Vector3 center, IList<Vector3> boxes, float radius)
         {
             StartCoroutine(ShuffleRoutine(new Vector3(center.x, center.y, Z), boxes, radius));
@@ -207,11 +186,9 @@ namespace BounceBlast.Gameplay
             SpriteRenderer halo = Spawn(_soft, center, new Color(pink.r, pink.g, pink.b, 0f), radius * 2.6f, Order - 3);
             Ring(center, new Color(cyan.r, cyan.g, cyan.b, 0.9f), u * 0.3f, radius * 1.5f, 0.6f);
             Ring(center, new Color(pink.r, pink.g, pink.b, 0.8f), u * 0.2f, radius * 1.1f, 0.5f, 0.12f);
-            Ring(center, new Color(cyan.r, cyan.g, cyan.b, 0.7f), u * 0.3f, radius * 1.7f, 0.6f, 0.3f);   // sóng xanh thứ hai như bản gốc
-            // xoáy sao quanh tâm (hạt có vận tốc quỹ đạo)
+            Ring(center, new Color(cyan.r, cyan.g, cyan.b, 0.7f), u * 0.3f, radius * 1.7f, 0.6f, 0.3f);
             SwirlParticles(center, radius, pink, cyan);
 
-            // hộp nổ sao nối tiếp theo góc quanh tâm (cảm giác bị quét xoáy)
             var order = new List<int>(); for (int i = 0; i < boxes.Count; i++) order.Add(i);
             order.Sort((a, b) => Mathf.Atan2(boxes[a].y - center.y, boxes[a].x - center.x).CompareTo(Mathf.Atan2(boxes[b].y - center.y, boxes[b].x - center.x)));
             float total = 0.7f;
@@ -249,8 +226,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        // ------------------------------------------------------------------ CAPACITY
-        /// <param name="onArrive">gọi khi dấu cộng "chui" vào thanh – lúc đó mới cộng sức chứa thật để thanh chạy theo</param>
+        /// <summary>Xử lý hiệu ứng cộng sức chứa vào thanh</summary>
         public void Capacity(Vector3 barPos, Transform bar, float percent, Action onArrive)
         {
             StartCoroutine(CapacityRoutine(new Vector3(barPos.x, barPos.y, Z), bar, percent, onArrive));
@@ -264,9 +240,8 @@ namespace BounceBlast.Gameplay
             Sprite icon = _config != null ? _config.boosterPlusSprite : null;
             SpriteRenderer plus = null;
             float ps = 1f;
-            Vector3 hover = p + new Vector3(0f, u * 1.5f, 0f);   // dấu cộng bật lên phía trên thanh rồi rơi xuống thanh
+            Vector3 hover = p + new Vector3(0f, u * 1.5f, 0f);
             if (icon != null) { ps = u * 2.1f / Mathf.Max(icon.bounds.size.x, icon.bounds.size.y); plus = Spawn(icon, hover, Color.white, ps, Order + 5); }
-            // chữ "+25%" bên phải dấu cộng (không đè lên chữ CAPACITY của thanh)
             TextMeshPro txt = null;
             if (_config != null)
             {
@@ -285,7 +260,6 @@ namespace BounceBlast.Gameplay
             Ring(hover, new Color(gold.r, gold.g, gold.b, 0.8f), u * 0.2f, u * 3f, 0.45f, 0.1f);
             Particles(hover, _star, Color.white, green, 30, u * 4f, 1.1f, u * 0.28f, -u * 1.2f, 220f, up: true);
 
-            // 1) bật lên + giữ (0.45s)
             yield return Anim(0.45f, t =>
             {
                 float pop = EaseOutBack(Mathf.Clamp01(t / 0.4f));
@@ -296,7 +270,6 @@ namespace BounceBlast.Gameplay
                 rays.color = new Color(gold.r, gold.g, gold.b, 0.85f * Mathf.Clamp01(t * 3f));
                 halo.color = new Color(green.r, green.g, green.b, 0.45f * t);
             });
-            // 2) rơi vào thanh: dấu cộng + chữ thu nhỏ dần về giữa thanh, thanh bị kéo giãn (phồng ngang + dày lên) rồi bật lại
             yield return Anim(0.3f, t =>
             {
                 float e = t * t;
@@ -314,10 +287,9 @@ namespace BounceBlast.Gameplay
             Flash(p, new Color(1f, 0.95f, 0.5f), u * 3.2f, 0.3f);
             Ring(p, new Color(gold.r, gold.g, gold.b, 0.95f), u * 0.4f, u * 3.6f, 0.5f);
             Particles(p, _star, Color.white, gold, 22, u * 3.5f, 0.8f, u * 0.25f, 0f, 240f);
-            // 3) thanh bật lại kiểu lò xo (kéo giãn rồi co về)
             yield return Anim(0.45f, t =>
             {
-                float k = Mathf.Exp(-5f * t) * Mathf.Cos(t * 18f);   // dao động tắt dần quanh 1
+                float k = Mathf.Exp(-5f * t) * Mathf.Cos(t * 18f);
                 if (bar != null) bar.localScale = new Vector3(barScale.x * (1f + 0.08f * k), barScale.y * (1f + 0.5f * k), barScale.z);
                 halo.color = new Color(green.r, green.g, green.b, 0.45f * (1f - t));
             });
@@ -327,8 +299,7 @@ namespace BounceBlast.Gameplay
             Destroy(rays.gameObject); Destroy(halo.gameObject);
         }
 
-        // ------------------------------------------------------------------ MỞ KHOÁ BOOSTER
-        /// <summary>Nổ sao + vòng sáng ngay trên nút booster vừa mở khoá (screenPos = toạ độ màn hình của nút).</summary>
+        /// <summary>Nổ sao + vòng sáng ngay trên nút booster vừa mở khoá</summary>
         public void Unlock(Vector2 screenPos)
         {
             if (_cam == null) return;
@@ -344,8 +315,7 @@ namespace BounceBlast.Gameplay
             Particles(p, _star, Color.white, gold, 34, u * 4.2f, 0.9f, u * 0.3f, -u * 0.6f, 260f);
         }
 
-        // ------------------------------------------------------------------ Khối dựng chung
-        /// <summary>Rung camera: biên độ theo đơn vị thế giới, giảm dần.</summary>
+        /// <summary>Rung camera: biên độ theo đơn vị thế giới, giảm dần</summary>
         public void Shake(float amplitude, float duration)
         {
             if (_cam == null) return;
@@ -357,7 +327,7 @@ namespace BounceBlast.Gameplay
             Vector3 basePos = _cam.transform.position;
             for (float t = 0f; t < dur; t += Time.unscaledDeltaTime)
             {
-                if (id != _shakeId || _cam == null) yield break;   // có cú rung mới hơn → nhường
+                if (id != _shakeId || _cam == null) yield break;
                 float k = 1f - t / dur;
                 _cam.transform.position = basePos + (Vector3)(UnityEngine.Random.insideUnitCircle * amp * k * k);
                 yield return null;
@@ -396,7 +366,7 @@ namespace BounceBlast.Gameplay
             Destroy(a.gameObject); Destroy(b.gameObject);
         }
 
-        /// <summary>Nứt toả tia từ điểm đập: những vệt sáng mảnh dài ra rồi mờ dần.</summary>
+        /// <summary>Nứt toả tia từ điểm đập: những vệt sáng mảnh dài ra rồi mờ dần</summary>
         void Cracks(Vector3 p, float length)
         {
             int n = 9;
@@ -424,7 +394,6 @@ namespace BounceBlast.Gameplay
             Destroy(r.gameObject);
         }
 
-        // ------------------------------------------------------------------ Hạt
         void Particles(Vector3 p, Sprite sprite, Color c0, Color c1, int count, float speed, float life, float size, float gravity, float spin, bool up = false)
         {
             var go = new GameObject("Particles"); go.transform.SetParent(transform, false); go.transform.position = p;
@@ -477,13 +446,12 @@ namespace BounceBlast.Gameplay
             return m;
         }
 
-        // ------------------------------------------------------------------ Tiện ích
         SpriteRenderer Spawn(Sprite s, Vector3 p, Color col, float size, int order)
         {
             var go = new GameObject("Fx"); go.transform.SetParent(transform, false); go.transform.position = p;
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = s; sr.color = col; sr.sortingOrder = order; sr.sharedMaterial = _spriteMat;
-            go.transform.localScale = Vector3.one * size;   // sprite sinh ra có cỡ 1 đơn vị; icon booster có cỡ riêng, nơi gọi tự chia
+            go.transform.localScale = Vector3.one * size;
             return sr;
         }
 
@@ -507,7 +475,7 @@ namespace BounceBlast.Gameplay
                     px[y * size + x] = new Color32(255, 255, 255, a);
                 }
             tex.SetPixels32(px); tex.Apply(false, true);
-            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);   // 1 đơn vị thế giới
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
         }
     }
 }

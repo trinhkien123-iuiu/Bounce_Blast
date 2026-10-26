@@ -6,17 +6,11 @@ using BounceBlast.UI;
 
 namespace BounceBlast.EditorTools
 {
-    /// <summary>
-    /// Giúp XEM và SỬA popup ngay trong Editor (popup nằm sẵn trong Hierarchy nhưng TẮT, nên chọn vào thì Scene view trống).
-    ///
-    /// 1) Inspector của mọi popup (kế thừa <see cref="PopupViewBase"/>) có hai nút: "Xem trước" (bật + đưa Scene view tới đúng chỗ)
-    ///    và "Tắt xem trước".
-    /// 2) <see cref="PopupSaveGuard"/>: mỗi lần LƯU scene, mọi popup đang bật sẽ tự bị tắt. Từng có lần scene lưu FailPopup ở trạng thái
-    ///    bật → popup trong suốt phủ cả màn hình nuốt mọi cú bấm vào khay đạn (Docs 7.8).
-    /// </summary>
+    /// <summary>Giúp XEM và SỬA popup ngay trong Editor</summary>
     [CustomEditor(typeof(PopupViewBase), true)]
     public class PopupViewEditor : Editor
     {
+        /// <summary>Xử lý hiện Inspector của popup</summary>
         public override void OnInspectorGUI()
         {
             var view = (PopupViewBase)target;
@@ -46,7 +40,6 @@ namespace BounceBlast.EditorTools
             EditorUtility.SetDirty(view.gameObject);
             if (!show) return;
             Selection.activeGameObject = view.gameObject;
-            // Canvas Overlay hiện trong Scene view thành khung khổng lồ ở gốc toạ độ → đưa camera tới đó
             if (SceneView.lastActiveSceneView != null)
             {
                 SceneView.lastActiveSceneView.in2DMode = true;
@@ -55,7 +48,7 @@ namespace BounceBlast.EditorTools
         }
     }
 
-    /// <summary>Lưu scene thì tắt mọi popup đang bật (tránh lưu nhầm popup trong suốt chặn chuột).</summary>
+    /// <summary>Lưu scene thì tắt mọi popup đang bật</summary>
     [InitializeOnLoad]
     public static class PopupSaveGuard
     {

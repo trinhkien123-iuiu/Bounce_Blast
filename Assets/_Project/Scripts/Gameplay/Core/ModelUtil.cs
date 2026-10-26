@@ -1,20 +1,19 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>Tiện ích cho prefab rip từ game gốc (dùng chung cho gạch, hộp đạn, bi, hòm…): gỡ vật lý/TMP hỏng, căn cỡ hình.</summary>
+    /// <summary>Tiện ích cho prefab rip từ game gốc</summary>
     public static class ModelUtil
     {
-        /// <summary>Prefab gốc còn "3D Text/Text (TMP)": component TMP đã bị rip mất, chỉ còn MeshRenderer rỗng → xoá.</summary>
+        /// <summary>Prefab gốc còn "3D Text/Text</summary>
         public static void RemoveStrayText(Transform root)
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
                 if (t != null && t.name == "3D Text") { Object.Destroy(t.gameObject); }
         }
 
-        /// <summary>Scale ĐỒNG ĐỀU sao cho bề ngang bounds = width (giữ đúng tỉ lệ mesh đã xoay, VD jelly) và căn giữa.</summary>
+        /// <summary>Scale ĐỒNG ĐỀU sao cho bề ngang bounds = width</summary>
         public static void FitVisualUniform(Transform v, float width)
         {
             v.localScale = Vector3.one;
@@ -25,7 +24,7 @@ namespace BounceBlast.Gameplay
             {
                 if (r is ParticleSystemRenderer || r is TrailRenderer || !r.enabled || !r.gameObject.activeInHierarchy) continue;
                 if (r.GetComponent<TextMeshPro>() != null) continue;
-                if (r.GetComponentInParent<IceBlockerView>() != null) continue;   // lớp băng bọc NGOÀI hộp: không tính vào cỡ hộp (hộp đóng băng cỡ như hộp active)
+                if (r.GetComponentInParent<IceBlockerView>() != null) continue;
                 if (!has) { b = r.bounds; has = true; } else b.Encapsulate(r.bounds);
             }
             if (!has) return;
@@ -35,6 +34,7 @@ namespace BounceBlast.Gameplay
             v.localPosition = offset * s;
         }
 
+        /// <summary>Xử lý gỡ vật lý khỏi model rip</summary>
         public static void StripPhysics(GameObject go)
         {
             bool playing = Application.isPlaying;

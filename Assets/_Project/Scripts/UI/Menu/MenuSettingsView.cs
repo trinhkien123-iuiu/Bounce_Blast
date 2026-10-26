@@ -5,11 +5,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab MenuSettingsCanvas – trang Settings của MenuGame (tab cuối thanh dưới đáy).
-    /// Ba công tắc âm thanh / nhạc / rung giữ trạng thái của riêng nó và chỉ báo ra ngoài bằng sự kiện;
-    /// ghi vào AudioManager / PlayerPrefs là việc của <c>MenuManager</c>. Mục chưa làm (Support, Terms, Privacy, Restore) tắt sẵn trong prefab. (Popup Settings trong Gameplay là <see cref="SettingsPopupView"/>.)
-    /// </summary>
+    /// <summary>Script quản lý của prefab MenuSettingsCanvas</summary>
     [DisallowMultipleComponent]
     public class MenuSettingsView : MonoBehaviour
     {
@@ -35,11 +31,12 @@ namespace BounceBlast.UI
             {
                 row.value = !row.value;
                 row.Refresh();
-                changed(row.value);              // báo ra ngoài TRƯỚC (có thể vừa tắt âm) rồi mới phát tiếng bấm
+                changed(row.value);
                 AudioManager.Play(Sfx.Button);
             });
         }
 
+        /// <summary>Xử lý hiện trạng thái âm thanh, nhạc, rung</summary>
         public void SetValues(bool soundOn, bool musicOn, bool vibrationOn)
         {
             sound.value = soundOn; sound.Refresh();
@@ -47,7 +44,7 @@ namespace BounceBlast.UI
             vibration.value = vibrationOn; vibration.Refresh();
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

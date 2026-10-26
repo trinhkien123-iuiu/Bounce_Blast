@@ -3,17 +3,16 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Hòm gỗ: bi màu nào cũng trừ máu và nảy tiếp (không tiêu hao), tính vào điều kiện thắng.
-    /// Hình ghép từ mảnh gốc (<see cref="CrateView"/>); vỡ thì văng ván + lộ các vật nằm bên trong.
-    /// </summary>
+    /// <summary>Hòm gỗ: bi màu nào cũng trừ máu và nảy tiếp</summary>
     public class CrateKind : BlockKind
     {
         public override BoardItemKind Kind => BoardItemKind.Crate;
         public override bool HitByAnyColor => true;
         public override bool ShearMesh => false;
+        /// <summary>Dùng cho chọn vật liệu hòm gỗ</summary>
         public override Material Material(GameConfig config, ColorLibrary colors, BoardItemData item) => config.crateMaterial;
 
+        /// <summary>Xử lý dựng hình hòm gỗ</summary>
         public override BlockView Build(BoardController board, BoardItemData item, Transform parent, Vector2 size, List<RectInt> parts)
         {
             GameConfig cfg = board.Config;
@@ -24,6 +23,7 @@ namespace BounceBlast.Gameplay
             };
         }
 
+        /// <summary>Xử lý khi hòm vỡ: lộ vật bên trong</summary>
         public override void OnBroken(BoardController board, BoardBlock block)
         {
             CrateView crate = block.GetComponentInChildren<CrateView>();
@@ -31,7 +31,6 @@ namespace BounceBlast.Gameplay
             Vfx.Spawn(board.Config.crateBreakVfx, block.transform.position, new Color(0.85f, 0.6f, 0.35f),
                       Mathf.Max(block.Cells.width, block.Cells.height) * board.CellSize);
             AudioManager.Play(Sfx.CrateBreak);
-            // hòm có thể đã rơi xuống → dời vật bên trong theo cùng độ lệch
             Vector2Int shift = block.Cells.min - block.OriginCells.min;
             foreach (BoardItemData inner in block.Contents)
             {

@@ -8,16 +8,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của popup THẮNG – gắn trên gốc SuccessCanvas.prefab. Nó SỞ HỮU toàn bộ chuỗi màn thắng:
-    ///   1) màn logo "BOUNCE BLAST" (clip gốc Banner Animation: chữ bật lần lượt, BLAST nhảy lên rồi đập xuống) + pháo giấy + pháo hoa;
-    ///   2) bảng thắng nảy lên, đống xu rơi xuống, chớp sáng + tia, chữ PERFECT!, sao lấp lánh, vệt sáng quét nút.
-    /// Mọi node cần thiết giữ bằng [SerializeField] (không Find theo tên). GameUI chỉ gọi <see cref="Play"/> và nghe <see cref="OnContinue"/>.
-    ///
-    /// Mọi hình tĩnh (cỡ chữ logo, chỗ đứng đống xu, quầng sáng, chớp sáng, lớp sao, vệt sáng nút, pháo hoa, mưa pháo)
-    /// nằm SẴN trong prefab – sửa trong Hierarchy; code chỉ bật/tắt theo trình tự và diễn hoạt theo thời gian.
-    /// Popup DÙNG LẠI qua nhiều màn thắng: trạng thái đổi trong lúc chạy luôn tính từ giá trị prefab ghi lúc Awake, không cộng dồn.
-    /// </summary>
+    /// <summary>Script quản lý của popup THẮNG</summary>
     [DisallowMultipleComponent]
     public class SuccessPopupView : PopupViewBase
     {
@@ -70,10 +61,22 @@ namespace BounceBlast.UI
         [SerializeField] TMP_Text featureLabel;
         [SerializeField] Image featureIcon;
 
+        [Header("Ô tiền trên đầu bảng thắng – xu bay từ đống xu vào đây")]
+        [SerializeField] GameObject coinCounter;
+        [SerializeField] TMP_Text coinCounterAmount;
+        [Tooltip("Icon xu trong ô tiền (đích của xu bay)")] [SerializeField] RectTransform coinCounterIcon;
+        [Tooltip("Mẫu xu bay (tắt sẵn)")] [SerializeField] RectTransform flyCoinTemplate;
+        [Tooltip("Nơi xu bắt đầu bay (đống xu)")] [SerializeField] Transform coinSource;
+        [SerializeField, Range(4, 30)] int flyCoinCount = 12;
+        [SerializeField] float flyCoinTime = 0.6f;
+        [SerializeField] float flyCoinStagger = 0.06f;
+
+        int _prize;
+
         float _featureFrom, _featureTo;
         bool _featureOn;
 
-        /// <summary>Đặt dữ liệu thanh New Booster trước khi Play: icon null = ẩn thanh (đã mở hết booster).</summary>
+        /// <summary>Đặt dữ liệu thanh New Booster trước khi Play</summary>
         public void SetFeature(Sprite icon, float from, float to)
         {
             _featureOn = icon != null;
@@ -102,7 +105,7 @@ namespace BounceBlast.UI
                 if (k >= 1f) break;
                 yield return null;
             }
-            if (featureIcon != null)   // chạm đích: icon nảy lên
+            if (featureIcon != null)
             {
                 Transform ic = featureIcon.transform; Vector3 b = BaseScale(ic);
                 for (float t = 0f; t < 0.35f; t += Time.unscaledDeltaTime)
@@ -114,11 +117,10 @@ namespace BounceBlast.UI
             }
         }
 
-        /// <summary>Người chơi bấm Continue hoặc x2.</summary>
+        /// <summary>Người chơi bấm Continue hoặc x2</summary>
         public event Action OnContinue;
 
-        Vector3 _coinPos, _coinScale = Vector3.one;   // chỗ dừng cuối của đống xu = giá trị trong prefab
-        // cỡ trong prefab của mọi thứ có hiệu ứng nảy (bảng, PERFECT!) – nảy quanh giá trị này, không về 1 cứng
+        Vector3 _coinPos, _coinScale = Vector3.one;
         readonly Dictionary<Transform, Vector3> _baseScale = new Dictionary<Transform, Vector3>();
         Vector3 BaseScale(Transform t) { Vector3 v; if (!_baseScale.TryGetValue(t, out v)) _baseScale[t] = v = t.localScale; return v; }
 
@@ -136,7 +138,6 @@ namespace BounceBlast.UI
 
         void Update()
         {
-            // quầng sáng thở nhẹ (thời gian tuyệt đối, không phụ thuộc fps/timeScale)
             if (areaGlow != null && areaGlow.gameObject.activeInHierarchy)
             {
                 Color c = areaGlow.color;
@@ -151,17 +152,14 @@ namespace BounceBlast.UI
             OnContinue?.Invoke();
         }
 
-        /// <summary>
-        /// Chạy cả chuỗi màn thắng. GameManager chờ coroutine này xong (yield return) rồi mới sang màn kế.
-        /// </summary>
-        /// <param name="fireworksHold">giây giữ màn logo + pháo hoa sau khi chữ BLAST bật xong (GameConfig.winFireworksTime)</param>
+        /// <summary>Chạy cả chuỗi màn thắng. GameManager chờ coroutine này xong</summary>
         public IEnumerator Play(int level, LevelDifficulty difficulty, int coins, float fireworksHold)
         {
             OpenBase(difficulty);
             if (container != null) container.gameObject.SetActive(false);
+            if (coinCounter != null) coinCounter.SetActive(false);   // màn logo / pháo hoa chưa hiện ô tiền
             if (dim != null) dim.gameObject.SetActive(true);
 
-            // ---- 1) màn logo ----
             if (logoArea != null && logo != null)
             {
                 logoArea.gameObject.SetActive(true);
@@ -169,7 +167,6 @@ namespace BounceBlast.UI
                 PlayLogoEffects();
                 yield return AnimateLogo();
             }
-            // giữ màn logo + pháo hoa thêm một lúc cho kịp ngắm; rải thêm 2 tiếng pháo nổ trong lúc pháo hoa bắn
             yield return new WaitForSecondsRealtime(fireworksHold * 0.25f);
             AudioManager.Play(Sfx.Confetti);
             yield return new WaitForSecondsRealtime(fireworksHold * 0.35f);
@@ -178,11 +175,12 @@ namespace BounceBlast.UI
             if (logoArea != null) logoArea.gameObject.SetActive(false);
             if (dim != null) dim.gameObject.SetActive(false);
 
-            // ---- 2) bảng thắng ----
             if (container == null) yield break;
             container.gameObject.SetActive(true);
             if (levelText != null) levelText.text = "Level " + level;
             if (prizeText != null) prizeText.text = coins.ToString();
+            _prize = coins;
+            if (coinCounter != null) { coinCounter.SetActive(false); }
             CanvasGroup cg = GetComponent<CanvasGroup>();
             for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / 0.35f)
             {
@@ -195,10 +193,7 @@ namespace BounceBlast.UI
             if (container != null) yield return PanelEffects();
         }
 
-        /// <summary>
-        /// Hiệu ứng bảng thắng như video gốc: xu nổ tia sáng + sao, quầng sáng, chữ PERFECT! bật lên.
-        /// Hình (vị trí, cỡ, ảnh, thứ tự vẽ của hạt) nằm sẵn trong prefab; ở đây chỉ bật/tắt và diễn hoạt theo thời gian.
-        /// </summary>
+        /// <summary>Hiệu ứng bảng thắng như video gốc</summary>
         IEnumerator PanelEffects()
         {
             foreach (Transform t in burstEffects)
@@ -211,13 +206,11 @@ namespace BounceBlast.UI
             if (perfect != null) perfect.localScale = Vector3.zero;
             Time.timeScale = 0;
 
-            // (video coin_panel) 1) đống xu rơi xuống: to & cao hơn rồi thu về đúng chỗ trên bục.
-            // Tính theo THỜI GIAN TUYỆT ĐỐI: khung hình khựng chỉ làm hiện chậm một nhịp chứ không làm đống xu nhảy từng bước.
             float coinStart = Time.unscaledTime;
             while (true)
             {
                 float k = Mathf.Clamp01((Time.unscaledTime - coinStart) / 0.38f);
-                float e = 1f - (1f - k) * (1f - k) * (1f - k);   // ease-out cubic: mềm hơn khi chạm đáy
+                float e = 1f - (1f - k) * (1f - k) * (1f - k);
                 if (coinIcon != null)
                 {
                     coinIcon.localScale = _coinScale * Mathf.Lerp(coinDropScale, 1f, e);
@@ -228,7 +221,6 @@ namespace BounceBlast.UI
             }
             if (coinIcon != null) { coinIcon.localScale = _coinScale; coinIcon.localPosition = _coinPos; }
 
-            // 2) chớp sáng trắng tròn + tia toả sau xu, 2 nhịp (~0.5s/nhịp)
             Graphic[] flashes = { coinFlash, coinFlashCore, coinRays };
             foreach (Graphic g in flashes) if (g != null) { SetAlpha(g, 0f); g.gameObject.SetActive(true); }
             Vector3 raysRot = coinRays != null ? coinRays.rectTransform.localEulerAngles : Vector3.zero;
@@ -251,11 +243,80 @@ namespace BounceBlast.UI
             if (coinRays != null) coinRays.rectTransform.localEulerAngles = raysRot;
             if (perfect != null) perfect.localScale = BaseScale(perfect);
 
-            // 3) sao lấp lánh liên tục quanh xu  4) vệt sáng quét qua nút Continue / x2
             if (sparkles != null) sparkles.Play();
             foreach (UiShineSweep s in shines) if (s != null) s.Restart();
             StartCoroutine(FillFeature());
+            StartCoroutine(CollectCoins());
 
+        }
+
+        /// <summary>Xử lý xu bay từ đống xu vào ô tiền: mỗi xu tới thì ô tiền nảy, số tăng dần, có tiếng xu</summary>
+        IEnumerator CollectCoins()
+        {
+            if (coinCounter == null || coinCounterAmount == null || coinCounterIcon == null || flyCoinTemplate == null || coinSource == null || _prize <= 0) yield break;
+            int total = PlayerData.Coins, start = Mathf.Max(0, total - _prize);
+            coinCounterAmount.text = start.ToString();
+            coinCounter.SetActive(true);
+            var group = coinCounter.GetComponent<CanvasGroup>();
+            if (group == null) group = coinCounter.AddComponent<CanvasGroup>();
+            Vector3 baseScale = coinCounter.transform.localScale;
+            for (float t = 0f; t < 0.3f; t += Time.unscaledDeltaTime)
+            {
+                group.alpha = t / 0.3f;
+                coinCounter.transform.localScale = baseScale * EaseOutBack(t / 0.3f);
+                yield return null;
+            }
+            group.alpha = 1f; coinCounter.transform.localScale = baseScale;
+            yield return new WaitForSecondsRealtime(0.15f);
+
+            int n = flyCoinCount, arrived = 0, shown = start;
+            float perCoin = (float)_prize / n;
+            for (int i = 0; i < n; i++)
+            {
+                StartCoroutine(FlyOneCoin(i, n, () =>
+                {
+                    arrived++;
+                    shown = start + Mathf.RoundToInt(perCoin * arrived);
+                    if (arrived == n) shown = total;
+                    coinCounterAmount.text = shown.ToString();
+                    AudioManager.Play(Sfx.CoinCollect);
+                    StartCoroutine(PopCounter(baseScale));
+                }));
+                yield return new WaitForSecondsRealtime(flyCoinStagger);
+            }
+            while (arrived < n) yield return null;
+            coinCounterAmount.text = total.ToString();
+        }
+
+        IEnumerator FlyOneCoin(int index, int total, Action onArrive)
+        {
+            RectTransform coin = Instantiate(flyCoinTemplate, flyCoinTemplate.parent);
+            coin.gameObject.SetActive(true);
+            Vector3 from = coinSource.position + (Vector3)(UnityEngine.Random.insideUnitCircle * 0.12f);
+            Vector3 to = coinCounterIcon.position;
+            Vector3 mid = (from + to) * 0.5f + new Vector3(UnityEngine.Random.Range(-0.4f, 0.4f), UnityEngine.Random.Range(0.2f, 0.6f), 0f);
+            Vector3 s0 = flyCoinTemplate.localScale * 1.1f, s1 = flyCoinTemplate.localScale * 0.6f;
+            for (float t = 0f; t < flyCoinTime; t += Time.unscaledDeltaTime)
+            {
+                float k = t / flyCoinTime, e = k * k * (3f - 2f * k);
+                Vector3 p = (1f - e) * (1f - e) * from + 2f * (1f - e) * e * mid + e * e * to;
+                coin.position = p;
+                coin.localScale = Vector3.Lerp(s0, s1, e);
+                coin.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(k * 6f + index) * 25f);
+                yield return null;
+            }
+            Destroy(coin.gameObject);
+            onArrive();
+        }
+
+        IEnumerator PopCounter(Vector3 baseScale)
+        {
+            for (float t = 0f; t < 0.14f; t += Time.unscaledDeltaTime)
+            {
+                coinCounterIcon.localScale = Vector3.one * (1f + 0.25f * Mathf.Sin(t / 0.14f * Mathf.PI));
+                yield return null;
+            }
+            coinCounterIcon.localScale = Vector3.one;
         }
 
         static void SetAlpha(Graphic g, float a) { Color c = g.color; c.a = a; g.color = c; }
@@ -267,7 +328,7 @@ namespace BounceBlast.UI
             return k < 0.3f ? k / 0.3f : 1f - (k - 0.3f) / 0.7f;
         }
 
-        /// <summary>Pháo giấy + pháo hoa của màn thắng (thông số nằm trên từng UiConfetti / ParticleSystem trong prefab).</summary>
+        /// <summary>Pháo giấy + pháo hoa của màn thắng</summary>
         void PlayLogoEffects()
         {
             if (confettiRoot != null) confettiRoot.SetActive(true);
@@ -297,8 +358,7 @@ namespace BounceBlast.UI
             if (go != null) go.SetActive(false);
         }
 
-        /// <summary>Chạy clip gốc "Banner Animation" (1.75s) trên Animator của Logo; code chỉ phát tiếng theo mốc thời gian của clip.
-        /// Nhanh / chậm chỉnh ở Speed của state trong Banner.controller – mốc tiếng tính theo thời gian clip nên tự khớp.</summary>
+        /// <summary>Chạy clip gốc "Banner Animation"</summary>
         IEnumerator AnimateLogo()
         {
             if (logoAnimator == null) yield break;
@@ -309,7 +369,6 @@ namespace BounceBlast.UI
             float clipLength = clips.Length > 0 ? clips[0].clip.length : 0f;
             int next = 0;
             bool slammed = false;
-            // t = vị trí đang phát trong clip (giây của clip, không phải giây thực)
             for (float t = 0f; t < clipLength; t = logoAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime * clipLength)
             {
                 while (next < letterSoundTimes.Length && t >= letterSoundTimes[next]) { AudioManager.Play(Sfx.QmarkReveal); next++; }

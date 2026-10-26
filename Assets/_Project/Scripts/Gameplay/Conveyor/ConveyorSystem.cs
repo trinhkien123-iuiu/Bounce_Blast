@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>Hai máng trái/phải. Chọn máng cho hộp vừa bấm và cho hộp bay từ khay vào chân máng.</summary>
+    /// <summary>Hai máng trái/phải. Chọn máng cho hộp vừa bấm và cho hộp bay từ khay vào chân máng</summary>
     public class ConveyorSystem : MonoBehaviour
     {
         ConveyorLane _left;
@@ -13,6 +13,7 @@ namespace BounceBlast.Gameplay
         public int PendingBalls => _left.PendingBalls + _right.PendingBalls;
         public bool IsBusy => _left.IsBusy || _right.IsBusy;
 
+        /// <summary>Xử lý khởi tạo hệ máng</summary>
         public void Init(GameConfig config, BallManager balls)
         {
             _config = config;
@@ -21,10 +22,7 @@ namespace BounceBlast.Gameplay
             CreateArrows();
         }
 
-        /// <summary>
-        /// Mũi tên trôi trên mặt máng. Mẫu lấy từ sprite gốc "ArrowL" trong KPConveyorSlot của scene
-        /// (sprite Arrow, scale 0.04); 2 mũi tên mẫu đứng yên được ẩn đi.
-        /// </summary>
+        /// <summary>Mũi tên trôi trên mặt máng</summary>
         void CreateArrows()
         {
             SpriteRenderer template = null;
@@ -45,6 +43,7 @@ namespace BounceBlast.Gameplay
             _right.CreateArrows(template.sprite, c, scale, 2);
         }
 
+        /// <summary>Xử lý đổi màu mũi tên theo độ khó</summary>
         public void SetArrowColor(Color c)
         {
             _left.SetArrowColor(c);
@@ -57,11 +56,7 @@ namespace BounceBlast.Gameplay
             go.transform.SetParent(transform, false);
             var lane = go.AddComponent<ConveyorLane>();
 
-            // Đường chạy lấy theo khe máng của collider gốc (Conveyor Wall 2D - SMALL):
-            // làn dọc x≈0.49 (trái) / 10.11 (phải), làn ngang y≈8.09, cửa phun x≈5.30.
             const float laneX = 0.49f, topY = 8.09f, outletX = 5.30f, r = 0.62f, z = -1.15f;
-            // Máy xay gốc nằm ở chân máng (Level/Board - Default/Crushers/Crusher LEFT|RIGHT, y≈-5.89):
-            // hộp đậu ngay trên máy xay, bi bắt đầu chạy lên từ đó.
             GameObject crusherGo = GameObject.Find(mirror ? "Crusher RIGHT" : "Crusher LEFT");
             CrusherFx crusher = null;
             float bottomY = _config.arena.yMin + 0.55f;
@@ -70,17 +65,14 @@ namespace BounceBlast.Gameplay
                 crusher = crusherGo.GetComponent<CrusherFx>();
                 if (crusher == null) crusher = crusherGo.AddComponent<CrusherFx>();
                 crusher.Config = _config;
-                bottomY = -5.89f + 0.55f; // y gốc của Crusher LEFT/RIGHT (đo theo góc nhìn cũ, trước khi là phẳng)
+                bottomY = -5.89f + 0.55f;
             }
             var pts = new List<Vector3> { new Vector3(laneX, bottomY, z), new Vector3(laneX, topY - r, z) };
             AddArc(pts, new Vector2(laneX + r, topY - r), r, 180f, 90f, z);
             pts.Add(new Vector3(outletX - r, topY, z));
             AddArc(pts, new Vector2(outletX - r, topY - r), r, 90f, 0f, z);
-            pts.Add(new Vector3(outletX, 7.05f, z)); // cuối máng: miệng cửa phun, ngay trên mép bịt
+            pts.Add(new Vector3(outletX, 7.05f, z));
 
-            // Toạ độ trên đo theo camera nghiêng cũ. Sau khi là phẳng khung (camera thẳng), đo lại mesh máng gốc:
-            // lòng máng ngang nằm giữa 2 gờ y 7.50 | 8.21 → tâm 7.86 (mesh có đỉnh đường giữa ở 7.86), máng dọc tâm x 0.49 (đúng).
-            // → dời cả đường máng xuống 0.23 cho bi & mũi tên chạy đúng giữa lòng máng.
             const float laneDy = 7.86f - topY;
             for (int i = 0; i < pts.Count; i++) pts[i] += new Vector3(0f, laneDy, 0f);
             float mirrorAxis = outletX * 2f;
@@ -88,22 +80,17 @@ namespace BounceBlast.Gameplay
                 for (int i = 0; i < pts.Count; i++) pts[i] = new Vector3(mirrorAxis - pts[i].x, pts[i].y, pts[i].z);
 
             Vector3 dock = new Vector3(mirror ? mirrorAxis - laneX : laneX, bottomY - 0.15f, z);
-            // Video gốc (tua chậm): hộp đáp ĐÈ LÊN đúng tâm 2 lưỡi cắt (Shredder/Cutter1, Cutter2) và che kín máy xay,
-            // rồi lún dần vào máy xay trong lúc nhả bi.
             if (crusherGo != null)
             {
                 Transform c1 = FindDeep(crusherGo.transform, "Cutter1"), c2 = FindDeep(crusherGo.transform, "Cutter2");
                 if (c1 != null && c2 != null)
                 {
-                    // dock = đúng tâm 2 lưỡi cắt (world). Việc chiếu ra mặt phẳng vẽ hộp (z = -2) theo camera nghiêng
-                    // để AmmoBox làm lúc bay/đậu: lúc dựng máng camera chưa được đặt góc nghiêng → bù ở đây bị lệch ~15px.
                     Vector3 cc = (c1.position + c2.position) * 0.5f;
                     dock = cc;
                 }
-                // video gốc: hộp nằm TRONG lòng khung máy xay, viền khung vẫn lộ 2 bên → bề ngang ≈ 72% bounds khung (Plane.028)
                 Transform frame = FindDeep(crusherGo.transform, "Plane.028");
                 Renderer fr = frame != null ? frame.GetComponent<Renderer>() : null;
-                if (fr != null) lane.DockWidth = fr.bounds.size.x * 0.72f; // đo video gốc: hộp ≈ 83% khung trên màn hình (thân thạch phình hơn bounds)
+                if (fr != null) lane.DockWidth = fr.bounds.size.x * 0.72f;
                 lane.DockRotation = crusherGo.transform.rotation;
             }
             lane.Init(_config, balls, pts.ToArray(), dock);
@@ -127,7 +114,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        /// <summary>Gửi hộp lên máng: chọn máng ít bi chờ hơn (hoà thì máng cùng phía với hộp).</summary>
+        /// <summary>Gửi hộp lên máng: chọn máng ít bi chờ hơn</summary>
         ConveyorLane PickLane(AmmoBox box)
         {
             int l = _left.PendingBalls, r = _right.PendingBalls;
@@ -135,10 +122,7 @@ namespace BounceBlast.Gameplay
             return useLeft ? _left : _right;
         }
 
-        /// <summary>
-        /// Hộp vượt sức chứa: cho hộp chạy hoạt ảnh bay tới máng sẽ dùng rồi DỪNG giữa chừng (<see cref="AmmoBox.HoldFlightAt"/>).
-        /// Khi được phép bay thì <see cref="Send"/> thả giữ và dùng đúng máng này.
-        /// </summary>
+        /// <summary>Hộp vượt sức chứa: cho hộp chạy hoạt ảnh bay tới máng sẽ dùng rồi DỪNG giữa chừng</summary>
         public void HoldBoxMidFlight(AmmoBox box)
         {
             ConveyorLane lane = PickLane(box);
@@ -146,18 +130,19 @@ namespace BounceBlast.Gameplay
             box.HoldFlightAt(lane.DockPosition, lane.DockRotation, lane.DockWidth, _config.boxFlyDuration, _config.hoverHoldProgress);
         }
 
+        /// <summary>Xử lý đưa hộp lên máng</summary>
         public void Send(AmmoBox box)
         {
             ConveyorLane lane = box.Flight.HeldLane != null ? box.Flight.HeldLane : PickLane(box);
             box.Flight.HeldLane = null;
-            box.transform.SetParent(lane.transform, true); // hộp rời khay → thuộc máng (Hierarchy gọn)
+            box.transform.SetParent(lane.transform, true);
             box.Flight.DockWidth = lane.DockWidth;
             box.Flight.DockRotation = lane.DockRotation;
-            // vào đường ống của máng ngay lúc bấm; bay thẳng tới chỗ của mình (máy xay hoặc hàng chờ); đầu ống chạm là máy xay chạy luôn
             Vector3 target = lane.Reserve(box);
             box.Flight.FlyTo(target, _config.boxFlyDuration, () => lane.Arrived(box), () => lane.HeadArrived(box));
         }
 
+        /// <summary>Xử lý xoá toàn bộ hộp và bi đang trên máng</summary>
         public void ClearAll()
         {
             _left.ClearAll();

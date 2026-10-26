@@ -3,13 +3,9 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Mũi tên trôi trên mặt một máng (chỉ là hình, không ảnh hưởng luật): đặt dọc đường máng, chạy theo chiều bi,
-    /// mờ dần qua góc cua. Khoảng cách & tốc độ chỉnh trong GameConfig (laneArrowSpacing / laneArrowSpeed).
-    /// </summary>
+    /// <summary>Mũi tên trôi trên mặt một máng</summary>
     public class LaneArrows
     {
-        // nằm chìm dưới đáy máng (sau bi), sortingOrder thấp
         const float ArrowZ = -1.05f;
 
         readonly ConveyorLane _lane;
@@ -27,6 +23,7 @@ namespace BounceBlast.Gameplay
             _config = config;
         }
 
+        /// <summary>Dựng các mũi tên trên máng</summary>
         public void Create(Sprite sprite, Color color, Vector3 scale, int sortingOrder)
         {
             float length = _lane.Length;
@@ -41,18 +38,20 @@ namespace BounceBlast.Gameplay
                 var sr = go.AddComponent<SpriteRenderer>();
                 sr.sprite = sprite;
                 sr.color = color;
-                sr.sortingOrder = sortingOrder; // dưới bi (bi có sortingOrder = 100)
+                sr.sortingOrder = sortingOrder;
                 _arrows.Add(sr);
             }
             Tick(0f);
         }
 
+        /// <summary>Xử lý đổi màu mũi tên</summary>
         public void SetColor(Color color)
         {
             _color = color;
             Tick(0f);
         }
 
+        /// <summary>Xử lý cập nhật chuyển động mũi tên mỗi khung</summary>
         public void Tick(float dt)
         {
             if (_arrows.Count == 0) return;
@@ -75,7 +74,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        /// <summary>Hiện dần ở đầu máng, mờ dần sau góc cua.</summary>
+        /// <summary>Hiện dần ở đầu máng, mờ dần sau góc cua</summary>
         float Alpha(float s, float length)
         {
             float a = Mathf.Clamp01(s / 0.8f);

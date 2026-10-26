@@ -4,10 +4,7 @@ using BounceBlast.UI;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Công cụ DEBUG (chỉ để test, không ảnh hưởng game thường): tự bấm hộp đạn để chơi hết màn, và các lệnh cheat trong menu chuột phải.
-    /// Tắt cả object này khi build.
-    /// </summary>
+    /// <summary>Công cụ DEBUG (chỉ để test, không ảnh hưởng game thường)</summary>
     public class DebugManager : MonoBehaviour
     {
         [Tooltip("Tự bấm hộp đạn khi còn sức chứa – để test chơi hết màn")]
@@ -19,11 +16,13 @@ namespace BounceBlast.Gameplay
         bool _playing;
         float _autoTimer;
 
+        /// <summary>Xử lý khởi tạo công cụ debug</summary>
         public void Init(GameUI ui, BoardController board, LaunchManager launch)
         {
             _ui = ui; _board = board; _launch = launch;
         }
 
+        /// <summary>Nhận trạng thái đang chơi</summary>
         public void SetPlaying(bool playing) => _playing = playing;
 
         void Update()

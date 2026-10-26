@@ -7,17 +7,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của popup HẾT SỨC CHỨA ("OUT OF CAPACITY") – gắn trên gốc OutOfCapacityPopup.prefab.
-    /// Prefab này bọc (lồng) panel gốc OutOfCapacityPanel trong một Canvas riêng, nên Canvas không còn phải dựng bằng code.
-    /// GameUI chỉ gọi <see cref="Show"/> và nghe 2 sự kiện.
-    ///
-    /// Chuyển cảnh đo từ video gốc (lose_coche.mp4, 30 fps, f540 = bắt đầu tối nền):
-    ///  - nền tối dần ~0,3 s (ease-out);
-    ///  - 0,30 s: nút Play On trượt vào từ mép TRÁI, Give Up từ mép PHẢI (~0,4 s);
-    ///  - 0,37 s: tiếng fail 2 (khớp âm thanh gốc, dài ~1,9 s);
-    ///  - 0,47 s: chữ OUT OF CAPACITY rơi từ trên xuống (~0,23 s) rồi đứng yên.
-    /// </summary>
+    /// <summary>Script quản lý của popup HẾT SỨC CHỨA</summary>
     [DisallowMultipleComponent]
     public class OutOfCapacityPopupView : PopupViewBase
     {
@@ -37,12 +27,11 @@ namespace BounceBlast.UI
         [SerializeField] float titleDelay = 0.47f;
         [SerializeField] float titleTime = 0.23f;
 
-        /// <summary>Chọn Play On: tăng sức chứa và cho hộp bay tiếp.</summary>
+        /// <summary>Chọn Play On: tăng sức chứa và cho hộp bay tiếp</summary>
         public event Action OnPlayOn;
-        /// <summary>Chọn Give Up: thua.</summary>
+        /// <summary>Chọn Give Up: thua</summary>
         public event Action OnGiveUp;
 
-        // vị trí / alpha trong prefab (hiệu ứng chỉ dời quanh các giá trị này)
         readonly Dictionary<RectTransform, Vector2> _rest = new Dictionary<RectTransform, Vector2>();
         float _dimAlpha = -1f;
         Coroutine _intro;
@@ -55,6 +44,7 @@ namespace BounceBlast.UI
             if (giveUpButton != null) giveUpButton.onClick.AddListener(() => { AudioManager.Play(Sfx.Button); OnGiveUp?.Invoke(); });
         }
 
+        /// <summary>Xử lý hiện popup hết sức chứa và chạy chuyển cảnh</summary>
         public void Show(LevelDifficulty difficulty)
         {
             OpenBase(difficulty);
@@ -81,7 +71,6 @@ namespace BounceBlast.UI
             Vector2 giveRest = giveUpGroup != null ? Rest(giveUpGroup) : Vector2.zero;
             Vector2 titleRest = title != null ? Rest(title) : Vector2.zero;
 
-            // trạng thái đầu: nền trong suốt, nút ngoài màn hình, chữ ở trên cao
             SetDim(0f);
             if (playOnGroup != null) playOnGroup.anchoredPosition = playRest - new Vector2(w, 0f);
             if (giveUpGroup != null) giveUpGroup.anchoredPosition = giveRest + new Vector2(w, 0f);
@@ -101,7 +90,6 @@ namespace BounceBlast.UI
                 {
                     float kt = Mathf.Clamp01((t - titleDelay) / titleTime);
                     if (t >= titleDelay && !title.gameObject.activeSelf) title.gameObject.SetActive(true);
-                    // gần như đều tay rồi dừng hẳn (đo từ frame: ~41 px/khung)
                     float e = 0.75f * kt + 0.25f * EaseOutQuad(kt);
                     title.anchoredPosition = titleRest + new Vector2(0f, h * 0.35f * (1f - e));
                 }

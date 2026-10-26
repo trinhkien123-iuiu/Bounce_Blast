@@ -2,12 +2,7 @@ using UnityEngine;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Hiệu ứng xuất hiện của một thành phần UI khi trang chứa nó được mở (do <see cref="PageTransition"/> điều khiển):
-    /// mờ → rõ, nảy từ <see cref="fromScale"/> lên đúng cỡ, trượt từ vị trí lệch <see cref="fromOffset"/> về đúng chỗ.
-    /// Mọi giá trị tính TỪ cỡ / vị trí trong prefab (ghi ở Awake) – đứng yên luôn đúng như prefab, chỉnh UI không bị đè.
-    /// Cần CanvasGroup để làm mờ (tự có khi gắn component trong Editor).
-    /// </summary>
+    /// <summary>Hiệu ứng xuất hiện của một thành phần UI khi trang chứa nó được mở</summary>
     [RequireComponent(typeof(CanvasGroup))]
     [DisallowMultipleComponent]
     public class UiAppear : MonoBehaviour
@@ -27,11 +22,11 @@ namespace BounceBlast.UI
         float _baseAlpha = 1f;
         bool _saved, _running;
         float _t, _delay;
-        Vector2 _offset;   // fromOffset đã đổi chiều theo hướng chuyển trang
+        Vector2 _offset;
 
         void Awake() => Save();
 
-        /// <summary>Cỡ trong prefab (không phải cỡ đang thu nhỏ giữa hiệu ứng).</summary>
+        /// <summary>Cỡ trong prefab (không phải cỡ đang thu nhỏ giữa hiệu ứng)</summary>
         public Vector3 BaseScale { get { Save(); return _baseScale; } }
 
         void Save()
@@ -45,8 +40,7 @@ namespace BounceBlast.UI
             _saved = true;
         }
 
-        /// <summary>Về trạng thái bắt đầu (ẩn) – gọi khi trang vừa lộ ra, trước khi chạy.
-        /// <paramref name="dir"/>: +1 = trang mới nằm bên phải trang cũ, −1 = bên trái, 0 = không rõ.</summary>
+        /// <summary>Về trạng thái bắt đầu (ẩn)</summary>
         public void Prepare(int dir = 0)
         {
             Save();
@@ -55,7 +49,7 @@ namespace BounceBlast.UI
             Apply(0f);
         }
 
-        /// <summary>Chạy hiệu ứng sau <paramref name="delay"/> giây.</summary>
+        /// <summary>Chạy hiệu ứng sau delay giây</summary>
         public void Play(float delay, int dir = 0)
         {
             Save();
@@ -66,7 +60,7 @@ namespace BounceBlast.UI
             Apply(0f);
         }
 
-        /// <summary>Về đúng như prefab ngay (dừng hiệu ứng).</summary>
+        /// <summary>Về đúng như prefab ngay (dừng hiệu ứng)</summary>
         public void Finish()
         {
             if (!_saved) return;
@@ -94,7 +88,7 @@ namespace BounceBlast.UI
 
         void Apply(float k)
         {
-            float move = 1f - (1f - k) * (1f - k) * (1f - k);                    // ease-out cubic
+            float move = 1f - (1f - k) * (1f - k) * (1f - k);
             float pop = overshoot ? EaseOutBack(k) : move;
             if (_rt != null) _rt.anchoredPosition = _basePos + _offset * (1f - move);
             transform.localScale = _baseScale * Mathf.LerpUnclamped(fromScale, 1f, pop);

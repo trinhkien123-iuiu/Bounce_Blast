@@ -7,12 +7,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab ShopCanvas (trang Shop của MenuGame, tách nguyên từ "Shop Panel" của ManagerScene gốc).
-    /// Mỗi gói hàng là một <see cref="ShopOfferItem"/> gắn trên object của gói (dữ liệu + hình nằm sẵn trong Hierarchy);
-    /// View này chỉ gom các gói, hiện số xu trên đầu trang và lo ô "Free Coin" (đồng hồ hồi). Không có mua hàng thật (IAP).
-    /// Lúc chạy chỉ đổi: số xu, nút Claim ↔ đồng hồ của ô Free Coin. Mọi hình khác lưu sẵn trong prefab.
-    /// </summary>
+    /// <summary>Script quản lý của prefab ShopCanvas</summary>
     [DisallowMultipleComponent]
     public class ShopPanelView : MonoBehaviour
     {
@@ -55,10 +50,10 @@ namespace BounceBlast.UI
             if (scroll != null) scroll.verticalNormalizedPosition = 1f;
         }
 
-        // ------------------------------------------------------------------ API cho MenuManager
+        /// <summary>Xử lý hiện số xu trong Shop</summary>
         public void SetCoins(int coins) { if (coinText != null) coinText.text = coins.ToString(); }
 
-        /// <summary>Mốc nhận lại xu miễn phí (UTC); quá mốc thì hiện nút Claim, chưa tới thì hiện đồng hồ.</summary>
+        /// <summary>Mốc nhận lại xu miễn phí (UTC)</summary>
         public void SetFreeCoinReadyAt(DateTime utc)
         {
             _freeReadyAt = utc;
@@ -82,11 +77,10 @@ namespace BounceBlast.UI
             if (!ready && freeCoinTimerText != null) freeCoinTimerText.text = FormatSpan(left);
         }
 
-        // ------------------------------------------------------------------ định dạng chữ như bản gốc
-        /// <summary>3000 → "3 000" (ảnh gốc tách nghìn bằng khoảng trắng).</summary>
+        /// <summary>3000 → "3 000" (ảnh gốc tách nghìn bằng khoảng trắng)</summary>
         public static string FormatNumber(int n) => n.ToString("#,0", System.Globalization.CultureInfo.InvariantCulture).Replace(',', ' ');
 
-        /// <summary>30 → "30m", 60 → "1h", 90 → "1h 30m", 2880 → "2d".</summary>
+        /// <summary>30 → "30m", 60 → "1h", 90 → "1h 30m", 2880 → "2d"</summary>
         public static string FormatMinutes(int minutes)
         {
             if (minutes < 60) return minutes + "m";
@@ -95,7 +89,7 @@ namespace BounceBlast.UI
             return m == 0 ? h + "h" : h + "h " + m + "m";
         }
 
-        /// <summary>Đồng hồ kiểu gốc: "18h 52m", "3d 7h", "9m 05s".</summary>
+        /// <summary>Đồng hồ kiểu gốc: "18h 52m", "3d 7h", "9m 05s"</summary>
         public static string FormatSpan(TimeSpan t)
         {
             if (t.TotalDays >= 1) return (int)t.TotalDays + "d " + t.Hours + "h";
@@ -103,7 +97,7 @@ namespace BounceBlast.UI
             return t.Minutes + "m " + t.Seconds.ToString("00") + "s";
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

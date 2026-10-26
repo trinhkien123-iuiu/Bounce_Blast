@@ -3,15 +3,13 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Kiểm tra một level tự làm trước khi chơi: cân bi theo màu, khay có hộp bấm được không, hộp vượt sức chứa, tunnel hỏng…
-    /// Tính trên <see cref="LevelModel"/> dựng bằng đúng đường của game (<see cref="LevelParser.Build"/>) nên số liệu = số game thấy.
-    /// Dùng cho Level Editor (và bot đo độ khó sau này).
-    /// </summary>
+    /// <summary>Kiểm tra một level tự làm trước khi chơi</summary>
     public static class LevelValidator
     {
+        /// <summary>Dùng cho mức độ của lỗi kiểm level</summary>
         public enum Severity { Error, Warning }
 
+        /// <summary>Dùng cho một lỗi hoặc cảnh báo của level</summary>
         public struct Issue
         {
             public Severity severity;
@@ -19,7 +17,7 @@ namespace BounceBlast.Gameplay
             public Issue(Severity s, string m) { severity = s; message = m; }
         }
 
-        /// <summary>Một dòng của bảng cân bi.</summary>
+        /// <summary>Một dòng của bảng cân bi</summary>
         public struct ColorBalance
         {
             public string color;
@@ -27,6 +25,7 @@ namespace BounceBlast.Gameplay
             public bool Ok => hp == balls;
         }
 
+        /// <summary>Dùng cho kết quả kiểm một level</summary>
         public class Report
         {
             public LevelModel model;
@@ -36,6 +35,7 @@ namespace BounceBlast.Gameplay
             public bool HasErrors { get { foreach (Issue i in issues) if (i.severity == Severity.Error) return true; return false; } }
         }
 
+        /// <summary>Xử lý kiểm tra level có hợp lệ</summary>
         public static Report Check(LevelData data, ColorLibrary colors)
         {
             var rep = new Report();
@@ -44,7 +44,6 @@ namespace BounceBlast.Gameplay
             rep.model = m;
             if (m == null) { rep.issues.Add(new Issue(Severity.Error, "Không dựng được level")); return rep; }
 
-            // ---- cân bi theo màu
             var colorsUsed = new SortedSet<string>(System.StringComparer.Ordinal);
             foreach (string c in m.HpByColor.Keys) colorsUsed.Add(c);
             foreach (string c in m.BallsByColor.Keys) colorsUsed.Add(c);
@@ -62,7 +61,6 @@ namespace BounceBlast.Gameplay
             }
             if (m.HpByColor.Count == 0) rep.issues.Add(new Issue(Severity.Error, "Bàn chưa có gạch màu nào"));
 
-            // ---- khay
             int cols = m.AmmoCols, rows = Mathf.Max(1, m.AmmoRows);
             var kind = new AmmoCellKind[cols, rows];
             for (int r = 0; r < rows; r++)
@@ -99,7 +97,6 @@ namespace BounceBlast.Gameplay
             if (rep.totalBalls > 0 && rep.clickableAtStart == 0)
                 rep.issues.Add(new Issue(Severity.Error, "Lúc bắt đầu không có hộp nào bấm được (hàng 0 trống / bị chặn / bị băng)"));
 
-            // ---- sức chứa
             if (m.Capacity <= 0) rep.issues.Add(new Issue(Severity.Error, "Capacity phải > 0"));
             else
             {

@@ -7,11 +7,7 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của popup THUA ("Level Failed!") – gắn trên gốc FailCanvas.prefab.
-    /// Giữ tham chiếu bằng Inspector; phần nảy vào / khung theo độ khó nằm ở <see cref="PopupViewBase"/>.
-    /// GameUI chỉ gọi <see cref="Show"/> và nghe <see cref="OnRetry"/>.
-    /// </summary>
+    /// <summary>Script quản lý của popup THUA</summary>
     [DisallowMultipleComponent]
     public class FailPopupView : PopupViewBase
     {
@@ -20,7 +16,7 @@ namespace BounceBlast.UI
         [Tooltip("Nút Try Again")] [SerializeField] Button retryButton;
         [Tooltip("Nút đóng (X) – cũng là chơi lại")] [SerializeField] Button closeButton;
 
-        /// <summary>Người chơi chọn chơi lại (Try Again hoặc đóng).</summary>
+        /// <summary>Người chơi chọn chơi lại (Try Again hoặc đóng)</summary>
         public event Action OnRetry;
 
         void Awake()
@@ -35,6 +31,7 @@ namespace BounceBlast.UI
             OnRetry?.Invoke();
         }
 
+        /// <summary>Xử lý hiện popup thua</summary>
         public void Show(int level, LevelDifficulty difficulty)
         {
             if (levelText != null) levelText.text = "Level " + level;

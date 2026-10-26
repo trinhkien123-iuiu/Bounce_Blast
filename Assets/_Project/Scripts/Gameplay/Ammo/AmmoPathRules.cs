@@ -4,10 +4,7 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Luật thông đường của khay (gốc: GridAmmo): một ô "thông" khi ở hàng sát lối ra (hàng 0) hoặc kề một ô trống
-    /// có đường đi qua các ô trống tới lối ra (BFS). Chỉ đọc lưới loại ô – không biết gì về hình hay hộp.
-    /// </summary>
+    /// <summary>Luật thông đường của khay</summary>
     public class AmmoPathRules
     {
         static readonly Vector2Int[] Dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
@@ -15,7 +12,7 @@ namespace BounceBlast.Gameplay
         bool[,] _reach;
         int _cols, _rows;
 
-        /// <summary>Tính lại các ô trống thông ra lối ra (phía trên hàng 0).</summary>
+        /// <summary>Tính lại các ô trống thông ra lối ra</summary>
         public void Compute(AmmoCellKind[,] kind)
         {
             _cols = kind.GetLength(0);
@@ -38,7 +35,7 @@ namespace BounceBlast.Gameplay
             }
         }
 
-        /// <summary>Hộp ở ô này lấy ra được (sau <see cref="Compute"/>).</summary>
+        /// <summary>Hộp ở ô này lấy ra được (sau Compute)</summary>
         public bool IsOpen(Vector2Int p)
         {
             if (p.y == 0) return true;

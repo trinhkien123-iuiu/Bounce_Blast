@@ -7,16 +7,11 @@ using BounceBlast.Gameplay;
 
 namespace BounceBlast.UI
 {
-    /// <summary>
-    /// Script quản lý của prefab ProfileCanvas – popup "Profile" mở khi bấm avatar ở Home (tách từ
-    /// <c>ProfileSystem/SelectProfileCanvas</c> của ManagerScene gốc). Đổi tên (tối đa 14 ký tự như gốc) và chọn 1 trong 20 avatar;
-    /// bấm Save thì báo <see cref="OnSave"/> – việc lưu là của <c>MenuManager</c>. Popup đặt sẵn, lưu ở trạng thái TẮT.
-    /// Ảnh 20 ô, ô avatar vàng (tắt) lưu sẵn trong prefab; lúc chạy chỉ đổi: ô đang chọn (khung + dấu tích + phóng to), ảnh lớn, ô tên.
-    /// </summary>
+    /// <summary>Script quản lý của prefab ProfileCanvas</summary>
     [DisallowMultipleComponent]
     public class ProfilePopupView : MonoBehaviour
     {
-        /// <summary>Một ô avatar trong lưới.</summary>
+        /// <summary>Một ô avatar trong lưới</summary>
         [Serializable]
         public class AvatarSlot
         {
@@ -35,12 +30,12 @@ namespace BounceBlast.UI
         [SerializeField] ScrollRect scroll;
         [Tooltip("Ô đang chọn to gấp mấy lần cỡ trong prefab (ảnh gốc ≈ 1.1)")] [SerializeField] float selectedScale = 1.1f;
 
-        /// <summary>Bấm Save: (tên, chỉ số avatar).</summary>
+        /// <summary>Bấm Save: (tên, chỉ số avatar)</summary>
         public event Action<string, int> OnSave;
         public event Action OnClose;
 
         int _avatar;
-        Vector3[] _slotScale;   // cỡ từng ô trong prefab
+        Vector3[] _slotScale;
 
         void Awake()
         {
@@ -59,7 +54,7 @@ namespace BounceBlast.UI
             if (closeButton != null) closeButton.onClick.AddListener(() => { AudioManager.Play(Sfx.Button); OnClose?.Invoke(); });
         }
 
-        /// <summary>Ảnh avatar theo chỉ số (dùng cho nút avatar ở Home).</summary>
+        /// <summary>Ảnh avatar theo chỉ số (dùng cho nút avatar ở Home)</summary>
         public Sprite Avatar(int index)
         {
             if (slots.Length == 0) return null;
@@ -67,6 +62,7 @@ namespace BounceBlast.UI
             return img != null ? img.sprite : null;
         }
 
+        /// <summary>Xử lý hiện popup hồ sơ</summary>
         public void Show(string playerName, int avatar)
         {
             gameObject.SetActive(true);
@@ -75,6 +71,7 @@ namespace BounceBlast.UI
             Select(avatar);
         }
 
+        /// <summary>Xử lý đóng popup hồ sơ</summary>
         public void Hide() => gameObject.SetActive(false);
 
         void Select(int index)
@@ -94,7 +91,7 @@ namespace BounceBlast.UI
             if (currentImage != null) currentImage.sprite = Avatar(_avatar);
         }
 
-        /// <summary>Báo ô tham chiếu nào còn trống (null nếu đủ).</summary>
+        /// <summary>Báo ô tham chiếu nào còn trống</summary>
         public string Validate()
         {
             var miss = new List<string>();

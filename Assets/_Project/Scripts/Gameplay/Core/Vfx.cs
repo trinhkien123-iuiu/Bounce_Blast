@@ -3,19 +3,15 @@ using UnityEngine;
 
 namespace BounceBlast.Gameplay
 {
-    /// <summary>
-    /// Sinh particle gốc (Block Break Particle, CFXR...) tại vị trí, nhuộm màu.
-    /// Tối ưu: dùng POOL theo prefab (trước đây Instantiate + GetComponentsInChildren + Destroy cho MỖI khối vỡ
-    /// → hàng trăm lần/giây, rác bộ nhớ & giật). Mỗi prefab giữ tối đa MaxLive hiệu ứng sống cùng lúc;
-    /// vượt quá thì tái dùng cái cũ nhất (mắt không phân biệt được khi khối vỡ dồn dập).
-    /// </summary>
+    /// <summary>Sinh particle gốc (Block Break Particle, CFXR...) tại vị trí, nhuộm màu</summary>
     public static class Vfx
     {
-        /// <summary>Object cha chứa mọi hiệu ứng (để Hierarchy lúc chạy gọn gàng). GameManager gán.</summary>
+        /// <summary>Object cha chứa mọi hiệu ứng</summary>
         public static Transform Root;
 
         const int MaxLive = 24;
 
+        /// <summary>Dùng cho một hiệu ứng đang chạy trong pool</summary>
         class Item
         {
             public GameObject go;
@@ -24,6 +20,7 @@ namespace BounceBlast.Gameplay
             public float until;
         }
 
+        /// <summary>Dùng cho pool các hiệu ứng cùng loại</summary>
         class Pool
         {
             public readonly Queue<Item> free = new Queue<Item>();
@@ -35,15 +32,15 @@ namespace BounceBlast.Gameplay
 
         static readonly Dictionary<GameObject, System.Action<ParticleSystem>> Tunes = new Dictionary<GameObject, System.Action<ParticleSystem>>();
 
-        /// <summary>Chỉnh thông số particle của 1 prefab (áp khi tạo instance trong pool).</summary>
+        /// <summary>Chỉnh thông số particle của 1 prefab</summary>
         public static void Tune(GameObject prefab, System.Action<ParticleSystem> tune)
         {
             if (prefab == null) return;
             Tunes[prefab] = tune;
-            if (Pools.TryGetValue(prefab, out Pool pool)) Pools.Remove(prefab); // instance cũ chưa áp → tạo lại
+            if (Pools.TryGetValue(prefab, out Pool pool)) Pools.Remove(prefab);
         }
 
-        /// <param name="material">vật liệu cho hạt dạng mesh (VD mảnh gạch cùng màu khối vỡ); null = giữ của prefab</param>
+        /// <summary>Xử lý phát hiệu ứng tại vị trí với màu và cỡ</summary>
         public static GameObject Spawn(GameObject prefab, Vector3 position, Color tint, float size = 1f, Material material = null)
         {
             if (prefab == null) return null;
@@ -54,7 +51,7 @@ namespace BounceBlast.Gameplay
             if (pool.free.Count > 0) it = pool.free.Dequeue();
             else if (pool.live.Count >= MaxLive) { it = pool.live.First.Value; pool.live.RemoveFirst(); }
             else it = Create(prefab);
-            if (it.go == null) it = Create(prefab); // bị huỷ khi đổi scene
+            if (it.go == null) it = Create(prefab);
 
             Transform t = it.go.transform;
             t.SetPositionAndRotation(new Vector3(position.x, position.y, -1.2f), prefab.transform.rotation);
@@ -98,7 +95,7 @@ namespace BounceBlast.Gameplay
             _ticker = go.AddComponent<VfxTicker>();
         }
 
-        /// <summary>Trả hiệu ứng đã chạy xong về pool.</summary>
+        /// <summary>Trả hiệu ứng đã chạy xong về pool</summary>
         internal static void Tick()
         {
             float now = Time.time;
@@ -113,10 +110,11 @@ namespace BounceBlast.Gameplay
                 }
         }
 
-        /// <summary>Đổi scene / dọn: bỏ toàn bộ pool (object đã bị huỷ cùng scene).</summary>
+        /// <summary>Đổi scene / dọn: bỏ toàn bộ pool</summary>
         internal static void Reset() => Pools.Clear();
     }
 
+    /// <summary>Xử lý thu hồi hiệu ứng đã hết hạn</summary>
     class VfxTicker : MonoBehaviour
     {
         void Update() => Vfx.Tick();
