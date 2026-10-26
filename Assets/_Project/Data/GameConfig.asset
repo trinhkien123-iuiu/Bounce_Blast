@@ -205,6 +205,49 @@ MonoBehaviour:
     volume: 0.8
     minInterval: 0.1
     pitch: {x: 1, y: 1}
+  - id: 17
+    clips:
+    - {fileID: 8300000, guid: 4a931fb5073e90a489c81fecf013851e, type: 3}
+    volume: 0.9
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  - id: 18
+    clips:
+    - {fileID: 8300000, guid: 0917fb2ce40ee964dafa3776e5bbaadc, type: 3}
+    volume: 0.85
+    minInterval: 0.2
+    pitch: {x: 0.8, y: 0.8}
+  - id: 19
+    clips:
+    - {fileID: 8300000, guid: ea3dd9c1f71fe6c4dbf26b933a621044, type: 3}
+    - {fileID: 8300000, guid: efc4221cc2719924594cb02f207935bd, type: 3}
+    volume: 0.55
+    minInterval: 0.03
+    pitch: {x: 0.9, y: 1.5}
+  - id: 20
+    clips:
+    - {fileID: 8300000, guid: 9fb4687b61364c94d9a5581231f4e955, type: 3}
+    volume: 0.9
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  - id: 21
+    clips:
+    - {fileID: 8300000, guid: 26c7a3c5674ffa14ba3501f945316970, type: 3}
+    volume: 0.9
+    minInterval: 0.2
+    pitch: {x: 1, y: 1}
+  - id: 22
+    clips:
+    - {fileID: 8300000, guid: 496ab45da55d73e458e4dfae47418b82, type: 3}
+    volume: 0.9
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  - id: 23
+    clips:
+    - {fileID: 8300000, guid: 2a3aa9a65539cf546bafe07710b73e0e, type: 3}
+    volume: 0.9
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
   musicMenu: {fileID: 8300000, guid: b0dcdc52ce75d28459a3db1f84ba6b5b, type: 3}
   musicNormal: {fileID: 8300000, guid: 8e322a3bced0fa64b91b5bfa61482e34, type: 3}
   musicHard: {fileID: 8300000, guid: 193665d9fde220f4dba7772f8f1250ca, type: 3}
@@ -237,23 +280,76 @@ MonoBehaviour:
   winFireworksTime: 2.4
   ammoActiveScale: 0.9
   ammoInactiveScale: 0.88
+  ammoBoxVsHole: 0.88
   frameTopY: 8.43
   viewHalfWidth: 5.98
   viewMaxZoomOut: 1.3
   viewMinHalfHeight: 11.6
   ammoTargetCell: 1.2
-  ammoBoosterGap: 0.2
+  ammoBoosterGap: -0.1
   ammoActivePose:
     tiltX: -72.3
-    length: 0.552
+    length: 0.722
     offset: {x: -0.01, y: 0.43, z: 0}
     scale: 1.055
   ammoInactivePose:
     tiltX: -86.4
     length: 0.1
-    offset: {x: 0, y: -0.12, z: 0}
+    offset: {x: -0.02, y: -0.12, z: 0}
     scale: 1.057
   ammoSinkDepth: 1.134
+  onboardTapLevel: 1
+  onboardCapacityLevel: 2
+  onboardSpeedLevel: 3
+  featureIntros:
+  - id: BigCube
+    title: Big Cube
+    description: Hit multiple times to break big cube.
+    icon: {fileID: 21300000, guid: 89105df0ef35fea41b436e06195e6353, type: 3}
+  - id: Qmark
+    title: Qmark
+    description: QMark stays hidden until the surrounding cubes are cleared.
+    icon: {fileID: 21300000, guid: 9351af5faa78ca442b5cfda8e3d115af, type: 3}
+  - id: Tunnel
+    title: Tunnel
+    description: Tunnel releases a new cube after the one in front is cleared. The
+      number on it shows how many cubes are in line.
+    icon: {fileID: 21300000, guid: d8d5ae661249000409f2a1d52c5ec75b, type: 3}
+  - id: Ice
+    title: Ice
+    description: To break the ice, you must send the three cubes next to it to the
+      crusher.
+    icon: {fileID: 21300000, guid: da4cd260a0139464bbbde01a29b180f1, type: 3}
+  - id: Crate
+    title: Crate
+    description: Break the crate to reveal the hidden cubes inside.
+    icon: {fileID: 21300000, guid: 540fa9b18a7ba9a42bc2eb1bfc2c74f8, type: 3}
+  - id: Cover
+    title: Cover
+    description: Each time a cube reaches the Crusher, the cover closes if it is
+      open, or opens if it is closed.
+    icon: {fileID: 21300000, guid: 8b0d05cfe6fa020428e601053918de92, type: 3}
+  - id: Column
+    title: Column
+    description: "Smash the column to reach what\u2019s behind it."
+    icon: {fileID: 21300000, guid: 9801b77dc83c7db4f914e8014cc3cad3, type: 3}
+  unlockMagicHand: 6
+  unlockHammer: 9
+  unlockShuffle: 12
+  unlockCapacity: 15
+  freeBoosterOnUnlock: 2
+  boosterHammerSprite: {fileID: 21300000, guid: fbaedabd13361954f8cb65ba18f2e05c, type: 2}
+  boosterMagicSprite: {fileID: 21300000, guid: 17c1d412d5a2dab438a9f2459531acfc, type: 2}
+  boosterShuffleSprite: {fileID: 21300000, guid: 23e8f2d826ba6894a802d5ce0b80d09f, type: 2}
+  boosterPlusSprite: {fileID: 21300000, guid: 2c7bec3924b9cde4d83b77dac33fd07d, type: 2}
+  hammerRadiusCells: 2.4
+  hammerWaveDelay: 0.045
+  boosterFxUnit: 1.5
+  iceStageScale: {x: 1.13, y: 2.119927, z: 0.79747}
+  iceStagePos: {x: 0.02, y: -0.14, z: -0.01}
+  icePadSide: 0.01
+  icePadTop: 0.22
+  icePadBottom: 0.05
   tunnelSize: 1.15
   tunnelTiltX: -70
   tunnelAngleUp: 0
@@ -267,9 +363,6 @@ MonoBehaviour:
   doorExtraSink: 1.6
   trayProcedural: 0
   wallKit: {fileID: 11400000, guid: 1a939a6a1b9d04e4096a9ea39fca6de1, type: 2}
-  trayRefCols: 7
-  trayRefRows: 6
-  trayMaxGrow: 1.16
   trayOutlineMaterial: {fileID: 2100000, guid: 2789bf72911a1094dab1d0da32c3f55e, type: 2}
   trayBoxDepth: -0.6
   trayPanelPad: 0.1
@@ -305,9 +398,10 @@ MonoBehaviour:
   crusherShakeMagnitude: 0.06
   crusherShakeFrequency: 28
   crusherShakeDamping: 6
-  holeLidSize: 0.96
-  holeLidRadius: 0.3
-  holeLidBand: 0.09
+  holeLidSize: 0.95
+  holeLidWidthScale: 0.875
+  holeLidRadius: 0.2
+  holeLidBand: 0.27
   holeLidDripTime: 0.18
   holeLidDelay: 0.55
   holeLidTime: 0.22

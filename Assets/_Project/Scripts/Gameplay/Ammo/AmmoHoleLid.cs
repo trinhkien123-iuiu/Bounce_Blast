@@ -17,10 +17,12 @@ namespace BounceBlast.Gameplay
         float LidDelay => _config != null ? _config.holeLidDelay : 0.55f;
         float LidTime => _config != null ? _config.holeLidTime : 0.22f;
 
-        Transform _drips, _lid;
+        Transform _lid;
         GameObject _dark;
-        readonly List<Transform> _strands = new List<Transform>();
-        readonly List<float> _strandLen = new List<float>();
+        // Lớp kem/thạch đọng ở mép trên miệng hố: MỘT dải liền, mép dưới lượn mềm với vài giọt tròn (như phết kem), dựng lại mỗi khung theo độ chảy
+        Mesh _cream;   // một lớp, đúng màu hộp
+        float _halfW, _radius, _band, _cell;
+        float _phase;
 
         /// <param name="halfW">nửa bề ngang miệng hố</param>
         /// <param name="yBottom">mép dưới miệng hố (so với tâm ô)</param>
@@ -32,26 +34,16 @@ namespace BounceBlast.Gameplay
             // lòng hố tối (sau cùng)
             _dark = Part("Dark", RoundedRectMesh(-halfW, yBottom, halfW, yTop, radius, radius, radius, radius), dark, 0.004f).gameObject;
 
-            // thạch đọng ở mép trên + các sợi nhỏ giọt (pivot ở mép trên để kéo dài xuống)
-            _drips = new GameObject("Drips").transform;
-            _drips.SetParent(transform, false);
-            _drips.localPosition = new Vector3(0f, yTop, -0.002f);
-            float band = cell * (config != null ? config.holeLidBand : 0.09f);
-            radius = Mathf.Min(radius, halfW, (yTop - yBottom) * 0.5f);
-            // dải thạch ôm theo mép trên miệng hố (cạnh trên + 2 góc bo), mỏng dần xuống 2 bên
-            Part("Band", TopRimMesh(halfW, radius, band), jelly, 0f, _drips);
+            // lớp kem đọng ở mép trên + vài giọt tròn chảy xuống
+            _halfW = halfW;
+            _radius = Mathf.Min(radius, halfW, (yTop - yBottom) * 0.5f);
+            _band = cell * (config != null ? config.holeLidBand : 0.09f);
             var rnd = new System.Random(GetInstanceID());
-            float w = cell * 0.045f;
-            for (float x = -halfW + cell * 0.08f; x < halfW - cell * 0.06f; x += cell * (0.07f + (float)rnd.NextDouble() * 0.05f))
-            {
-                float len = cell * (0.06f + (float)rnd.NextDouble() * 0.24f);
-                Transform s = Part("Strand", RoundedRectMesh(x - w * 0.5f, -1f, x + w * 0.5f, 0f, w * 0.5f, 0f, 0f, w * 0.5f), jelly, 0f, _drips);
-                s.localPosition = new Vector3(0f, TopEdge(x, halfW, radius) - band + 0.001f, 0f);   // treo dưới mép thạch tại x đó
-                s.localScale = new Vector3(1f, 0.001f, 1f);
-                _strands.Add(s);
-                _strandLen.Add(len);
-            }
-            _drips.localScale = new Vector3(1f, 0f, 1f);
+            _cell = cell;
+            _phase = (float)rnd.NextDouble() * 6.28f;
+            _cream = new Mesh { name = "HoleCream" };
+            AddCreamLayer("Cream", _cream, jelly, yTop, -0.002f);
+            BuildCream(0f);
 
             // nắp: pivot ở mép dưới, trượt lên phủ kín
             _lid = new GameObject("Lid").transform;
@@ -67,18 +59,14 @@ namespace BounceBlast.Gameplay
         {
             for (float t = 0f; t < LidDelay + LidTime; t += Time.deltaTime)
             {
-                if (_drips != null) _drips.localScale = new Vector3(1f, Mathf.Clamp01(t / DripIn), 1f);
-                for (int i = 0; i < _strands.Count; i++)
-                {
-                    float k = Mathf.Clamp01((t - DripIn * 0.5f) / LidDelay);
-                    _strands[i].localScale = new Vector3(1f, Mathf.Max(0.001f, _strandLen[i] * Mathf.Sqrt(k)), 1f);
-                }
+                BuildCream(Mathf.Clamp01(t / (LidDelay * 0.9f)), Mathf.Clamp01(t / DripIn));
                 float lk = Mathf.Clamp01((t - LidDelay) / LidTime);
                 _lid.localScale = new Vector3(1f, 1f - (1f - lk) * (1f - lk), 1f);
                 yield return null;
             }
             _lid.localScale = Vector3.one;
-            if (_drips != null) Destroy(_drips.gameObject);
+            Destroy(_cream);
+            Transform cr = transform.Find("Cream"); if (cr != null) Destroy(cr.gameObject);
             if (_dark != null) Destroy(_dark);
         }
 
@@ -123,42 +111,70 @@ namespace BounceBlast.Gameplay
             return m;
         }
 
+        /// <summary>
+        /// Dựng dải kem: mép trên bám theo mép trên miệng hố (kể cả góc bo), mép dưới = lớp nền mỏng + vài mảng lồi tròn rộng (chữ U).
+        /// </summary>
+        /// <param name="flow">0..1 mức đã chảy (độ sâu mảng lồi)</param>
+        /// <param name="spread">0..1 lớp kem phủ ra (mỏng → đủ dày)</param>
+        void BuildCream(float flow, float spread = 1f) => FillCream(_cream, flow, spread);
+
+        // Màng mỏng lượn sóng (2 sóng sin: chậm + gợn) – độ dày thay đổi 0.4–1.6 lần
+        float BandBottom(float x, float top, float spread)
+        {
+            float taper = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((_halfW - Mathf.Abs(x)) / (_halfW * 0.06f)));
+            float wob = 1f + 0.55f * Mathf.Sin(x / _cell * 4.6f + _phase) + 0.25f * Mathf.Sin(x / _cell * 10.5f + _phase * 1.7f);
+            return top - _band * wob * spread * taper;
+        }
+
+        void FillCream(Mesh mesh, float flow, float spread)
+        {
+            const int N = 96;
+            var v = new List<Vector3>(); var tri = new List<int>();
+            float flowK = Mathf.Sqrt(flow);
+
+            void Quad(int a, int b, int c, int d)   // a,b,c,d theo vòng; 2 mặt
+            {
+                tri.AddRange(new[] { a, b, c, a, c, d, a, c, b, a, d, c });
+            }
+
+            // lớp kem: dải bám mép trên miệng hố
+            int start = v.Count;
+            for (int i = 0; i <= N; i++)
+            {
+                float x = Mathf.Lerp(-_halfW, _halfW, i / (float)N);
+                float top = TopEdge(x, _halfW, _radius);
+                float bottom = BandBottom(x, top, spread);
+                v.Add(new Vector3(x, top, 0f));
+                v.Add(new Vector3(x, Mathf.Min(bottom, top - 0.0005f), 0f));
+                if (i > 0) { int a0 = start + (i - 1) * 2, b0 = start + i * 2; Quad(a0, b0, b0 + 1, a0 + 1); }
+            }
+
+
+            mesh.Clear();
+            mesh.SetVertices(v);
+            var n = new List<Vector3>(v.Count); for (int i = 0; i < v.Count; i++) n.Add(Vector3.back);
+            mesh.SetNormals(n);
+            mesh.SetTriangles(tri, 0);
+            mesh.RecalculateBounds();
+        }
+
+        void AddCreamLayer(string name, Mesh mesh, Material mat, float yTop, float z)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(transform, false);
+            go.transform.localPosition = new Vector3(0f, yTop, z);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = mat;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+        }
+
         /// <summary>Độ cao mép trên miệng hố tại x (so với mép trên, ≤ 0): phẳng ở giữa, cong xuống theo góc bo.</summary>
         static float TopEdge(float x, float halfW, float r)
         {
             float d = Mathf.Abs(x) - (halfW - r);
             return d <= 0f ? 0f : -r + Mathf.Sqrt(Mathf.Max(0f, r * r - d * d));
-        }
-
-        /// <summary>Dải cong dày "band" bám mép trên miệng hố: đường ngoài = mép trên + 2 cung góc, đường trong = đường ngoài dời xuống band.</summary>
-        static Mesh TopRimMesh(float halfW, float r, float band)
-        {
-            const int N = 24;
-            var v = new List<Vector3>(); var tri = new List<int>();
-            for (int i = 0; i <= N; i++)
-            {
-                // tham số theo cung: góc trái (180°→90°), cạnh thẳng, góc phải (90°→0°)
-                float t = i / (float)N, x, y;
-                float arc = Mathf.PI * 0.5f * r, flat = 2f * (halfW - r), len = 2f * arc + flat, u = t * len;
-                if (u < arc) { float a = Mathf.PI - u / r; x = -(halfW - r) + Mathf.Cos(a) * r; y = -r + Mathf.Sin(a) * r; }
-                else if (u < arc + flat) { x = -(halfW - r) + (u - arc); y = 0f; }
-                else { float a = Mathf.PI * 0.5f - (u - arc - flat) / r; x = (halfW - r) + Mathf.Cos(a) * r; y = -r + Mathf.Sin(a) * r; }
-                float k = Mathf.Clamp01(Mathf.Min(t, 1f - t) * 6f);   // 2 đầu mỏng dần
-                v.Add(new Vector3(x, y, 0f));
-                v.Add(new Vector3(x, y - band * k, 0f));
-                if (i > 0)
-                {
-                    int a0 = (i - 1) * 2, b0 = i * 2;
-                    tri.AddRange(new[] { a0, b0, a0 + 1, b0, b0 + 1, a0 + 1, a0, a0 + 1, b0, b0, a0 + 1, b0 + 1 });   // 2 mặt
-                }
-            }
-            var m = new Mesh { name = "HoleJellyRim" };
-            m.SetVertices(v);
-            var n = new List<Vector3>(); for (int i = 0; i < v.Count; i++) n.Add(Vector3.back);
-            m.SetNormals(n);
-            m.SetTriangles(tri, 0);
-            m.RecalculateBounds();
-            return m;
         }
 
         static void Corner(List<Vector2> pts, Vector2 corner, float r, float sx, float sy, float startDeg)

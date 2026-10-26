@@ -105,6 +105,8 @@ namespace BounceBlast.Gameplay
         public float winFireworksTime = 2.4f;
         public float ammoActiveScale = 0.9f;     // Ammunation.scaleOfActive (nhô khỏi hố)
         public float ammoInactiveScale = 0.88f;  // khít miệng hố (SlotSize 0.92, chừa viền mảnh)
+        [Tooltip("Cỡ hộp so với bước giữa các hố (1 = như cũ). Nhỏ hơn 1 = khoảng cách hố tương đối dãn ra, hộp (kể cả hộp băng/cửa kính to) không dính nhau; vị trí hộp vẫn theo tâm hố")]
+        [Range(0.5f, 1.2f)] public float ammoBoxVsHole = 1f;
 
         [Header("Bố cục màn hình (camera tự cân theo HUD & hàng booster – xem CameraFitter)")]
         [Tooltip("Mép trên NGOÀI của khung máng (y thế giới). Camera đặt mốc này ngang tâm hàng HUD (Lv, Settings) như game gốc")]
@@ -127,6 +129,99 @@ namespace BounceBlast.Gameplay
         public AmmoPose ammoInactivePose = new AmmoPose { tiltX = -78f, length = 0.4f, offset = new Vector3(0f, 0.07f, 0f), scale = 1.06f };
         [Tooltip("Độ lún của hộp chưa tới lượt (theo ô, ra xa camera). Lớn = chìm sau mặt khay, nhỏ = nổi ngang mặt khay")]
         [Range(0f, 2f)] public float ammoSinkDepth = 1.1f;
+
+        [Header("Onboarding level đầu (gốc: KPTutorialPanel / KPBoosterOnBoarder / holdWallToSpeedUp)")]
+        [Tooltip("Level hiện chữ \"Tap to select\" + tay chỉ vào hộp bấm được")] public int onboardTapLevel = 1;
+        [Tooltip("Level nhắc \"Watch the capacity!\"")] public int onboardCapacityLevel = 2;
+        [Tooltip("Level nhắc \"HOLD WALL TO SPEED UP!\"")] public int onboardSpeedLevel = 3;
+
+        /// <summary>Một cơ chế mới (popup "New Feature" hiện lần đầu cơ chế xuất hiện trong level). Chữ lấy nf_title_* / nf_description_* của game gốc.</summary>
+        [Serializable]
+        public class FeatureIntro
+        {
+            [Tooltip("BigCube, Qmark, Tunnel, Ice, Crate, Cover, Column – khớp OnboardingManager.FeaturesIn")] public string id;
+            public string title;
+            [TextArea(1, 3)] public string description;
+            public Sprite icon;
+        }
+        public System.Collections.Generic.List<FeatureIntro> featureIntros = new System.Collections.Generic.List<FeatureIntro>();
+
+        public FeatureIntro FeatureIntroOf(string id) => featureIntros.Find(f => f != null && f.id == id);
+
+        [Header("Mở khoá booster theo level (gốc: KPBoosterDependencies.UnlockLevel)")]
+        [Tooltip("Level bắt đầu dùng được Magic Hand")] public int unlockMagicHand = 6;
+        [Tooltip("Level bắt đầu dùng được Hammer")] public int unlockHammer = 9;
+        [Tooltip("Level bắt đầu dùng được Shuffle")] public int unlockShuffle = 12;
+        [Tooltip("Level bắt đầu dùng được Capacity")] public int unlockCapacity = 15;
+
+        [Tooltip("Số lượt miễn phí để thử mỗi khi một booster được mở khoá")] public int freeBoosterOnUnlock = 2;
+
+        /// <summary>Level mở khoá của một booster.</summary>
+        public int BoosterUnlockLevel(BoosterType t)
+        {
+            switch (t)
+            {
+                case BoosterType.MagicHand: return unlockMagicHand;
+                case BoosterType.Hammer: return unlockHammer;
+                case BoosterType.Shuffle: return unlockShuffle;
+                default: return unlockCapacity;
+            }
+        }
+
+        /// <summary>
+        /// Booster kế tiếp sẽ mở khoá sau level <paramref name="level"/> – cho thanh "New Booster" ở bảng thắng.
+        /// from/to = tiến độ (0..1) trước / sau khi thắng level này, tính từ lần mở khoá trước; to = 1 nghĩa là level kế tiếp mở khoá nó.
+        /// </summary>
+        public bool NextBoosterUnlock(int level, out BoosterType type, out float from, out float to)
+        {
+            type = BoosterType.MagicHand; from = to = 0f;
+            int next = int.MaxValue, prev = 0;
+            foreach (BoosterType t in System.Enum.GetValues(typeof(BoosterType)))
+            {
+                int u = BoosterUnlockLevel(t);
+                if (u > level && u < next) { next = u; type = t; }
+                if (u <= level && u > prev) prev = u;
+            }
+            if (next == int.MaxValue) return false;
+            float span = Mathf.Max(1, next - prev);
+            from = Mathf.Clamp01((level - prev) / span);
+            to = Mathf.Clamp01((level + 1 - prev) / span);
+            return true;
+        }
+
+        /// <summary>Hình icon (không viền nút) của một booster.</summary>
+        public Sprite BoosterIcon(BoosterType t)
+        {
+            switch (t)
+            {
+                case BoosterType.MagicHand: return boosterMagicSprite;
+                case BoosterType.Hammer: return boosterHammerSprite;
+                case BoosterType.Shuffle: return boosterShuffleSprite;
+                default: return boosterPlusSprite;
+            }
+        }
+
+        [Header("Booster VFX")]
+        [Tooltip("Icon booster dùng làm hình trong hiệu ứng (búa vung, tay phép, mũi tên xáo, dấu cộng)")]
+        public Sprite boosterHammerSprite, boosterMagicSprite, boosterShuffleSprite, boosterPlusSprite;
+        [Tooltip("Búa phá vùng bán kính bao nhiêu ô quanh điểm đập (1 ≈ vùng 3×3 gạch nhỏ, 2.4 ≈ 5×5, gạch ở rìa vẫn vỡ nếu vòng chạm tới)")]
+        [Range(0.6f, 4f)] public float hammerRadiusCells = 2.4f;
+        [Tooltip("Hai khối liên tiếp trong vùng vỡ cách nhau bao nhiêu giây theo mỗi ô khoảng cách từ tâm (lan sóng)")]
+        public float hammerWaveDelay = 0.045f;
+        [Tooltip("Cỡ chuẩn của hiệu ứng tay phép / xáo / cộng (đơn vị thế giới)")]
+        public float boosterFxUnit = 1.5f;
+
+        [Header("Hộp đóng băng (khối băng bọc ngoài hộp)")]
+        [Tooltip("Scale cục bộ của từng mức băng (IceCube…IceCube4), áp lên khối băng đã co theo hộp")]
+        public Vector3 iceStageScale = new Vector3(1.13298f, 2.119927f, 0.79747f);
+        [Tooltip("Vị trí cục bộ của từng mức băng")]
+        public Vector3 iceStagePos = new Vector3(-0.08f, -0.14f, 0f);
+        [Tooltip("Băng rộng hơn hộp mỗi bên bao nhiêu (theo ô). Nhỏ để 2 hộp băng kề nhau không dính")]
+        public float icePadSide = 0.01f;
+        [Tooltip("Băng dày thêm phía trên hộp (theo ô)")]
+        public float icePadTop = 0.22f;
+        [Tooltip("Băng dày thêm phía dưới hộp (theo ô)")]
+        public float icePadBottom = 0.05f;
 
         [Header("Ammo tunnel (/tu-XD) – áp dụng khi nạp level")]
         [Tooltip("Cạnh lớn nhất của tunnel trên màn hình (theo ô khay)")]
@@ -157,11 +252,6 @@ namespace BounceBlast.Gameplay
         public bool trayProcedural = true;
         [Tooltip("Bộ khối tường module gốc dùng che ô ngoài level của khay gốc (trống = tấm phẳng tự sinh)")]
         public WallKit wallKit;
-        [Tooltip("Khay gốc: số cột × hàng ô chơi được ứng với cỡ HoleAll đặt trong scene (Lv44). Level ít ô hơn thì khay phóng to cho vừa, nhiều hơn thì thu nhỏ")]
-        public int trayRefCols = 7;
-        public int trayRefRows = 6;
-        [Tooltip("Giới hạn phóng to / thu nhỏ khay gốc theo level")]
-        public float trayMaxGrow = 1.3f;
         [Tooltip("Vật liệu Unlit/Transparent cho viền khay (texture viền tô màu Theme.trayOutline do code vẽ)")]
         public Material trayOutlineMaterial;
         [Tooltip("Khay gốc: hộp đặt ở độ sâu miệng hố của hàng mình (mặt khay gốc nghiêng → mép dưới miệng hố che phần dưới thân hộp như game gốc). Số này dời thêm (theo ô): âm = nhô ra phía camera, dương = lún vào ống")]
@@ -231,10 +321,12 @@ namespace BounceBlast.Gameplay
         [Header("Nắp hố (sau khi hộp bay khỏi khay)")]
         [Tooltip("Cỡ miệng hố (theo ô) – vành trên cùng của mesh Hole gốc rộng ~0.96 ô")]
         [Range(0.3f, 1f)] public float holeLidSize = 0.96f;
+        [Tooltip("Nhân riêng chiều NGANG của nắp (1 = bằng chiều cao)")]
+        [Range(0.6f, 1f)] public float holeLidWidthScale = 0.92f;
         [Tooltip("Bo góc miệng hố (theo ô) – vành trên mesh Hole gốc ≈ 0.30 ô")]
         [Range(0f, 0.5f)] public float holeLidRadius = 0.30f;
         [Tooltip("Bề dày dải thạch đọng ở mép trên hố (theo ô)")]
-        public float holeLidBand = 0.09f;
+        public float holeLidBand = 0.17f;
         [Tooltip("Thời gian các sợi thạch chảy dài xuống (giây)")]
         public float holeLidDripTime = 0.18f;
         [Tooltip("Chờ bao lâu rồi nắp mới đóng (giây)")]

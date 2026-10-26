@@ -38,8 +38,11 @@ namespace BounceBlast.Gameplay
         bool _tapSoundPlayed;
         bool _speeding;
 
-        public void Init(Camera camera, GameUI ui, BoardController board, AmmoGridController grid, BoosterManager boosters, LaunchManager launch, BallManager balls)
+        OnboardingManager _onboarding;
+
+        public void Init(Camera camera, GameUI ui, BoardController board, AmmoGridController grid, BoosterManager boosters, LaunchManager launch, BallManager balls, OnboardingManager onboarding = null)
         {
+            _onboarding = onboarding;
             _camera = camera; _ui = ui; _board = board; _grid = grid; _boosters = boosters; _launch = launch; _balls = balls;
         }
 
@@ -129,12 +132,14 @@ namespace BounceBlast.Gameplay
 
             if (_boosters.Armed == BoosterType.Hammer)
             {
-                _boosters.UseHammer(_board.BlockAt(PointOnPlane(ray, 0f)));
+                Vector2 hp = PointOnPlane(ray, 0f);
+                _boosters.UseHammer(hp, _board.BlockAt(hp));
                 return;
             }
 
             Vector2 onAmmo = PointOnPlane(ray, -0.6f);
             AmmoBox hit = _grid.BoxAtWorld(onAmmo);
+            if (_onboarding != null && _onboarding.Blocking && hit != _onboarding.Target) return;   // onboarding: chỉ bấm đúng hộp được chỉ
             if (hit == null)
             {
                 // chạm chỗ trống trong khu khay đạn → giữ để tăng tốc

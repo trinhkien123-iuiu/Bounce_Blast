@@ -12,6 +12,8 @@ namespace BounceBlast.Gameplay
     {
         const float CoverMeshSize = 1.6314f; // bề rộng mesh Cover gốc ở scale 1 (đóng): bounds prefab 2.06 / scale node 1.2627
 
+        const float CoverDropY = 0.05f;      // dời nắp xuống một chút (theo chiều cao hố): che hết khe hở ở mép dưới
+
         Transform _root;
         SkinnedMeshRenderer _smr;
         float _blend, _blendTarget;
@@ -49,13 +51,13 @@ namespace BounceBlast.Gameplay
             _root.localScale = Vector3.one;
             Transform c = _smr.transform;
             c.localRotation = Quaternion.Euler(-90f, 0f, 0f);          // mesh gốc nằm trên mặt XZ → dựng về mặt XY của mặt khay
-            float k = size.x / CoverMeshSize * 1.03f;                    // +3%: che hẳn viền màu hộp phía sau
-            c.localScale = new Vector3(k, k, k * size.y / size.x);       // mesh gốc nằm mặt XZ: trục Z thành chiều dọc trên màn hình (miệng hố co dọc)
+            float k = size.x / CoverMeshSize * 0.98f;                    // = số người dùng chỉnh tay (Lv75, ô ≈ 1.25: y ≈ 0.7556); 1.04 làm các nắp liền kề dính nhau
+            c.localScale = new Vector3(k * 1.03f, k, k * 1.035f * size.y / size.x);   // tỉ lệ x:y:z = 1.03 : 1 : 1.035 đo từ cỡ người dùng chỉnh tay (0.778, 0.7556, 0.7823) ở Lv75; mesh gốc nằm mặt XZ: trục Z thành chiều dọc trên màn hình (miệng hố co dọc)
             c.localPosition = Vector3.zero;
             Apply();
             Bounds b = _smr.bounds;                                     // căn tâm hình thật vào tâm hố (trong mặt khay)
             Vector3 d = Quaternion.Inverse(plate) * (worldCenter - b.center);
-            c.position += plate * new Vector3(d.x, d.y, 0f);
+            c.position += plate * new Vector3(d.x, d.y - size.y * CoverDropY, 0f);
         }
 
         /// <summary>Trượt cánh cửa tới trạng thái đích (gọi mỗi khung).</summary>

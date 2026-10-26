@@ -103,7 +103,6 @@ namespace BounceBlast.Gameplay
             if (data.Door > 0)
             {
                 _door = new AmmoDoorView(transform, config, data.DoorClosed);
-                _doorSink = data.DoorClosed ? 1f : 0f;
             }
             ApplyAppearance();
 
@@ -113,7 +112,9 @@ namespace BounceBlast.Gameplay
         }
 
         AmmoDoorView _door;              // cửa kính (chỉ hộp có /door)
-        float _doorSink;                 // 0..1, nội suy theo trạng thái cửa
+        float _doorSink;                 // 0..1, nội suy: hộp ĐÃ thông đường (đáng lẽ active) mà cửa đóng → thụt thêm sau cửa
+        bool _pathOpen;                  // hộp thông đường ra (kể cả khi cửa/băng đang chặn)
+        float DoorSinkTarget => IsDoorClosed && _pathOpen ? 1f : 0f;
 
         /// <summary>Mỗi lần bắn 1 hộp bất kỳ: cửa đảo trạng thái (gốc BlockerCover.OnAmmoUsed).</summary>
         public void ToggleDoor()
@@ -201,13 +202,15 @@ namespace BounceBlast.Gameplay
         // ------------------------------------------------------------------ Trạng thái trong khay
         /// <param name="value">bấm được</param>
         /// <param name="raised">nhô khỏi hố (tư thế active). Hộp đóng băng đã thông đường: nhô như hộp active nhưng chưa bấm được (như gốc)</param>
-        public void SetClickable(bool value, bool raised, bool instant = false)
+        /// <param name="pathOpen">đường ra thông. Hộp cửa đóng mà CHƯA thông đường thì chỉ ở tư thế chưa active (cửa vẫn che, không thụt thêm); thông đường rồi mà cửa đóng thì mới thụt xuống sau cửa</param>
+        public void SetClickable(bool value, bool raised, bool pathOpen, bool instant = false)
         {
             IsClickable = value;
+            _pathOpen = pathOpen;
             _scaleTarget = raised ? _config.ammoActiveScale : _config.ammoInactiveScale;
             _tintTarget = raised ? 1f : 0.92f; // Tươi sáng, phân biệt active qua độ nhô & scale
             _sinkTarget = raised ? 0f : 1f;
-            if (instant) { _scaleNow = _scaleTarget; _tint = _tintTarget; _sink = _sinkTarget; ApplyScale(); ApplyTint(); }
+            if (instant) { _scaleNow = _scaleTarget; _tint = _tintTarget; _sink = _sinkTarget; _doorSink = DoorSinkTarget; ApplyScale(); ApplyTint(); }
         }
 
         /// <summary>Lộ màu hộp "?" khi nó thông đường ra (gốc: Ammunation.InitializeQmark / IsHidden).</summary>
@@ -222,6 +225,9 @@ namespace BounceBlast.Gameplay
         }
 
         /// <summary>Hộp kề (trên/dưới/trái/phải) vừa được bắn → băng nứt thêm 1 nấc (hình: <see cref="IceBlockerView"/>).</summary>
+        /// <summary>Nảy nhẹ (hiệu ứng booster: xáo màu, tay phép).</summary>
+        public void Pop() => _wobble = 1f;
+
         public void CrackIce()
         {
             if (Data.IceHits <= 0) return;
@@ -275,7 +281,7 @@ namespace BounceBlast.Gameplay
             bool scaleChanged = false;
             if (_scaleNow != _scaleTarget) { _scaleNow = Mathf.MoveTowards(_scaleNow, _scaleTarget, Time.deltaTime * 0.8f); scaleChanged = true; }
             if (_sink != _sinkTarget) { _sink = Mathf.MoveTowards(_sink, _sinkTarget, Time.deltaTime * 4f); scaleChanged = true; }
-            float doorTarget = IsDoorClosed ? 1f : 0f;
+            float doorTarget = DoorSinkTarget;
             if (_doorSink != doorTarget) { _doorSink = Mathf.MoveTowards(_doorSink, doorTarget, Time.deltaTime * 4f); scaleChanged = true; }
             if (_wobble > 0f) { _wobble = Mathf.Max(0f, _wobble - Time.deltaTime * 3f); scaleChanged = true; }
             if (_press != _pressTarget)
@@ -301,7 +307,7 @@ namespace BounceBlast.Gameplay
 
             float kt = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_sink));
             GameConfig.AmmoPose pose = AmmoBoxTuning.Lerp(1f - kt);   // active ↔ chưa active theo độ lún
-            float s = _cell * _scaleNow * pose.scale;
+            float s = _cell * _scaleNow * pose.scale * _config.ammoBoxVsHole;
             _visual.localRotation = Quaternion.Euler(pose.tiltX, 0f, 0f);
             if (_jelly != null) _jelly.transform.localScale = new Vector3(1f, pose.length, 1f);
             if (_qRenderer != null) _qRenderer.transform.localScale = new Vector3(1f, pose.length, 1f); // hộp mù theo cùng chiều dài
@@ -321,6 +327,7 @@ namespace BounceBlast.Gameplay
                 _visual.position += _cam.transform.right * o.x + _cam.transform.up * o.y + _cam.transform.forward * o.z;
             }
             AlignQmarkToJelly();
+            if (_ice != null && _jelly != null) _ice.FitCover(_jelly.bounds, _config, _cell);   // băng phủ kín cả hộp (kể cả thân dài)
             _door?.Apply();
         }
 

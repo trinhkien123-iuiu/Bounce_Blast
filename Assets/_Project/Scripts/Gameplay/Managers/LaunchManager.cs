@@ -98,8 +98,7 @@ namespace BounceBlast.Gameplay
         {
             if (forced)
             {
-                _boosters.ConsumeMagicHand();
-                AudioManager.Play(Sfx.Magic);
+                _boosters.ConsumeMagicHand(box);
             }
             _started = true;
             Capacity.Add(box.Data.Balls);

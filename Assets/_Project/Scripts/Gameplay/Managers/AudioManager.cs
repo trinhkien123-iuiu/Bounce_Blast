@@ -8,7 +8,8 @@ namespace BounceBlast.Gameplay
     public enum Sfx
     {
         Button, Error, TapAmmo, BoxLaunch, BallHit, BigBlockBreak, CrateBreak,
-        IceCrack, IceBreak, QmarkReveal, TunnelOut, CapacityWarning, Win, Lose, Confetti, Hammer, Magic
+        IceCrack, IceBreak, QmarkReveal, TunnelOut, CapacityWarning, Win, Lose, Confetti, Hammer, Magic,
+        HammerSwing, ShuffleWhoosh, ShufflePop, MagicHandTap, CapacityUp, BoosterUnlock, OutOfCapacity   // booster (thêm cuối: id lưu trong GameConfig)
     }
 
     [Serializable]

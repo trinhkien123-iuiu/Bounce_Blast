@@ -2073,3 +2073,13 @@ MonoBehaviour:
   superHardOnly: []
   playOnButton: {fileID: 3840990008656551561}
   giveUpButton: {fileID: 3840990008656550241}
+  dim: {fileID: 3840990008656551620}
+  playOnGroup: {fileID: 3840990008656539409}
+  giveUpGroup: {fileID: 3840990008656540745}
+  title: {fileID: 3840990008656541594}
+  dimTime: 0.3
+  buttonsDelay: 0.3
+  buttonsTime: 0.4
+  soundDelay: 0.37
+  titleDelay: 0.47
+  titleTime: 0.23

@@ -99,7 +99,7 @@ namespace BounceBlast.Gameplay
             _trayRoot.SetParent(transform, false);
 
             bool useOriginalTray = !config.trayProcedural && originalTray != null;
-            if (useOriginalTray) BuildOriginalTray(cMin, cMax, centerX, visRows);
+            if (useOriginalTray) BuildOriginalTray(cMin, cMax, centerX, visRows, availH);
             _tray = new AmmoTrayView(config, _theme, colors, _kind, _cell, _origin, _trayRoot, _pitchY, _rowZ);
             // mặt khay gốc: local +Z = mặt trên (về camera), +Y = hàng tăng (xuống màn hình) → lật 180° quanh X cho +Y lên, −Z về camera
             if (useOriginalTray) _tray.PlateRotation = originalTray.transform.rotation * Quaternion.Euler(180f, 0f, 0f);
@@ -150,16 +150,19 @@ namespace BounceBlast.Gameplay
                                                         Quaternion.Euler(90f, 0f, 0f), Vector3.one * HolePitch);
         }
 
-        void BuildOriginalTray(int cMin, int cMax, float centerX, int visRows)
+        void BuildOriginalTray(int cMin, int cMax, float centerX, int visRows, float availH)
         {
             Transform t = originalTray.transform;
-            // Như game gốc: level ít cột/hàng thì ô khay to ra cho vừa khung khay (gốc: Lv44 7×6 ô ≈ 0.12 bề ngang màn, Lv40 5×5 ≈ 0.14).
-            // Cỡ đặt tay trong scene = cỡ cho level chuẩn trayRefCols × trayRefRows; phóng quanh mép trên hàng 0 (ngay dưới thanh capacity).
+            // Co giãn theo mật độ: khay luôn trải từ ngay dưới thanh Capacity (mép trên hàng 0) tới sát hàng Booster (mép dưới hàng cuối),
+            // bị chặn bởi bề ngang vùng khay và cỡ ô tối đa (level quá ít ô thì không phình vô lý). Cỡ đặt tay trong scene chỉ là mốc đo tỉ lệ.
             if (_trayBaseScale == Vector3.zero) { _trayBaseScale = t.localScale; _trayBasePos = t.position; }
-            float grow = Mathf.Min(_config.trayRefCols / (float)(cMax - cMin + 1), _config.trayRefRows / (float)visRows);
-            grow = Mathf.Clamp(grow, 1f / _config.trayMaxGrow, _config.trayMaxGrow);
             t.localScale = _trayBaseScale;
             t.position = _trayBasePos;
+            float baseCell = Mathf.Abs(t.TransformPoint(new Vector3(HolePitch, 0f, HolePlateZ)).x - t.TransformPoint(new Vector3(0f, 0f, HolePlateZ)).x);
+            float basePitchY = Mathf.Abs(t.TransformPoint(new Vector3(0f, HolePitch, HolePlateZ)).y - t.TransformPoint(new Vector3(0f, 0f, HolePlateZ)).y);
+            float cellForHeight = availH / (visRows * basePitchY / baseCell);   // mặt khay nghiêng: bước dọc trên màn hình nhỏ hơn bước ngang
+            float cell = Mathf.Min(_config.ammoCellMax, cellForHeight, _config.ammoAreaWidth / (cMax - cMin + 1));
+            float grow = cell / baseCell;
             Vector3 topEdge = new Vector3(0f, -3.5f * HolePitch, HolePlateZ);
             float topY = t.TransformPoint(topEdge).y;
             t.localScale = _trayBaseScale * grow;
@@ -215,7 +218,8 @@ namespace BounceBlast.Gameplay
                     if (box == null) continue;
                     bool open = _paths.IsOpen(new Vector2Int(c, r));
                     if (open && box.IsHidden) box.Reveal();
-                    box.SetClickable(open && !box.IsFrozen && !box.IsDoorClosed, open && !box.IsDoorClosed, instant);
+                    // hộp đóng băng luôn ở tư thế active (nhô, cỡ active) kể cả khi chưa thông đường – không có trạng thái "chưa active"
+                    box.SetClickable(open && !box.IsFrozen && !box.IsDoorClosed, box.IsFrozen || (open && !box.IsDoorClosed), open, instant);
                 }
         }
 
@@ -297,11 +301,41 @@ namespace BounceBlast.Gameplay
         }
 
         // Truy vấn cho GameManager / booster
+        /// <summary>Hộp bấm được đầu tiên (hàng trên cùng trước) – onboarding chỉ tay vào đây.</summary>
+        /// <summary>Điểm (world) chỗ trống ngay dưới khay – nơi giữ tay để tăng tốc; onboarding chỉ tay vào đây.</summary>
+        public Vector3 HoldSpotWorld()
+        {
+            float cx = _origin.x + (_cols - 1) * 0.5f * _cell;
+            return new Vector3(cx, _origin.y - (_rows - 0.2f) * _pitchY, BoxZ(Mathf.Max(0, _rows - 1)));
+        }
+
+        public AmmoBox FirstClickable()
+        {
+            AmmoBox best = null;
+            if (_boxes == null) return null;
+            foreach (AmmoBox b in _boxes)
+                if (b != null && b.IsClickable && (best == null || b.transform.position.y > best.transform.position.y)) best = b;
+            return best;
+        }
+
         public bool AnyClickable()
         {
             if (_boxes == null) return false;
             foreach (AmmoBox b in _boxes) if (b != null && b.IsClickable) return true;
             return false;
+        }
+
+        /// <summary>Vị trí (world) các hộp còn trong khay + tâm khay – cho hiệu ứng xáo màu.</summary>
+        public List<Vector3> BoxPositions(out Vector3 center, out float radius)
+        {
+            var list = new List<Vector3>(); center = Vector3.zero; radius = _cell;
+            if (_boxes == null) return list;
+            foreach (AmmoBox b in _boxes) if (b != null && b.Data != null) { list.Add(CellWorld(b.Cell)); center += list[list.Count - 1]; }
+            if (list.Count == 0) return list;
+            center /= list.Count;
+            foreach (Vector3 p in list) radius = Mathf.Max(radius, Vector3.Distance(p, center));
+            radius += _cell * 0.6f;
+            return list;
         }
 
         public void ShuffleColors()
@@ -323,7 +357,7 @@ namespace BounceBlast.Gameplay
                 var data = new AmmoBoxData { ColorCode = datas[i].Item1, Balls = datas[i].Item2, IceHits = old.Data.IceHits, Hidden = old.Data.Hidden };
                 Vector2Int cell = old.Cell;
                 Destroy(old.gameObject);
-                PlaceBox(data, cell, false);
+                PlaceBox(data, cell, false).Pop();
             }
             Recompute(true);
         }

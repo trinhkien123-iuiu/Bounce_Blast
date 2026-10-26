@@ -47,6 +47,8 @@ namespace BounceBlast.Gameplay
         public LaunchManager launchManager;
         public BoosterManager boosterManager;
         public DebugManager debugManager;
+        [Tooltip("Hướng dẫn level đầu + popup New Feature (bỏ trống = tự tạo)")] public OnboardingManager onboardingManager;
+        [Tooltip("Prefab OnboardingCanvas đặt sẵn trong UI/ (bỏ trống = không có hướng dẫn tay chỉ)")] public OnboardingView onboardingView;
         [Tooltip("Cân camera theo HUD & hàng booster (số chỉnh ở GameConfig → Bố cục màn hình)")] public CameraFitter cameraFitter;
         [Tooltip("Âm thanh – bỏ trống thì tự gắn vào object này lúc chạy")] public AudioManager audioManager;
 
@@ -116,10 +118,14 @@ namespace BounceBlast.Gameplay
             inputManager = Get(inputManager, "InputManager");
             debugManager = Get(debugManager, "DebugManager");
             levelManager.Init(config, colors, _ui, board, ammoGrid, conveyor, balls, theme, cameraFitter);
-            boosterManager.Init(_ui, board, ammoGrid, launchManager, levelManager);
+            boosterManager.SetColors(colors);
+            boosterManager.Init(config, gameCamera, _ui, board, ammoGrid, launchManager, levelManager);
             launchManager.Init(_ui, board, ammoGrid, conveyor, balls, boosterManager, levelManager);
-            inputManager.Init(gameCamera, _ui, board, ammoGrid, boosterManager, launchManager, balls);
+            onboardingManager = Get(onboardingManager, "OnboardingManager");
+            inputManager.Init(gameCamera, _ui, board, ammoGrid, boosterManager, launchManager, balls, onboardingManager);
             debugManager.Init(_ui, board, launchManager);
+
+            onboardingManager.Init(config, _ui, levelManager, boosterManager, ammoGrid, balls, gameCamera, onboardingView);
 
             // ---- Observer: ai báo gì thì ai nghe
             levelManager.OnLevelLoading += () => { StopAllCoroutines(); SetState(GameState.Loading); };

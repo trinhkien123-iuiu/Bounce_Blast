@@ -31,6 +31,7 @@ namespace BounceBlast.UI
         [SerializeField] SettingsPopupView _settings;
         [SerializeField] OutOfCapacityPopupView _outOfCapacity;
         [SerializeField] BoosterBuyPopupView _boosterBuy;
+        [SerializeField] BoosterTutorialPopupView _boosterTutorial;
         [Tooltip("Viền trắng khi nhấn giữ tăng tốc (prefab SpeedUpCanvas)")] [SerializeField] SpeedUpView _speedUp;
 
         Camera _cam;
@@ -162,6 +163,9 @@ namespace BounceBlast.UI
             _capacity.gameObject.SetActive(true);
         }
 
+        /// <summary>Thanh Capacity (hiệu ứng booster +25% bám vào đây).</summary>
+        public Transform CapacityBarTransform => _capacity != null ? _capacity.transform : null;
+
         public void SetCapacity(float fill, bool started, bool infinite)
         {
             if (_capacity != null) _capacity.SetFill(fill, started, infinite);
@@ -189,6 +193,11 @@ namespace BounceBlast.UI
             _boosterBarView.OnPressed += t => OnBoosterPressed?.Invoke(t);
         }
 
+
+        public void SetBoosterLocked(BoosterType type, bool locked) { if (_boosterBarView != null) _boosterBarView.SetLocked(type, locked); }
+        public void ShowBoosterLockHint(BoosterType type, int unlockLevel) { if (_boosterBarView != null) _boosterBarView.ShowUnlockHint(type, unlockLevel); }
+        public Vector2 BoosterButtonScreenPos(BoosterType type) => _boosterBarView != null ? _boosterBarView.ButtonScreenPos(type) : Vector2.zero;
+        public Coroutine PlayBoosterUnlock(BoosterType type, Action onPop, Action onDone) => _boosterBarView != null ? StartCoroutine(_boosterBarView.PlayUnlock(type, onPop, onDone)) : null;
 
         public void SetBooster(BoosterType type, int count, bool armed)
         {
@@ -278,6 +287,40 @@ namespace BounceBlast.UI
             Time.timeScale = 0;
         }
 
+        bool _tutorialWired;
+        Action<BoosterType> _tutorialUse;
+        Action _tutorialClosed;
+
+        /// <summary>Popup hướng dẫn booster vừa mở khoá. Bấm Use → <paramref name="onUse"/> (dùng booster ngay); bấm Close → chỉ đóng.</summary>
+        public void ShowBoosterTutorial(BoosterType type, LevelDifficulty diff, Action<BoosterType> onUse, Action onClosed = null, int freeCount = 0)
+        {
+            _difficulty = diff;
+            ClosePopup();
+            if (!_tutorialWired)
+            {
+                _boosterTutorial = GetPopupView(_boosterTutorial, "BoosterTutorialPopup");
+                if (_boosterTutorial != null)
+                {
+                    _tutorialWired = true;
+                    _boosterTutorial.OnClose += () => { ClosePopup(); _tutorialClosed?.Invoke(); };
+                    _boosterTutorial.OnUse += t => { ClosePopup(); _tutorialUse?.Invoke(t); _tutorialClosed?.Invoke(); };
+                }
+            }
+            if (_boosterTutorial == null) return;
+            _tutorialUse = onUse; _tutorialClosed = onClosed;
+            _boosterTutorial.Show(type, diff, freeCount);
+            _activeView = _boosterTutorial;
+
+            Time.timeScale = 0;
+        }
+
+        /// <summary>Popup "New Feature" của cơ chế mới (dùng chung khung với popup hướng dẫn booster). Đóng (OK / X) → <paramref name="onClosed"/>.</summary>
+        public void ShowFeatureIntro(string title, string description, Sprite icon, LevelDifficulty diff, Action onClosed)
+        {
+            ShowBoosterTutorial(BoosterType.MagicHand, diff, null, onClosed);   // nối sự kiện + dựng popup (nội dung ghi đè ngay sau đó)
+            if (_boosterTutorial != null) _boosterTutorial.ShowFeature(title, description, icon, diff);
+        }
+
         //Cài đặt
         Action _settingsRestart, _settingsClose, _settingsHome;
 
@@ -329,6 +372,9 @@ namespace BounceBlast.UI
             }
             if (_success == null) { onContinue?.Invoke(); yield break; }
             _winContinue = onContinue;
+            BoosterType nextType; float from, to;
+            if (_config != null && _config.NextBoosterUnlock(level, out nextType, out from, out to)) _success.SetFeature(_config.BoosterIcon(nextType), from, to);
+            else _success.SetFeature(null, 0f, 0f);
             _activeView = _success;
             yield return _success.Play(level, diff, coins, _config != null ? _config.winFireworksTime : 2.4f);
         }

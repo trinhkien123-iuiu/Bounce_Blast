@@ -10,14 +10,14 @@ namespace BounceBlast.Gameplay
     ///  - Hammer: đập vỡ 1 khối trên bàn.
     ///  - Shuffle: xáo màu các hộp còn trong khay.
     ///  - Capacity: +25% sức chứa.
-    /// Số lượng lưu PlayerPrefs; mặc định mỗi loại 2 lượt.
+    /// Số lượng lưu PlayerPrefs; bắt đầu 0, mỗi lần một booster mở khoá được tặng GameConfig.freeBoosterOnUnlock lượt thử.
     /// </summary>
     public class BoosterSystem
     {
         public event Action OnChanged;
         public BoosterType? Armed { get; private set; }
 
-        public int Count(BoosterType t) => PlayerPrefs.GetInt("bb_booster_" + t, 2);
+        public int Count(BoosterType t) => PlayerPrefs.GetInt("bb_booster_" + t, 0);
 
         public void Add(BoosterType t, int n)
         {

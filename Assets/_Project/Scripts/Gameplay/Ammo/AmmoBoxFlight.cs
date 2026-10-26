@@ -112,11 +112,13 @@ namespace BounceBlast.Gameplay
             _flying = true;
             _fractionSet = false;
             bool headFired = false;
+            // camera trực giao thẳng: dời z không đổi vị trí trên màn hình → ống bay luôn nổi TRÊN mọi thứ (thanh Capacity z = -0.6, máng…)
+            Vector3 lift = new Vector3(0f, 0f, -1.5f);
             tube.SetPath(new[]
             {
                 start,
-                start + startUp * (_cell * 0.9f),
-                dock + dockUp * (DockLen + 1.2f), // vào máng cắm theo đúng trục nghiêng của máy xay
+                start + startUp * (_cell * 0.9f) + lift,
+                dock + dockUp * (DockLen + 1.2f) + lift, // vào máng cắm theo đúng trục nghiêng của máy xay
                 dock - dockUp * DockBottom,
             }, Mathf.Max(sBox, dw) * 1.3f);
             _visual.gameObject.SetActive(false);

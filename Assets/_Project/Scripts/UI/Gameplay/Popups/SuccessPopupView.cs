@@ -63,6 +63,57 @@ namespace BounceBlast.UI
         [Tooltip("Sao lấp lánh quanh xu (Coin/SparkleLayer)")] [SerializeField] UiSparkles sparkles;
         [Tooltip("Vệt sáng quét qua nút Continue / x2")] [SerializeField] UiShineSweep[] shines = new UiShineSweep[0];
 
+        [Header("Thanh \"New Booster\" (gốc: BlockerBar + chữ New Feature) – tiến độ tới booster kế tiếp")]
+        [SerializeField] GameObject featureBar;
+        [SerializeField] Image featureFill;
+        [SerializeField] TMP_Text featurePercent;
+        [SerializeField] TMP_Text featureLabel;
+        [SerializeField] Image featureIcon;
+
+        float _featureFrom, _featureTo;
+        bool _featureOn;
+
+        /// <summary>Đặt dữ liệu thanh New Booster trước khi Play: icon null = ẩn thanh (đã mở hết booster).</summary>
+        public void SetFeature(Sprite icon, float from, float to)
+        {
+            _featureOn = icon != null;
+            _featureFrom = from; _featureTo = to;
+            if (featureBar != null) featureBar.SetActive(_featureOn);
+            if (!_featureOn) return;
+            if (featureIcon != null) featureIcon.sprite = icon;
+            ShowFeature(from);
+        }
+
+        void ShowFeature(float k)
+        {
+            if (featureFill != null) featureFill.fillAmount = k;
+            if (featurePercent != null) featurePercent.text = Mathf.RoundToInt(k * 100f) + "%";
+        }
+
+        IEnumerator FillFeature()
+        {
+            if (!_featureOn) yield break;
+            yield return new WaitForSecondsRealtime(0.25f);
+            float t0 = Time.unscaledTime;
+            while (true)
+            {
+                float k = Mathf.Clamp01((Time.unscaledTime - t0) / 0.8f);
+                ShowFeature(Mathf.Lerp(_featureFrom, _featureTo, 1f - (1f - k) * (1f - k)));
+                if (k >= 1f) break;
+                yield return null;
+            }
+            if (featureIcon != null)   // chạm đích: icon nảy lên
+            {
+                Transform ic = featureIcon.transform; Vector3 b = BaseScale(ic);
+                for (float t = 0f; t < 0.35f; t += Time.unscaledDeltaTime)
+                {
+                    ic.localScale = b * (1f + 0.35f * Mathf.Sin(t / 0.35f * Mathf.PI));
+                    yield return null;
+                }
+                ic.localScale = b;
+            }
+        }
+
         /// <summary>Người chơi bấm Continue hoặc x2.</summary>
         public event Action OnContinue;
 
@@ -78,6 +129,7 @@ namespace BounceBlast.UI
             if (coinIcon != null) { _coinPos = coinIcon.localPosition; _coinScale = coinIcon.localScale; }
             if (container != null) BaseScale(container);
             if (perfect != null) BaseScale(perfect);
+            if (featureIcon != null) BaseScale(featureIcon.transform);
             if (continueButton != null) continueButton.onClick.AddListener(Continue);
             if (x2Button != null) x2Button.onClick.AddListener(Continue);
         }
@@ -202,6 +254,7 @@ namespace BounceBlast.UI
             // 3) sao lấp lánh liên tục quanh xu  4) vệt sáng quét qua nút Continue / x2
             if (sparkles != null) sparkles.Play();
             foreach (UiShineSweep s in shines) if (s != null) s.Restart();
+            StartCoroutine(FillFeature());
 
         }
 

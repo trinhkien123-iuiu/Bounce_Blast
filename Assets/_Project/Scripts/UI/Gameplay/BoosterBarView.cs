@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -38,6 +39,7 @@ namespace BounceBlast.UI
             public Sprite hammer;
             public Sprite shuffle;
             public Sprite capacity;
+            [Tooltip("Hình nút khi booster còn khoá (ổ khoá vàng trên nền đúng tông độ khó)")] public Sprite locked;
             [Tooltip("Ô số tròn (Number / Hard Number / Super Hard Number)")] public Sprite number;
             [Tooltip("Màu dải nền dưới cùng ở độ khó này (đo từ ảnh gốc). Alpha 0 = giữ màu đang có")] public Color stripColor = new Color(1f, 1f, 1f, 0f);
 
@@ -55,6 +57,10 @@ namespace BounceBlast.UI
 
         [Tooltip("Dải nền dưới cùng (đổi tông theo độ khó)")]
         [SerializeField] Image strip;
+        [Tooltip("Chữ \"Reach Lv N\" nổi lên trên nút khoá khi bấm vào (một cái dùng chung, dời tới nút được bấm)")]
+        [SerializeField] TextMeshProUGUI unlockHint;
+        [Tooltip("Độ cao chữ nhắc so với tâm nút (đơn vị canvas)")]
+        [SerializeField] float unlockHintRaise = 150f;
         [Tooltip("Hàng chứa 4 nút – dùng để đo mép trên khi cân bố cục màn hình")]
         [SerializeField] RectTransform buttonsRow;
         [SerializeField] List<Entry> boosters = new List<Entry>();
@@ -71,6 +77,9 @@ namespace BounceBlast.UI
         public RectTransform ButtonsRow => buttonsRow;
 
         bool _warnOn;
+        Style _style;
+        readonly HashSet<BoosterType> _locked = new HashSet<BoosterType>();
+        Coroutine _hintRoutine;
         // cỡ nút / vị trí mũi tên trong prefab – hiệu ứng chỉ cộng/nhân lên trên
         readonly Dictionary<Transform, Vector3> _baseScale = new Dictionary<Transform, Vector3>();
         readonly Dictionary<RectTransform, Vector2> _basePos = new Dictionary<RectTransform, Vector2>();
@@ -98,8 +107,9 @@ namespace BounceBlast.UI
             foreach (Entry e in boosters)
             {
                 if (e == null || e.warnArrow == null) continue;
-                if (e.warnArrow.gameObject.activeSelf != _warnOn) e.warnArrow.gameObject.SetActive(_warnOn);
-                if (_warnOn) e.warnArrow.anchoredPosition = BasePos(e.warnArrow) + new Vector2(0f, y);
+                bool show = _warnOn && !_locked.Contains(e.type);   // nút còn khoá thì không nhắc dùng
+                if (e.warnArrow.gameObject.activeSelf != show) e.warnArrow.gameObject.SetActive(show);
+                if (show) e.warnArrow.anchoredPosition = BasePos(e.warnArrow) + new Vector2(0f, y);
             }
         }
 
@@ -107,11 +117,12 @@ namespace BounceBlast.UI
         public void ApplyDifficulty(LevelDifficulty difficulty)
         {
             Style s = difficulty == LevelDifficulty.SuperHard ? superHard : difficulty == LevelDifficulty.Hard ? hard : normal;
+            _style = s;
             if (strip != null && s.stripColor.a > 0f) strip.color = s.stripColor;
             foreach (Entry e in boosters)
             {
                 if (e == null) continue;
-                Sprite sp = s.For(e.type);
+                Sprite sp = _locked.Contains(e.type) && s.locked != null ? s.locked : s.For(e.type);
                 if (sp != null && e.frame != null) e.frame.sprite = sp;
                 if (s.number != null && e.badge != null)
                 {
@@ -129,6 +140,7 @@ namespace BounceBlast.UI
         {
             Entry e = Find(type);
             if (e == null) return;
+            if (_locked.Contains(type)) { ShowLockedLook(e); return; }
             bool has = count > 0;
             if (e.badge != null) e.badge.SetActive(has);
             if (e.badgeAdd != null) e.badgeAdd.SetActive(!has);
@@ -138,6 +150,102 @@ namespace BounceBlast.UI
                 e.frame.rectTransform.localScale = BaseScale(e.frame.rectTransform) * (armed ? 1.12f : 1f);
                 e.frame.color = armed ? new Color(1f, 0.9f, 0.5f) : Color.white;
             }
+        }
+
+        void ShowLockedLook(Entry e)
+        {
+            if (e.badge != null) e.badge.SetActive(false);
+            if (e.badgeAdd != null) e.badgeAdd.SetActive(false);
+            if (e.frame != null)
+            {
+                e.frame.rectTransform.localScale = BaseScale(e.frame.rectTransform);
+                e.frame.color = Color.white;
+                if (_style != null && _style.locked != null) e.frame.sprite = _style.locked;
+            }
+        }
+
+        /// <summary>Khoá / mở nút booster (khoá: hiện ổ khoá, ẩn số lượt; mở: trả hình nút của độ khó).</summary>
+        public void SetLocked(BoosterType type, bool locked)
+        {
+            Entry e = Find(type);
+            if (e == null) return;
+            if (locked) { _locked.Add(type); ShowLockedLook(e); return; }
+            _locked.Remove(type);
+            if (_style != null && e.frame != null) e.frame.sprite = _style.For(type);
+        }
+
+        public bool IsLocked(BoosterType type) => _locked.Contains(type);
+
+        /// <summary>Chữ "Reach Lv N" nổi lên trên nút đang khoá rồi mờ dần (video gốc: bấm nút khoá).</summary>
+        public void ShowUnlockHint(BoosterType type, int level)
+        {
+            Entry e = Find(type);
+            if (e == null || e.frame == null || unlockHint == null) return;
+            if (_hintRoutine != null) StopCoroutine(_hintRoutine);
+            _hintRoutine = StartCoroutine(HintRoutine(e, level));
+        }
+
+        IEnumerator HintRoutine(Entry e, int level)
+        {
+            unlockHint.text = "Reach\nLv " + level;
+            RectTransform rt = unlockHint.rectTransform;
+            rt.position = e.frame.rectTransform.position;
+            Vector2 baseP = rt.anchoredPosition + Vector2.up * unlockHintRaise;
+            unlockHint.gameObject.SetActive(true);
+            const float fadeIn = 0.12f, hold = 1.0f, fadeOut = 0.35f;
+            for (float t = 0f; t < fadeIn + hold + fadeOut; t += Time.unscaledDeltaTime)
+            {
+                float a = t < fadeIn ? t / fadeIn : t < fadeIn + hold ? 1f : 1f - (t - fadeIn - hold) / fadeOut;
+                float rise = Mathf.Clamp01(t / fadeIn);
+                rt.anchoredPosition = baseP + Vector2.up * (12f * (1f - rise));
+                unlockHint.alpha = Mathf.Clamp01(a);
+                yield return null;
+            }
+            unlockHint.gameObject.SetActive(false);
+            _hintRoutine = null;
+        }
+
+        /// <summary>Toạ độ màn hình của nút (dùng đặt hiệu ứng hạt thế giới lên đúng chỗ).</summary>
+        public Vector2 ButtonScreenPos(BoosterType type)
+        {
+            Entry e = Find(type);
+            if (e == null || e.frame == null) return new Vector2(Screen.width * 0.5f, 0f);
+            Canvas c = e.frame.canvas;
+            Camera cam = c != null && c.renderMode != RenderMode.ScreenSpaceOverlay ? c.worldCamera : null;
+            return RectTransformUtility.WorldToScreenPoint(cam, e.frame.rectTransform.position);
+        }
+
+        /// <summary>Mở khoá: ổ khoá rung lắc rồi bật ra thành nút booster (phồng lên rồi về cỡ gốc). onPop gọi lúc nút bật ra.</summary>
+        public IEnumerator PlayUnlock(BoosterType type, Action onPop, Action onDone)
+        {
+            Entry e = Find(type);
+            if (e == null || e.frame == null) { SetLocked(type, false); onPop?.Invoke(); onDone?.Invoke(); yield break; }
+            RectTransform rt = e.frame.rectTransform;
+            Vector3 baseScale = BaseScale(rt);
+            Quaternion baseRot = rt.localRotation;
+            if (_style != null && _style.locked != null) e.frame.sprite = _style.locked;
+            yield return new WaitForSecondsRealtime(0.5f);   // chờ màn chơi hiện rõ rồi mới mở khoá
+            const float shake = 0.7f;
+            for (float t = 0f; t < shake; t += Time.unscaledDeltaTime)
+            {
+                float k = t / shake;
+                rt.localRotation = baseRot * Quaternion.Euler(0f, 0f, Mathf.Sin(t * 70f) * 14f * (1f - k * 0.4f));
+                rt.localScale = baseScale * (1f + 0.12f * k);
+                yield return null;
+            }
+            rt.localRotation = baseRot;
+            _locked.Remove(type);
+            if (_style != null) e.frame.sprite = _style.For(type);
+            onPop?.Invoke();
+            for (float t = 0f; t < 0.4f; t += Time.unscaledDeltaTime)
+            {
+                float k = t / 0.4f;
+                rt.localScale = baseScale * Mathf.Lerp(1.35f, 1f, 1f - Mathf.Pow(1f - k, 3f)) * (1f + 0.08f * Mathf.Sin(k * 14f) * (1f - k));
+                yield return null;
+            }
+            rt.localScale = baseScale;
+            yield return new WaitForSecondsRealtime(0.7f);   // cho người chơi kịp nhìn nút vừa mở rồi mới hiện popup
+            onDone?.Invoke();
         }
 
         Entry Find(BoosterType type)

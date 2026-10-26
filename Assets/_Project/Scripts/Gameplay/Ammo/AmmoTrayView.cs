@@ -245,7 +245,7 @@ namespace BounceBlast.Gameplay
                 _jellyMats[colorCode ?? ""] = jm;
             }
             var lid = go.AddComponent<AmmoHoleLid>();
-            lid.Init(_cell, s, -sy, top, _cell * (_rowZ != null ? _config.holeLidRadius : SlotRadius), _trayWallMat, jm, _trayTileMat, _config);
+            lid.Init(_cell, s * (_rowZ != null ? _config.holeLidWidthScale : 1f), -sy, top, _cell * (_rowZ != null ? _config.holeLidRadius : SlotRadius), _trayWallMat, jm, _trayTileMat, _config);
             _lids[cell] = lid;
             _tiles.Add(go);
         }

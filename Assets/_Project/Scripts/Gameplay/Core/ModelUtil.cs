@@ -25,6 +25,7 @@ namespace BounceBlast.Gameplay
             {
                 if (r is ParticleSystemRenderer || r is TrailRenderer || !r.enabled || !r.gameObject.activeInHierarchy) continue;
                 if (r.GetComponent<TextMeshPro>() != null) continue;
+                if (r.GetComponentInParent<IceBlockerView>() != null) continue;   // lớp băng bọc NGOÀI hộp: không tính vào cỡ hộp (hộp đóng băng cỡ như hộp active)
                 if (!has) { b = r.bounds; has = true; } else b.Encapsulate(r.bounds);
             }
             if (!has) return;
