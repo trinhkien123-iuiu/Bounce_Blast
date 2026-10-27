@@ -14,7 +14,17 @@ namespace BounceBlast.Gameplay
         Crate,
         Wall,
         Column,
-        Stone
+        Stone,
+        Curtain,
+        Bomb,
+        BoardTunnel
+    }
+
+    /// <summary>Một lượt trong hàng đợi của tunnel trên bàn: Cubes cube 1 máu cùng màu</summary>
+    public struct TunnelBatch
+    {
+        public string Color;
+        public int Cubes;
     }
 
     /// <summary>Một vật thể trên bàn, toạ độ theo lưới "mịn"</summary>
@@ -23,6 +33,13 @@ namespace BounceBlast.Gameplay
         public BoardItemKind Kind;
         public string ColorCode;
         public int Hp;
+        /// <summary>Bom: số "nhịp" đếm ngược (token /bomb-timer-id)</summary>
+        public int Timer;
+        /// <summary>Board Qmark (token .../bqm): màu bị che bằng dấu "?" cho tới khi mặt trên/hai bên được giải phóng</summary>
+        public bool Hidden;
+        /// <summary>Tunnel trên bàn (/btu-X): chữ id và hàng đợi cube sẽ nhả lên</summary>
+        public char TunnelId;
+        public List<TunnelBatch> Queue = new List<TunnelBatch>();
         public RectInt Cells;
         /// <summary>Khối gộp hình bất kỳ (chữ L…)</summary>
         public List<Vector2Int> Mask;

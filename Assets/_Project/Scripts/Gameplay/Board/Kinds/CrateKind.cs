@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 namespace BounceBlast.Gameplay
@@ -16,11 +17,12 @@ namespace BounceBlast.Gameplay
         public override BlockView Build(BoardController board, BoardItemData item, Transform parent, Vector2 size, List<RectInt> parts)
         {
             GameConfig cfg = board.Config;
-            return new BlockView
-            {
-                visual = CrateView.Build(parent, item, board.CellSize, cfg.crateModularPrefab, cfg.cratePrefab, parent.gameObject.layer).transform,
-                label = board.Visuals.CreateLabel(parent, item, size),
-            };
+            Transform visual = CrateView.Build(parent, item, board.CellSize, cfg.crateModularPrefab, cfg.cratePrefab, parent.gameObject.layer).transform;
+            TextMeshPro label = board.Visuals.CreateLabel(parent, item, size);
+            Vector3 drop = new Vector3(0f, cfg.crateOffsetY * board.CellSize, 0f);
+            visual.localPosition += drop;
+            if (label != null) label.transform.localPosition += drop;
+            return new BlockView { visual = visual, label = label };
         }
 
         /// <summary>Xử lý khi hòm vỡ: lộ vật bên trong</summary>

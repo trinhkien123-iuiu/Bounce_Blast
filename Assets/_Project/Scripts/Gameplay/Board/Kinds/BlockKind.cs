@@ -24,12 +24,14 @@ namespace BounceBlast.Gameplay
         public virtual bool HitByAnyColor => false;
         /// <summary>Đứng yên mãi, không rơi khi mất chỗ đỡ</summary>
         public virtual bool IsStatic => false;
+        /// <summary>Booster (búa…) được chạm vào để phá; false với khối hệ thống như tunnel trên bàn</summary>
+        public virtual bool Tappable => true;
         /// <summary>Bi cùng màu trừ máu và ngắm thẳng tới</summary>
         public virtual bool IsColorTarget => false;
 
         /// <summary>Kiểm tra khối nhận bi màu này</summary>
         public virtual bool Accepts(BoardBlock block, string ballColor) =>
-            HitByAnyColor || (IsColorTarget && string.Equals(ballColor, block.ColorCode, System.StringComparison.OrdinalIgnoreCase));
+            !block.Hidden && (HitByAnyColor || (IsColorTarget && string.Equals(ballColor, block.ColorCode, System.StringComparison.OrdinalIgnoreCase)));
 
         /// <summary>Kiểm tra có hiện số máu</summary>
         public virtual bool ShowsHpLabel(BoardBlock block) => HitByAnyColor || block.MaxHp > 1;

@@ -64,6 +64,13 @@ namespace BounceBlast.Gameplay
             });
         }
 
+        /// <summary>Một đợt mảnh thạch đúng màu colorCode tại vị trí (rèm, mảnh bay lên con lắc…) – cùng kiểu và vật liệu với gạch vỡ</summary>
+        public void SpawnBurst(Vector3 position, string colorCode, float size)
+        {
+            EnsureBreakTune();
+            Vfx.Spawn(_config.cubeBreakVfx, position, _colors.ColorOf(colorCode), size, _colors.CubeMat(colorCode));
+        }
+
         /// <summary>Vỡ kiểu thạch cùng màu khối</summary>
         public void SpawnJellyBreak(BoardBlock block, bool perCell)
         {

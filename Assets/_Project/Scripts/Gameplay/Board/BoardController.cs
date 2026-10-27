@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,11 +18,14 @@ namespace BounceBlast.Gameplay
         readonly List<BoardBlock> _blocks = new List<BoardBlock>();
         readonly BlockVisualFactory _visuals = new BlockVisualFactory();
         readonly BlockBreakFx _breakFx = new BlockBreakFx();
+        BoardTunnels _tunnels;
         bool _settleRequested;
         bool _cleared;
 
         public float CellSize => _grid != null ? _grid.Cell : 0f;
         public int DestructibleCount { get; private set; }
+        /// <summary>Hệ số nhân của level: một ô CSV = Multiplier×Multiplier ô mịn (rèm dựng theo ô CSV)</summary>
+        public int Multiplier { get; private set; } = 1;
         public IReadOnlyList<BoardBlock> Blocks => _blocks;
 
         public GameConfig Config => _config;
@@ -34,6 +38,7 @@ namespace BounceBlast.Gameplay
         {
             _config = config;
             _colors = colors;
+            Multiplier = Mathf.Max(1, level.Multiplier);
             float cell = config.arena.width / level.BoardCols;
             var origin = new Vector2(config.arena.xMin, config.arena.yMin + config.boardOffsetY);
             _grid = new BoardGrid(level.BoardCols, level.BoardRows, origin, cell);
@@ -41,8 +46,10 @@ namespace BounceBlast.Gameplay
             _visuals.Setup(config, colors, cell);
             _breakFx.Setup(config, colors, _grid);
             _cleared = false;
+            _tunnels = new BoardTunnels(this, _grid, config);
 
             foreach (BoardItemData item in level.BoardItems) Spawn(item);
+            _tunnels.Init();
             RecountDestructibles();
             _settleRequested = true;
         }
@@ -72,6 +79,13 @@ namespace BounceBlast.Gameplay
 
             var block = go.AddComponent<BoardBlock>();
             block.Init(item, view.visual, view.label, _grid.CellToWorld(r), size, view.colliders);
+            if (item.Kind == BoardItemKind.BoardTunnel && _tunnels != null)
+                _tunnels.Register(block, item, view.visual != null ? view.visual.GetComponent<BoardTunnelView>() : null);
+            if (item.Hidden)
+            {
+                Material cover = r.width > 1 || r.height > 1 ? _config.qmarkBoardBigMaterial : _config.qmarkBoardMaterial;
+                block.SetHidden(QMarkCover.Attach(view.visual, cover, _config.qmarkBackground, _config.qmarkGlossiness, go.layer, _config.qmarkDissolveSeconds, item.Mask == null));
+            }
             _blocks.Add(block);
             _grid.Occupy(block, true);
             return block;
@@ -101,11 +115,27 @@ namespace BounceBlast.Gameplay
             }
         }
 
+        void Update()
+        {
+            if (_tunnels != null && _tunnels.Any && !_cleared) _tunnels.Tick(Time.time);
+        }
+
         void LateUpdate()
         {
             if (!_settleRequested) return;
             _settleRequested = false;
             Settle();
+            RevealUncovered();
+        }
+
+        /// <summary>Yêu cầu cho khối rơi/dồn lại ở cuối khung hình (khi có khối vừa được thả khỏi tunnel…)</summary>
+        public void RequestSettle() => _settleRequested = true;
+
+        /// <summary>Board Qmark: khối nào đã hở mặt trên / hai bên thì dấu "?" tan biến, lộ màu thật</summary>
+        void RevealUncovered()
+        {
+            foreach (BoardBlock b in _blocks.ToArray())
+                if (b != null && b.Hidden && !b.IsDestroyed && _grid.IsUncovered(b)) b.Reveal();
         }
 
         /// <summary>Bi màu color chạm khối. Trả về true nếu bi bị tiêu hao</summary>
@@ -128,6 +158,7 @@ namespace BounceBlast.Gameplay
 
             Destroy(block.gameObject);
             OnBlockDestroyed?.Invoke(block);
+            TickCurtains(block);
             RecountDestructibles();
             _settleRequested = true;
 
@@ -136,6 +167,57 @@ namespace BounceBlast.Gameplay
                 _cleared = true;
                 OnBoardCleared?.Invoke();
             }
+        }
+
+        /// <summary>Gạch 1 máu vừa vỡ: mỗi rèm cùng màu nhận một mảnh gạch bay lên con lắc (CurtainPiece)</summary>
+        void TickCurtains(BoardBlock broken)
+        {
+            if (broken.Kind != BoardItemKind.Cube || broken.MaxHp != 1) return;
+            Vector3 from = broken.transform.position;
+            Material mat = _colors.CubeMat(broken.ColorCode);
+            Color tint = mat != null && mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor") : Color.white;
+            foreach (BoardBlock b in _blocks.ToArray())
+            {
+                if (b.Kind != BoardItemKind.Curtain || b.IsDestroyed) continue;
+                if (!string.Equals(b.ColorCode, broken.ColorCode, StringComparison.OrdinalIgnoreCase)) continue;
+                CurtainPiece.Launch(this, b, b.GetComponentInChildren<CurtainView>(), from, mat, tint, _grid.Cell * 0.8f, gameObject.layer);
+            }
+        }
+
+        /// <summary>Bom nổ (hết giờ): mọi khối vỡ nát lần lượt từ gần tâm nổ ra xa trong duration giây. CHỈ là hiệu ứng hình (không phá khối theo luật, không tính thắng); tường giữ nguyên</summary>
+        public void ShatterAll(Vector3 origin, float duration)
+        {
+            StartCoroutine(ShatterRoutine(origin, Mathf.Max(0.1f, duration)));
+        }
+
+        IEnumerator ShatterRoutine(Vector3 origin, float duration)
+        {
+            var list = new List<BoardBlock>();
+            foreach (BoardBlock b in _blocks)
+                if (b != null && !b.IsDestroyed && b.Kind != BoardItemKind.Wall && b.Kind != BoardItemKind.Bomb) list.Add(b);
+            list.Sort((a, c) => ((Vector2)(a.transform.position - origin)).sqrMagnitude.CompareTo(((Vector2)(c.transform.position - origin)).sqrMagnitude));
+            float start = Time.unscaledTime;
+            int i = 0;
+            while (i < list.Count)
+            {
+                float k = Mathf.Clamp01((Time.unscaledTime - start) / duration);
+                int upto = k >= 1f ? list.Count : Mathf.CeilToInt(k * list.Count);
+                for (; i < upto; i++)
+                {
+                    BoardBlock b = list[i];
+                    if (b == null || b.IsDestroyed) continue;
+                    if (!string.IsNullOrEmpty(b.ColorCode)) _breakFx.SpawnJellyBreak(b, false);
+                    b.gameObject.SetActive(false);
+                }
+                yield return null;
+            }
+        }
+
+        /// <summary>Mảnh gạch chạm con lắc: số giảm 1, về 0 thì rèm mở</summary>
+        public void CurtainPieceArrived(BoardBlock curtain)
+        {
+            if (curtain == null || curtain.IsDestroyed) return;
+            if (curtain.TakeHit()) DestroyBlock(curtain);
         }
 
         void RecountDestructibles()

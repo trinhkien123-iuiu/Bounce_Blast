@@ -37,6 +37,14 @@ namespace BounceBlast.Gameplay
             return b == null || b.IsDestroyed ? null : b;
         }
 
+        /// <summary>Khối đang chiếm ô (x, y); null nếu trống hoặc ngoài lưới</summary>
+        public BoardBlock BlockAt(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= _cells.GetLength(0) || y >= _cells.GetLength(1)) return null;
+            BoardBlock b = _cells[x, y];
+            return b == null || b.IsDestroyed ? null : b;
+        }
+
         /// <summary>Đặt (on = true) hoặc gỡ khối khỏi các ô nó chiếm</summary>
         public void Occupy(BoardBlock b, bool on)
         {
@@ -57,6 +65,21 @@ namespace BounceBlast.Gameplay
             }
             return true;
         }
+
+        /// <summary>Board Qmark: khối có ô nào hở ở phía trên (kể cả trời) hoặc hai bên (ô trống thật, tường sân không tính) → hết bị che</summary>
+        public bool IsUncovered(BoardBlock b)
+        {
+            int cols = _cells.GetLength(0);
+            foreach (Vector2Int c in b.OccupiedCells())
+            {
+                if (c.y + 1 >= _rows || OpenCell(c.x, c.y + 1, b)) return true;
+                if (c.x > 0 && OpenCell(c.x - 1, c.y, b)) return true;
+                if (c.x + 1 < cols && OpenCell(c.x + 1, c.y, b)) return true;
+            }
+            return false;
+        }
+
+        bool OpenCell(int x, int y, BoardBlock self) => _cells[x, y] == null;
 
         /// <summary>Khối có ít nhất một ô lộ ra</summary>
         public bool IsExposed(BoardBlock b)

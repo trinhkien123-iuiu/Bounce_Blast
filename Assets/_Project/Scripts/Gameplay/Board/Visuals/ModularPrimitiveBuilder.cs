@@ -24,7 +24,7 @@ namespace BounceBlast.Gameplay
             if (Cache.TryGetValue(container, out var d) && d != null) return d;
             d = new Dictionary<string, Transform>();
             foreach (Transform t in container)
-                if (t.GetComponent<MeshRenderer>() != null)
+                if (t.GetComponent<MeshRenderer>() != null || t.GetComponent<SkinnedMeshRenderer>() != null)
                 {
                     string k = Key(t.name.Split('-'));
                     if (!d.ContainsKey(k)) d[k] = t;

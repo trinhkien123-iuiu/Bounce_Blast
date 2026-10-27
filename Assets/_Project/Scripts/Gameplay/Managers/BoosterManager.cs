@@ -90,7 +90,7 @@ namespace BounceBlast.Gameplay
         /// <summary>Dùng búa (InputManager gọi khi Hammer đang lên cò và người chơi bấm vào khối)</summary>
         public void UseHammer(Vector2 point, BoardBlock block)
         {
-            if (block == null || !block.IsDestructible) return;
+            if (block == null || !block.IsDestructible || !block.Rules.Tappable) return;
             Boosters.Consume(BoosterType.Hammer);
             float radius = _board.CellSize * _config.hammerRadiusCells;
             if (BoosterFx.Instance != null) BoosterFx.Instance.Hammer(point, radius, () => StartCoroutine(SmashArea(point, radius, block)));
@@ -104,7 +104,7 @@ namespace BounceBlast.Gameplay
             foreach (Collider2D col in Physics2D.OverlapCircleAll(point, radius))
             {
                 BoardBlock b = col.GetComponent<BoardBlock>();
-                if (b == null || !b.IsDestructible || b.IsDestroyed || (b != tapped && (b.Cells.width > 1 || b.Cells.height > 1))) continue;
+                if (b == null || !b.IsDestructible || !b.Rules.Tappable || b.IsDestroyed || (b != tapped && (b.Cells.width > 1 || b.Cells.height > 1))) continue;
                 if (seen.Add(b)) hits.Add(b);
             }
             if (tapped != null && seen.Add(tapped)) hits.Add(tapped);

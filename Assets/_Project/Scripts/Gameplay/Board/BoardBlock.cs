@@ -24,7 +24,18 @@ namespace BounceBlast.Gameplay
         public bool IsDestructible => Rules.CountsForWin;
         /// <summary>Hòm gỗ / cột nhà: bi màu nào cũng trừ máu nhưng KHÔNG bị tiêu hao</summary>
         public bool IsFreeHit => Rules.HitByAnyColor;
-        public bool IsStatic => Rules.IsStatic;
+        /// <summary>Cube trong vùng quản lý của tunnel trên bàn: do tunnel đẩy lên, không rơi theo trọng lực</summary>
+        public bool PinnedByTunnel { get; set; }
+        /// <summary>Tốc độ (đơn vị thế giới/giây) khi cube bị tunnel đẩy lên</summary>
+        public float PinnedSpeed { get; set; }
+        public bool IsStatic => Rules.IsStatic || PinnedByTunnel;
+
+        /// <summary>Đặt khối ngay tại vị trí thế giới (dùng khi cube trồi ra từ miệng tunnel); sau đó SetTarget để nó chạy tới ô đích</summary>
+        public void PlaceAt(Vector2 world)
+        {
+            transform.position = new Vector3(world.x, world.y, transform.position.z);
+            if (_body != null) _body.position = world;
+        }
 
         Transform _visual;
         TextMeshPro _label;
@@ -155,6 +166,36 @@ namespace BounceBlast.Gameplay
         }
         public bool IsMoving => ((Vector2)transform.position - _targetPos).sqrMagnitude > 0.0001f;
 
+        /// <summary>Board Qmark: còn bị che bằng dấu "?" (chưa lộ màu); bi không trúng, khối chỉ như vật cản</summary>
+        public bool Hidden { get; private set; }
+        QMarkCover _cover;
+
+        /// <summary>Gắn lớp phủ "?" cho khối; số máu ẩn tới khi lộ</summary>
+        public void SetHidden(QMarkCover cover)
+        {
+            _cover = cover;
+            Hidden = cover != null;
+            if (Hidden && _label != null) _label.gameObject.SetActive(false);
+        }
+
+        /// <summary>Lộ màu: dấu "?" tan biến, số máu hiện lại</summary>
+        public void Reveal()
+        {
+            if (!Hidden) return;
+            Hidden = false;
+            if (_cover != null) _cover.Dissolve();
+            RefreshLabel();
+            AudioManager.Play(Sfx.QmarkReveal);
+        }
+
+        /// <summary>Ẩn số máu một lúc rồi hiện lại (khối vừa lộ dưới rèm: số chỉ hiện khi rèm rút hết)</summary>
+        public void HideLabelFor(float seconds)
+        {
+            if (_label == null) return;
+            _label.gameObject.SetActive(false);
+            Invoke(nameof(RefreshLabel), seconds);
+        }
+
         void RefreshLabel()
         {
             if (_label == null) return;
@@ -168,7 +209,9 @@ namespace BounceBlast.Gameplay
             Vector2 pos = _body.position;
             if ((pos - _targetPos).sqrMagnitude > 0.00001f)
             {
-                _fallVelocity += 40f * Time.fixedDeltaTime;
+                // cube do tunnel trên bàn đẩy lên chạy với tốc độ không đổi (nhanh, không phải tăng tốc từ 0 như khi rơi)
+                if (PinnedByTunnel && PinnedSpeed > 0f) _fallVelocity = PinnedSpeed;
+                else _fallVelocity += 40f * Time.fixedDeltaTime;
                 Vector2 next = Vector2.MoveTowards(pos, _targetPos, _fallVelocity * Time.fixedDeltaTime);
                 _body.MovePosition(next);
             }

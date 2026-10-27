@@ -15,6 +15,9 @@ namespace BounceBlast.Gameplay
             Register(new WallKind());
             Register(new ColumnKind());
             Register(new StoneKind());
+            Register(new CurtainKind());
+            Register(new BombKind());
+            Register(new BoardTunnelKind());
         }
 
         static void Register(BlockKind k) => All[k.Kind] = k;

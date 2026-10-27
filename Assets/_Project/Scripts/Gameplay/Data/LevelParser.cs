@@ -7,6 +7,8 @@ namespace BounceBlast.Gameplay
     /// <summary>Đọc level từ LevelSet (danh mục tham chiếu tới BoardProps_v3 / TunnelProps_v3 của từng chunk 5 level)</summary>
     public static class LevelParser
     {
+        /// <summary>Số lần bi chạm bom để gỡ nó: 1 (user chốt: "chạm được bi vào bomb để huỷ bomb")</summary>
+        public const int BombHits = 1;
         const int CubesStartCol = 5;
         const int AmmoColCount = 8;
 
@@ -36,14 +38,16 @@ namespace BounceBlast.Gameplay
                 Debug.LogError($"[LevelParser] LevelSet '{levelSet.name}' không có dữ liệu cho level {levelId}");
                 return null;
             }
-            return Parse(chunk.board.text, chunk.tunnels != null ? chunk.tunnels.text : null, levelId);
+            return Parse(chunk.board.text, chunk.tunnels != null ? chunk.tunnels.text : null, levelId,
+                         chunk.boardTunnels != null ? chunk.boardTunnels.text : null);
         }
 
         /// <summary>Xử lý đọc CSV thành dữ liệu level</summary>
-        public static LevelModel Parse(string boardCsv, string tunnelCsv, int levelId) => Build(ReadTokens(boardCsv, tunnelCsv, levelId));
+        public static LevelModel Parse(string boardCsv, string tunnelCsv, int levelId, string boardTunnelCsv = null) =>
+            Build(ReadTokens(boardCsv, tunnelCsv, levelId, boardTunnelCsv));
 
-        /// <summary>CSV gốc (BoardProps_v3 + TunnelProps_v3) → lưới mã của MỘT level</summary>
-        public static LevelTokens ReadTokens(string boardCsv, string tunnelCsv, int levelId)
+        /// <summary>CSV gốc (BoardProps_v3 + TunnelProps_v3 + TunnelPropsBoard_v3) → lưới mã của MỘT level</summary>
+        public static LevelTokens ReadTokens(string boardCsv, string tunnelCsv, int levelId, string boardTunnelCsv = null)
         {
             List<string[]> rows = ReadCsv(boardCsv);
             if (rows.Count < 3) return null;
@@ -89,6 +93,7 @@ namespace BounceBlast.Gameplay
                     t.Ammo[c, r] = Cell(rows[start + r], ammoStart + c);
 
             t.Tunnels = ParseTunnelLists(tunnelCsv, levelId);
+            t.BoardTunnels = ParseTunnelLists(boardTunnelCsv, levelId);
             return t;
         }
 
@@ -131,6 +136,51 @@ namespace BounceBlast.Gameplay
 
                     var rect = new RectInt(c * mult, (lineCount - 1 - line) * mult, mult, mult);
 
+                    if (cell.StartsWith("/btu-"))
+                    {
+                        // "/btu-X": miệng tunnel trên bàn; hàng đợi lấy từ TunnelPropsBoard (mỗi "màu-N" = N×Multiplier² cube 1 máu)
+                        string[] ub = cell.Substring(1).Split('-');
+                        char tid = ub.Length > 1 && ub[1].Length > 0 ? char.ToUpperInvariant(ub[1][0]) : 'A';
+                        string ukey = "btu|" + tid;
+                        if (!groups.TryGetValue(ukey, out BoardItemData tun))
+                        {
+                            tun = new BoardItemData { Kind = BoardItemKind.BoardTunnel, TunnelId = tid, Hp = 1, Cells = rect };
+                            if (t.BoardTunnels != null && t.BoardTunnels.TryGetValue(tid, out List<string> entries))
+                                foreach (string entry in entries)
+                                {
+                                    string[] eb = entry.Split('-');
+                                    if (eb.Length < 2 || !int.TryParse(eb[1], out int en) || en <= 0) continue;
+                                    tun.Queue.Add(new TunnelBatch { Color = eb[0], Cubes = en * mm });
+                                }
+                            groups[ukey] = tun;
+                            groupCells[tun] = new List<Vector2Int>();
+                            loose.Add(tun);
+                        }
+                        tun.Cells = Union(tun.Cells, rect);
+                        for (int dy = 0; dy < rect.height; dy++)
+                            for (int dx = 0; dx < rect.width; dx++)
+                                groupCells[tun].Add(new Vector2Int(rect.x + dx, rect.y + dy));
+                        continue;
+                    }
+                    if (cell.StartsWith("/bomb-"))
+                    {
+                        // "/bomb-timer-id": các ô cùng id là một quả bom; bi trúng bom (số hit = BombHits) thì gỡ bom và nổ vùng quanh nó
+                        string[] bb = cell.Substring(1).Split('-');
+                        int timer = bb.Length > 1 && int.TryParse(bb[1], out int bt) ? bt : 90;
+                        string bkey = "bomb|" + (bb.Length > 2 ? bb[2] : "0");
+                        if (!groups.TryGetValue(bkey, out BoardItemData bomb))
+                        {
+                            bomb = new BoardItemData { Kind = BoardItemKind.Bomb, Hp = BombHits, Timer = timer, Cells = rect };
+                            groups[bkey] = bomb;
+                            groupCells[bomb] = new List<Vector2Int>();
+                            loose.Add(bomb);
+                        }
+                        bomb.Cells = Union(bomb.Cells, rect);
+                        for (int dy = 0; dy < rect.height; dy++)
+                            for (int dx = 0; dx < rect.width; dx++)
+                                groupCells[bomb].Add(new Vector2Int(rect.x + dx, rect.y + dy));
+                        continue;
+                    }
                     if (cell.StartsWith("/wl-"))
                     {
                         string[] w = cell.Substring(1).Split('-');
@@ -161,16 +211,27 @@ namespace BounceBlast.Gameplay
                     int hp = tk.Length > 1 && int.TryParse(tk[1], out int h) ? h : 1;
                     string group = tk.Length > 2 ? tk[2] : null;
 
-                    string crateKey = null;
+                    string crateKey = null, curtainColor = null;
                     int crateHp = 0, stoneHp = 0;
+                    var coverKind = BoardItemKind.Crate;
+                    bool hidden = false;
                     for (int p = 1; p < parts.Length; p++)
                     {
                         string[] b = parts[p].Split('-');
+                        if (b[0] == "bqm") hidden = true;
                         if (b[0] == "st") stoneHp = b.Length > 1 && int.TryParse(b[1], out int sh) ? sh : 3;
                         if (b[0] == "cr")
                         {
                             crateHp = b.Length > 1 && int.TryParse(b[1], out int ch) ? ch : 50;
                             crateKey = b.Length > 2 ? b[2] : "0";
+                        }
+                        if (b[0] == "cur")
+                        {
+                            // "cur-hp-id-màu": rèm phủ các ô cùng id, màu chỉ là màu huy hiệu (máu rèm không tính vào bi)
+                            coverKind = BoardItemKind.Curtain;
+                            crateHp = b.Length > 1 && int.TryParse(b[1], out int rh) ? rh : 10;
+                            crateKey = "cur|" + (b.Length > 2 ? b[2] : "0");
+                            curtainColor = b.Length > 3 ? b[3] : null;
                         }
                     }
 
@@ -192,7 +253,7 @@ namespace BounceBlast.Gameplay
                     {
                         if (!crates.TryGetValue(crateKey, out BoardItemData crate))
                         {
-                            crate = new BoardItemData { Kind = BoardItemKind.Crate, Hp = crateHp * mm, Cells = rect };
+                            crate = new BoardItemData { Kind = coverKind, ColorCode = curtainColor, Hp = crateHp * mm, Cells = rect };
                             crates[crateKey] = crate;
                         }
                         crate.Cells = Union(crate.Cells, rect);
@@ -204,7 +265,7 @@ namespace BounceBlast.Gameplay
                         string key = (crateKey ?? "") + "|" + group;
                         if (!groups.TryGetValue(key, out BoardItemData g))
                         {
-                            g = new BoardItemData { Kind = BoardItemKind.CombinedCube, ColorCode = color, Hp = hp * mm, Cells = rect };
+                            g = new BoardItemData { Kind = BoardItemKind.CombinedCube, ColorCode = color, Hp = hp * mm, Cells = rect, Hidden = hidden };
                             groups[key] = g;
                             groupCells[g] = new List<Vector2Int>();
                             target.Add(g);
@@ -216,7 +277,7 @@ namespace BounceBlast.Gameplay
                     }
                     else if (hp > 1 && mult > 1)
                     {
-                        target.Add(new BoardItemData { Kind = BoardItemKind.CombinedCube, ColorCode = color, Hp = hp * mm, Cells = rect });
+                        target.Add(new BoardItemData { Kind = BoardItemKind.CombinedCube, ColorCode = color, Hp = hp * mm, Cells = rect, Hidden = hidden });
                     }
                     else
                     {
@@ -227,7 +288,8 @@ namespace BounceBlast.Gameplay
                                     Kind = BoardItemKind.Cube,
                                     ColorCode = color,
                                     Hp = hp,
-                                    Cells = new RectInt(rect.x + dx, rect.y + dy, 1, 1)
+                                    Cells = new RectInt(rect.x + dx, rect.y + dy, 1, 1),
+                                    Hidden = hidden
                                 });
                     }
                 }
@@ -358,6 +420,11 @@ namespace BounceBlast.Gameplay
 
         static void AddHp(LevelModel level, BoardItemData item)
         {
+            foreach (TunnelBatch b in item.Queue)
+            {
+                level.HpByColor.TryGetValue(b.Color, out int q);
+                level.HpByColor[b.Color] = q + b.Cubes;
+            }
             if (BlockKinds.Of(item.Kind).IsColorTarget)
             {
                 level.HpByColor.TryGetValue(item.ColorCode, out int v);

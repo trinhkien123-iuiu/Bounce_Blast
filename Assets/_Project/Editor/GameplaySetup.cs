@@ -105,6 +105,9 @@ namespace BounceBlast.EditorTools
             c.cubePrefab = Prefab("Assets/Resources/prefabs/Cube.prefab");
             c.combinedCubePrefab = Prefab("Assets/Resources/prefabs/CombinedCubicCubes.prefab");
             c.cratePrefab = Prefab("Assets/Resources/prefabs/CombinedCubicCrate.prefab");
+            c.bombPrefab = Prefab("Assets/_Project/Prefabs/Gameplay/Board/CombinedCubicBomb.prefab");
+            c.curtainModularPrefab = Prefab("Assets/_Project/Prefabs/Gameplay/Board/ModularPrimitiveCurtain.prefab");
+            c.curtainChainPrefab = Prefab("Assets/_Project/Prefabs/Gameplay/Board/CombinedCubicCurtain.prefab");
             c.ammoPrefab = Prefab("Assets/Resources/prefabs/Ammunation.prefab");
             c.tunnelPrefab = Prefab("Assets/Resources/prefabs/BlockerAmmoTunnel.prefab");
             c.ballPrefab = Prefab("Assets/Resources/prefabs/Ball.prefab");

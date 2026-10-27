@@ -19,6 +19,8 @@ namespace BounceBlast.Gameplay
         public string[,] Ammo = new string[0, 0];
         /// <summary>Hàng chờ của từng tunnel (theo chữ cái id), mỗi phần tử là mã hộp "màu-số/..."</summary>
         public Dictionary<char, List<string>> Tunnels = new Dictionary<char, List<string>>();
+        /// <summary>Hàng đợi của tunnel trên bàn (/btu-X), mỗi phần tử "màu-số" (số × Multiplier² cube)</summary>
+        public Dictionary<char, List<string>> BoardTunnels = new Dictionary<char, List<string>>();
 
         public int BoardDesignCols => Board.GetLength(0);
         public int BoardLines => Board.GetLength(1);

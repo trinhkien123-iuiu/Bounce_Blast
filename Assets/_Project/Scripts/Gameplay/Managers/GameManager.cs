@@ -176,6 +176,9 @@ namespace BounceBlast.Gameplay
         public void CheatLose() => Lose("Cheat");
 #endif
 
+        /// <summary>Bom hết giờ nổ: thua level</summary>
+        public void LoseByBomb() => Lose("Bomb");
+
         /// <summary>Xử lý thử lại sau khi thua: còn tim thì chơi lại, hết tim thì về Menu</summary>
         void RetryOrHome()
         {

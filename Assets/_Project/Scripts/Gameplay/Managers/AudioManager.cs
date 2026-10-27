@@ -9,7 +9,7 @@ namespace BounceBlast.Gameplay
     {
         Button, Error, TapAmmo, BoxLaunch, BallHit, BigBlockBreak, CrateBreak,
         IceCrack, IceBreak, QmarkReveal, TunnelOut, CapacityWarning, Win, Lose, Confetti, Hammer, Magic,
-        HammerSwing, ShuffleWhoosh, ShufflePop, MagicHandTap, CapacityUp, BoosterUnlock, OutOfCapacity, StoneBreak, StoneHit, CoinCollect
+        HammerSwing, ShuffleWhoosh, ShufflePop, MagicHandTap, CapacityUp, BoosterUnlock, OutOfCapacity, StoneBreak, StoneHit, CoinCollect, CurtainOpen, BombDefused, BombExploded
     }
 
     /// <summary>Dùng cho cấu hình một âm thanh</summary>

@@ -16,6 +16,7 @@ namespace BounceBlast.Gameplay
             public int lastLevel;
             [Tooltip("BoardProps_v3.txt – bảng gạch + hộp đạn")] public TextAsset board;
             [Tooltip("TunnelProps_v3.txt – các ống/tunnel (có thể trống)")] public TextAsset tunnels;
+            [Tooltip("TunnelPropsBoard_v3.txt – hàng đợi của tunnel trên bàn /btu (có thể trống)")] public TextAsset boardTunnels;
         }
 
         [Tooltip("Tên bộ để nhận diện (original, dailychallenge…)")] public string setName = "original";

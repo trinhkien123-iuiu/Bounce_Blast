@@ -20,6 +20,13 @@ MonoBehaviour:
   combinedCubePrefab: {fileID: 1709254077376921, guid: ea672d17c154db845b05d0e9c3530d79, type: 3}
   cratePrefab: {fileID: 1709254077376921, guid: cb129b00c11615d4e8d8d18ce8f5f2e3, type: 3}
   crateModularPrefab: {fileID: 1709254077376921, guid: b3a4b223231fc3048b55b333d092f389, type: 3}
+  boardTunnelPrefab: {fileID: 1709254077376921, guid: 7c68bc5a3c71dc54d8a3f0f3156245b4, type: 3}
+  boardTunnelBadgePrefab: {fileID: 1709254077376921, guid: b2ea1b38b100d5245920b419e1cc9432, type: 3}
+  qmarkBoardMaterial: {fileID: 2100000, guid: 32634e79aff4eb540a97addc2861b6fe, type: 2}
+  qmarkBoardBigMaterial: {fileID: 2100000, guid: 151ce36c73e2f3e45a9464d9bc8570bd, type: 2}
+  bombPrefab: {fileID: 1709254077376921, guid: 33212d478bd503e42875e971769206e8, type: 3}
+  curtainModularPrefab: {fileID: 1709254077376921, guid: 1efdb98c52f84f8419e17c37f192b863, type: 3}
+  curtainChainPrefab: {fileID: 1709254077376921, guid: e80b3b40f81272b49a76049a1f626325, type: 3}
   ammoPrefab: {fileID: 1709254077376921, guid: 23bfe0e115989644ca2848bb3dc440e0, type: 3}
   tunnelPrefab: {fileID: 1709254077376921, guid: f49df944846d34947948223e39193f84, type: 3}
   ballPrefab: {fileID: 1709254077376921, guid: 033b85e3b6596064a824161bbe0945af, type: 3}
@@ -263,6 +270,24 @@ MonoBehaviour:
     volume: 0.7
     minInterval: 0.04
     pitch: {x: 0.95, y: 1.35}
+  - id: 27
+    clips:
+    - {fileID: 8300000, guid: a4833ef8696e89a40813cf55d5fb89a1, type: 3}
+    volume: 0.8
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  - id: 28
+    clips:
+    - {fileID: 8300000, guid: 6fdc565595bd3724780bc64e7d383985, type: 3}
+    volume: 0.9
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
+  - id: 29
+    clips:
+    - {fileID: 8300000, guid: 2adf13a87e9c8714d8d8fd2785fca5b9, type: 3}
+    volume: 1
+    minInterval: 0.1
+    pitch: {x: 1, y: 1}
   musicMenu: {fileID: 8300000, guid: b0dcdc52ce75d28459a3db1f84ba6b5b, type: 3}
   musicNormal: {fileID: 8300000, guid: 8e322a3bced0fa64b91b5bfa61482e34, type: 3}
   musicHard: {fileID: 8300000, guid: 193665d9fde220f4dba7772f8f1250ca, type: 3}

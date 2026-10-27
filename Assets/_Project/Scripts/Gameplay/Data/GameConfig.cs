@@ -27,6 +27,31 @@ namespace BounceBlast.Gameplay
         public GameObject cratePrefab;
         [Tooltip("Hòm gỗ từng ô (ModularPrimitiveCrate) – mảnh thân hòm theo hàng xóm + mảnh vỡ CrateFracture")]
         public GameObject crateModularPrefab;
+        [Tooltip("Dời hình hòm gỗ (và số máu) theo trục Y, đơn vị ô lưới; âm = thấp xuống. Chỉ dời hình, ô va chạm vẫn đúng lưới")] public float crateOffsetY = -0.123f;
+        [Tooltip("Rèm từng ô (ModularPrimitiveCurtain/CurtainContainer) – mảnh vải Top/Mid/Bot theo hàng xóm")]
+        public GameObject curtainModularPrefab;
+        [Tooltip("Rèm gộp (CombinedCubicCurtain/Chain Container) – 3 xích treo huy hiệu: CurtainChain (ngắn), 2x, 3x")]
+        public GameObject curtainChainPrefab;
+        [Tooltip("Tỉ lệ xích + con lắc so với prefab gốc (1 = nguyên bản)")] public float curtainChainScale = 0.85f;
+        [Tooltip("Xích + con lắc nhô ra trước mặt vải bao nhiêu ô CSV (tránh dính vải)")] public float curtainChainOffsetZ = 0.45f;
+        [Tooltip("Tunnel trên bàn (ModularPrimitiveBoardTunnel) – mảnh Left/Mid/Right × Front/Back")] public GameObject boardTunnelPrefab;
+        [Tooltip("Tunnel trên bàn gộp (CombinedCubicBoardTunnel) – lấy tấm số (Model/3D Text)")] public GameObject boardTunnelBadgePrefab;
+        [Tooltip("Lùi tấm tunnel ra sau (đơn vị ô CSV) so với mặt trước của gạch, để gạch kề che viền và cube trồi lên không đè lên tấm")] public float boardTunnelDepthShift = 0.45f;
+        [Tooltip("Số giây tối thiểu giữa hai lần tunnel nhả cube trong cùng một cột (nhỏ = nhả liên tục)")] public float boardTunnelPushInterval = 0.02f;
+        [Tooltip("Tốc độ cube bị tunnel đẩy lên, tính bằng ô lưới mỗi giây")] public float boardTunnelPushSpeed = 40f;
+        [Tooltip("Xoay cụm mảnh tunnel: prefab gốc dựng trong khung \"nhìn từ trên\" (trục lên của prefab = z) nên xoay −90° quanh X")] public Vector3 boardTunnelEuler = new Vector3(-90f, 0f, 0f);
+        [Tooltip("Board Qmark: lớp phủ dấu \"?\" cho gạch 1 ô (QMark World.mat, shader Custom/HiddenBlocker)")] public Material qmarkBoardMaterial;
+        [Tooltip("Board Qmark: lớp phủ cho khối gộp nhiều ô (QMark World Big Cube.mat)")] public Material qmarkBoardBigMaterial;
+        [Tooltip("Màu nền của lớp phủ \"?\" (material gốc để đen; video gốc đo được RGB ≈ 51,66,74)")] public Color qmarkBackground = new Color(0.2f, 0.26f, 0.29f, 1f);
+        [Tooltip("Độ bóng của lớp phủ \"?\" (gốc 0.5 làm khối trên sáng hơn khối dưới do phản xạ môi trường; 0 = đồng đều)")] [Range(0f, 1f)] public float qmarkGlossiness = 0f;
+        [Tooltip("Thời gian dấu \"?\" tan biến khi lộ màu")] public float qmarkDissolveSeconds = 0.6f;
+        [Tooltip("Bom (CombinedCubicBomb) – quả TNT, ngòi, hiệu ứng nổ")] public GameObject bombPrefab;
+        [Tooltip("Góc ngả của quả bom về phía camera (độ) cho có chiều sâu 3D; 0 = đứng thẳng")] [Range(0f, 45f)] public float bombTiltDegrees = 20f;
+        [Tooltip("Độ sáng vùng bóng của quả bom (màu _SColor của TNT.mat; gốc 0.22 → tối). Tăng cho sáng hơn")] [Range(0f, 1f)] public float bombShadowBrightness = 0.62f;
+        [Tooltip("Ngưỡng vùng sáng (_RampThreshold của TNT.mat; gốc 0.686). Giảm = vùng sáng rộng hơn")] [Range(0f, 1f)] public float bombRampThreshold = 0.4f;
+        [Tooltip("Bề ngang quả bom so với bề ngang các ô nó chiếm")] public float bombWidthRatio = 0.95f;
+        [Tooltip("Sau khi bom nổ (hết giờ) chờ bao nhiêu giây cho hiệu ứng nổ chạy gần hết rồi mới hiện popup thua")] public float bombLoseDelay = 1.4f;
+        [Tooltip("Số giây của 1 nhịp đếm ngược (user chốt: giây bình thường = 1)")] public float bombSecondsPerTick = 1f;
         public GameObject ammoPrefab;
         public GameObject tunnelPrefab;
         public GameObject ballPrefab;
