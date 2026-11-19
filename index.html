@@ -1,131 +1,223 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | Bounce_Blast</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-  </head>
-  <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Bounce Blast - Crab Mode</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 30%, #102a43, #06121e 85%);
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #game-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      max-width: 540px;
+      max-height: 960px;
+    }
+    #unity-canvas {
+      width: 100%;
+      height: 100%;
+      max-width: 540px;
+      max-height: 960px;
+      aspect-ratio: 9 / 16;
+      background: #0d1b2a;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      display: block;
+    }
+    #loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 40%, rgba(16, 42, 67, 0.95), rgba(6, 18, 30, 0.98));
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      z-index: 10;
+      transition: opacity 0.4s ease;
+      padding: 24px;
+      text-align: center;
+    }
+    .game-logo {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff7675, #fab1a0, #fdcb6e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .game-sub {
+      font-size: 14px;
+      color: #74b9ff;
+      margin-bottom: 32px;
+      font-weight: 500;
+    }
+    .progress-box {
+      width: 280px;
+      max-width: 85%;
+      height: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    #progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #0984e3, #00cec9);
+      border-radius: 8px;
+      transition: width 0.2s ease;
+      box-shadow: 0 0 12px rgba(0, 206, 201, 0.6);
+    }
+    #progress-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #dfe6e9;
+      margin-bottom: 6px;
+    }
+    #status-hint {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      max-width: 300px;
+      line-height: 1.4;
+    }
+    #error-box {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(231, 76, 60, 0.2);
+      border: 1px solid #e74c3c;
+      border-radius: 8px;
+      color: #ff7675;
+      font-size: 13px;
+      max-width: 90%;
+      text-align: left;
+    }
+    #fullscreen-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: none;
+      z-index: 5;
+      backdrop-filter: blur(4px);
+    }
+    #fullscreen-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    
+    <button id="fullscreen-btn" onclick="toggleFullscreen()">⛶ Toàn màn hình</button>
+
+    <div id="loading-overlay">
+      <div class="game-logo">🦀 BOUNCE BLAST</div>
+      <div class="game-sub">Crab Mode • Ocean Edition</div>
+      
+      <div class="progress-box">
+        <div id="progress-fill"></div>
       </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Bounce_Blast</div>
-      </div>
+      <div id="progress-text">Đang chuẩn bị tải... 0%</div>
+      <div id="status-hint">Lần đầu tải dữ liệu (~60MB), vui lòng đợi giây lát...</div>
+
+      <div id="error-box"></div>
     </div>
-    <script>
+  </div>
 
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-      var warningBanner = document.querySelector("#unity-warning");
+  <script>
+    var canvas = document.querySelector("#unity-canvas");
+    var overlay = document.querySelector("#loading-overlay");
+    var progressFill = document.querySelector("#progress-fill");
+    var progressText = document.querySelector("#progress-text");
+    var statusHint = document.querySelector("#status-hint");
+    var errorBox = document.querySelector("#error-box");
+    var fsBtn = document.querySelector("#fullscreen-btn");
+    var unityInst = null;
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
+    function showError(msg) {
+      errorBox.style.display = "block";
+      errorBox.innerText = "Lỗi: " + msg;
+      statusHint.innerText = "Nếu bị lỗi, vui lòng thử nhấn Ctrl+F5 hoặc tắt Trình chặn quảng cáo.";
+    }
+
+    function toggleFullscreen() {
+      if (unityInst) {
+        unityInst.SetFullscreen(1);
       }
+    }
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/WebGL.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/WebGL.data",
-        frameworkUrl: buildUrl + "/WebGL.framework.js",
-        codeUrl: buildUrl + "/WebGL.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "TrinhKien",
-        productName: "Bounce_Blast",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
-      };
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/WebGL.loader.js?v=" + Date.now();
+    var config = {
+      dataUrl: buildUrl + "/WebGL.data",
+      frameworkUrl: buildUrl + "/WebGL.framework.js",
+      codeUrl: buildUrl + "/WebGL.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "TrinhKien",
+      productName: "Bounce_Blast",
+      productVersion: "0.1",
+    };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onerror = function() {
+      showError("Không thể tải WebGL.loader.js. Hãy kiểm tra kết nối mạng hoặc tắt adblocker.");
+    };
 
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
+    script.onload = function() {
+      createUnityInstance(canvas, config, function(progress) {
+        var pct = Math.round(progress * 100);
+        progressFill.style.width = pct + "%";
+        progressText.innerText = "Đang tải tài nguyên... " + pct + "%";
+        if (progress > 0.8) {
+          statusHint.innerText = "Đang khởi tạo game engine...";
+        }
+      }).then(function(instance) {
+        unityInst = instance;
+        overlay.style.opacity = "0";
+        setTimeout(function() {
+          overlay.style.display = "none";
+          fsBtn.style.display = "block";
+        }, 400);
+      }).catch(function(err) {
+        console.error(err);
+        showError(err.message || err);
+      });
+    };
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        container.className = "unity-mobile";
-        canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
-      }
-
-      loadingBar.style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-              }).catch((message) => {
-                alert(message);
-              });
-            };
-
-      document.body.appendChild(script);
-
-    </script>
-  </body>
+    document.body.appendChild(script);
+  </script>
+</body>
 </html>
