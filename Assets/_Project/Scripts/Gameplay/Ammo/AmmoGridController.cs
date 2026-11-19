@@ -233,10 +233,13 @@ namespace BounceBlast.Gameplay
             if (!forced && !box.IsClickable) return;
 
             Vector2Int cell = box.Cell;
+            AmmoBoxData next = box.Data.Next;
             _boxes[cell.x, cell.y] = null;
-            _kind[cell.x, cell.y] = AmmoCellKind.Empty;
+            // ammo đôi: ô giữ trạng thái "có hộp" cho tới khi hộp thứ hai hiện ra (không có nắp hố trượt lên)
+            _kind[cell.x, cell.y] = next != null ? AmmoCellKind.Box : AmmoCellKind.Empty;
             if (box.IsHidden) box.Reveal();
-            _tray?.SpawnHoleLid(cell, box.Data.ColorCode);
+            if (next == null) _tray?.SpawnHoleLid(cell, box.Data.ColorCode);
+            int swapGroup = box.Data.SwapGroup;
             box.BeginLaunch();
             box.transform.SetParent(transform.parent, true);
 
@@ -244,12 +247,53 @@ namespace BounceBlast.Gameplay
             foreach (Vector2Int d in new[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right })
             {
                 Vector2Int n = cell + d;
-                if (InGrid(n) && _boxes[n.x, n.y] != null) _boxes[n.x, n.y].CrackIce();
+                if (!InGrid(n)) continue;
+                if (_boxes[n.x, n.y] != null) _boxes[n.x, n.y].CrackIce();
+                AmmoTunnel basket = _tunnels[n.x, n.y];
+                if (basket != null && basket.IsBasket) basket.Open(cell);
             }
 
+            SwapColors(swapGroup);
             OnBoxLaunched?.Invoke(box);
             StepTunnels();
             Recompute();
+            if (next != null) StartCoroutine(SpawnNext(next, cell));
+        }
+
+        /// <summary>Ammo đôi: sau khi hộp bị lấy đi, hộp thứ hai trồi lên ở chính ô đó</summary>
+        System.Collections.IEnumerator SpawnNext(AmmoBoxData next, Vector2Int cell)
+        {
+            yield return new WaitForSeconds(0.4f);
+            if (_boxes == null || _boxes[cell.x, cell.y] != null) yield break;
+            AmmoBox box = PlaceBox(next, cell, true);
+            box.transform.position = CellWorld(cell) + Vector3.down * _cell * 0.6f;
+            box.Flight.MoveTo(CellWorld(cell), 0.25f);
+            AudioManager.Play(Sfx.TunnelOut);
+            Recompute();
+        }
+
+        readonly HashSet<int> _swapDisabled = new HashSet<int>();
+
+        /// <summary>Đổi màu (/acs-N): mỗi lần bấm một hộp, hai hộp cùng nhóm N còn nguyên trong khay đổi màu cho nhau.
+        /// Hộp thuộc nhóm bị bấm thì nhóm đó thôi đổi (hộp còn lại giữ màu hiện tại)</summary>
+        void SwapColors(int usedGroup)
+        {
+            if (usedGroup > 0) _swapDisabled.Add(usedGroup);
+            var groups = new Dictionary<int, List<AmmoBox>>();
+            foreach (AmmoBox b in _boxes)
+            {
+                if (b == null || b.IsLaunched || b.Data == null || b.Data.SwapGroup <= 0 || _swapDisabled.Contains(b.Data.SwapGroup)) continue;
+                if (!groups.TryGetValue(b.Data.SwapGroup, out List<AmmoBox> list)) groups[b.Data.SwapGroup] = list = new List<AmmoBox>();
+                list.Add(b);
+            }
+            foreach (var kv in groups)
+            {
+                List<AmmoBox> list = kv.Value;
+                if (list.Count < 2) continue;
+                string first = list[0].Data.ColorCode;
+                for (int i = 0; i < list.Count - 1; i++) list[i].SetColor(list[i + 1].Data.ColorCode);
+                list[list.Count - 1].SetColor(first);
+            }
         }
 
         void StepTunnels()
@@ -260,7 +304,8 @@ namespace BounceBlast.Gameplay
                 changed = false;
                 foreach (AmmoTunnel t in _tunnels)
                 {
-                    if (t == null || t.Remaining == 0 || !IsFreeCell(t.OutputCell)) continue;
+                    if (t == null || t.Remaining == 0 || t.IsBasket) continue;
+                    if (!IsFreeCell(t.OutputCell)) continue;
                     AmmoBoxData data = t.Pop();
                     AmmoBox box = PlaceBox(data, t.OutputCell, true);
                     box.transform.position = CellWorld(t.Cell);
@@ -268,6 +313,65 @@ namespace BounceBlast.Gameplay
                     changed = true;
                 }
             }
+            StepBaskets();
+        }
+
+        /// <summary>Giỏ (/ba) đã mở: nhả TẤT CẢ hộp cùng lúc, mỗi hộp bay tới một ô trống gần giỏ nhất (video giỏ.mp4); hộp nào chưa có chỗ thì ở lại giỏ chờ ô trống; hết hộp thì giỏ co lại biến mất</summary>
+        void StepBaskets()
+        {
+            for (int bx = 0; bx < _cols; bx++)
+                for (int by = 0; by < _rows; by++)
+                {
+                    AmmoTunnel t = _tunnels[bx, by];
+                    if (t == null || !t.IsBasket || !t.IsOpen || t.Remaining == 0) continue;
+                    var free = new List<Vector2Int>();
+                    for (int c = 0; c < _cols; c++)
+                        for (int r = 0; r < _rows; r++)
+                            if (_kind[c, r] == AmmoCellKind.Empty) free.Add(new Vector2Int(c, r));
+                    Vector2Int from = t.Cell;
+                    // video: ammo nhảy lên các ô ở HÀNG TRÊN CÙNG (gần lối ra) trước; ô vừa trống (nắp hố còn nhỏ giọt) chỉ dùng khi hết chỗ khác
+                    if (free.Count > 1) free.Remove(t.PreferredOutput);
+                    free.Sort((a, b) =>
+                    {
+                        if (a.y != b.y) return a.y.CompareTo(b.y);
+                        int da = Mathf.Abs(a.x - from.x), db = Mathf.Abs(b.x - from.x);
+                        return da != db ? da.CompareTo(db) : a.x.CompareTo(b.x);
+                    });
+                    int n = Mathf.Min(free.Count, t.Remaining);
+                    for (int i = 0; i < n; i++)
+                    {
+                        AmmoBoxData data = t.Pop();
+                        AmmoBox box = PlaceBox(data, free[i], true);
+                        // 3 cục ammo nhỏ nằm trong giỏ (lệch theo basketMiniOffsets), hơi nhô ra trước mặt giỏ
+                        Vector2 off = _config.basketMiniOffsets != null && _config.basketMiniOffsets.Length > 0
+                            ? _config.basketMiniOffsets[i % _config.basketMiniOffsets.Length] : Vector2.zero;
+                        Vector3 start = CellWorld(t.Cell) + new Vector3(off.x * _cell, off.y * _cell, -0.25f * _cell), end = CellWorld(free[i]);
+                        if (_config.trainEnginePrefab == null)
+                        {
+                            box.transform.position = start;
+                            box.Flight.MoveTo(end, _config.basketFlightSeconds);
+                            continue;
+                        }
+                        // ống TrainEngine gốc bay từ giỏ tới ô; hộp ẩn tới khi ống đến nơi rồi mới hiện (nhún một cái)
+                        box.SetArriving(true);
+                        AmmoBox arriving = box;
+                        TrainTube.Launch(_config, _colors.AmmoMat(data.ColorCode), start, end, _cell, _config.basketFlightSeconds,
+                                         _config.basketRevealDelay, _config.basketHoldSeconds + i * _config.trainTubeStagger, () =>
+                        {
+                            if (arriving == null) return;
+                            arriving.SetArriving(false);
+                            arriving.Pop();
+                            if (_boxes != null) Recompute();
+                        }, CellWorld(t.Cell), i);
+                    }
+                    if (t.Remaining == 0)
+                    {
+                        _tunnels[bx, by] = null;
+                        _kind[bx, by] = AmmoCellKind.Empty;
+                        // giỏ trống nằm lại một lúc (nắp dựng đứng) rồi mới biến mất, như video
+                        t.Vanish(_config.basketRevealDelay + _config.basketHoldSeconds + _config.basketFlightSeconds + _config.basketEmptyStaySeconds);
+                    }
+                }
         }
 
         /// <summary>Hộp bấm được đầu tiên (hàng trên cùng trước)</summary>

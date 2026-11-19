@@ -23,6 +23,7 @@ namespace BounceBlast.Gameplay
         BoardController _board;
         AmmoGridController _grid;
         ConveyorSystem _conveyor;
+        GrinderQueue _grinders;
         BallManager _balls;
         BoosterManager _boosters;
         LevelManager _level;
@@ -38,10 +39,13 @@ namespace BounceBlast.Gameplay
         {
             _ui = ui; _board = board; _grid = grid; _conveyor = conveyor; _balls = balls; _boosters = boosters; _level = level;
             _balls.OnBallConsumed += _ => Capacity.Remove(1);
-            _grid.OnBoxLaunched += box => _conveyor.Send(box);
+            _grid.OnBoxLaunched += box => { if (_grinders != null) _grinders.Receive(box); else _conveyor.Send(box); };
             _level.OnLevelLoading += AbortPending;
             _level.OnLevelLoaded += model => ResetForLevel(model);
         }
+
+        /// <summary>Crab Mode: dùng hàng máy xay thay cho máng + sức chứa (null = mode cũ)</summary>
+        public void UseGrinders(GrinderQueue grinders) => _grinders = grinders;
 
         /// <summary>GameManager báo trạng thái</summary>
         public void SetPlaying(bool playing) => _playing = playing;
@@ -57,6 +61,7 @@ namespace BounceBlast.Gameplay
         void AbortPending()
         {
             StopAllCoroutines();
+            if (_grinders != null) _grinders.ClearAll();
             _overflowPending = false;
             Capacity.ForceFull = false;
         }
@@ -75,6 +80,13 @@ namespace BounceBlast.Gameplay
         public void TryLaunch(AmmoBox box, bool forced, bool tapSoundDone = false)
         {
             if (_overflowPending) return;
+            if (_grinders != null)
+            {
+                // Crab Mode: ammo nào cũng vào được, miễn còn máy xay trống
+                if (!_grinders.HasFree) { AudioManager.Play(Sfx.Error); return; }
+                LaunchNow(box, forced, tapSoundDone);
+                return;
+            }
             if (!Capacity.CanAdd(box.Data.Balls))
             {
                 _overflowPending = true;
@@ -95,7 +107,7 @@ namespace BounceBlast.Gameplay
                 _boosters.ConsumeMagicHand(box);
             }
             _started = true;
-            Capacity.Add(box.Data.Balls);
+            if (_grinders == null) Capacity.Add(box.Data.Balls);
             if (!tapSoundDone) AudioManager.Play(Sfx.TapAmmo);
             AudioManager.Play(Sfx.BoxLaunch);
             _grid.Launch(box, forced);
@@ -138,7 +150,15 @@ namespace BounceBlast.Gameplay
             if (_idleTimer < 0.5f) return;
             _idleTimer = 0f;
 
-            bool canAct = _grid.AnyClickable() || _conveyor.IsBusy || _balls.AnyBallHasTarget();
+            if (_grinders != null)
+            {
+                // Crab Mode: còn tiến triển, hoặc còn máy trống + hộp bấm được = người chơi còn nước đi
+                if (_grinders.IsProgressing || (_grinders.HasFree && _grid.AnyClickable())) { _deadlockTimer = 0f; return; }
+                _deadlockTimer += 0.5f;
+                if (_deadlockTimer >= 1.5f) OnGameOver?.Invoke(_grinders.HasFree ? "No more moves" : "Queue full");
+                return;
+            }
+            bool canAct = _grid.AnyClickable() || (_grinders != null ? _grinders.IsBusy : _conveyor.IsBusy || _balls.AnyBallHasTarget());
             if (canAct) { _deadlockTimer = 0f; return; }
             _deadlockTimer += 0.5f;
             if (_deadlockTimer >= 2.5f) OnGameOver?.Invoke("No more moves");

@@ -20,13 +20,75 @@ MonoBehaviour:
   combinedCubePrefab: {fileID: 1709254077376921, guid: ea672d17c154db845b05d0e9c3530d79, type: 3}
   cratePrefab: {fileID: 1709254077376921, guid: cb129b00c11615d4e8d8d18ce8f5f2e3, type: 3}
   crateModularPrefab: {fileID: 1709254077376921, guid: b3a4b223231fc3048b55b333d092f389, type: 3}
-  boardTunnelPrefab: {fileID: 1709254077376921, guid: 7c68bc5a3c71dc54d8a3f0f3156245b4, type: 3}
-  boardTunnelBadgePrefab: {fileID: 1709254077376921, guid: b2ea1b38b100d5245920b419e1cc9432, type: 3}
-  qmarkBoardMaterial: {fileID: 2100000, guid: 32634e79aff4eb540a97addc2861b6fe, type: 2}
-  qmarkBoardBigMaterial: {fileID: 2100000, guid: 151ce36c73e2f3e45a9464d9bc8570bd, type: 2}
-  bombPrefab: {fileID: 1709254077376921, guid: 33212d478bd503e42875e971769206e8, type: 3}
+  crateOffsetY: -0.123
   curtainModularPrefab: {fileID: 1709254077376921, guid: 1efdb98c52f84f8419e17c37f192b863, type: 3}
   curtainChainPrefab: {fileID: 1709254077376921, guid: e80b3b40f81272b49a76049a1f626325, type: 3}
+  curtainChainScale: 0.85
+  curtainChainOffsetZ: 0.45
+  curtainLiftSeconds: 0.35
+  curtainMedalSeconds: 0.3
+  curtainPieceOverlap: 1.15
+  curtainLongChainRows: 12
+  curtainMediumChainRows: 7
+  curtainMedalDiameter: 1.25
+  curtainLabelLift: 0.3
+  curtainPieceFlightSeconds: 0.45
+  curtainPieceArc: 2.5
+  bombVanishSeconds: 0.3
+  bombPopScale: 1.18
+  bombPopPortion: 0.3
+  bombLabelLift: 0.06
+  boardTunnelBreakSeconds: 0.25
+  boardTunnelBadgeScale: 0.9
+  boardTunnelBadgeDepth: 0.8
+  boardTunnelLabelLift: 0.12
+  basketPrefab: {fileID: 1709254077376921, guid: 9cad6c576a183a6418bf1d5b4e78d686, type: 3}
+  basketEuler: {x: -57.4, y: 0, z: 0}
+  basketSize: 1.21
+  basketOffset: {x: 0, y: 0.08, z: -0.3}
+  basketCoverOpenAngle: 110
+  basketTint: {r: 1, g: 0.97, b: 0.55, a: 1}
+  basketShadowBrightness: 0.895
+  basketCoverSeconds: 0.25
+  basketLabelSize: 6
+  basketLabelDepth: 1
+  basketDebugShowMinis: 0
+  basketHideCover: 0
+  basketVanishSeconds: 0.4
+  basketEmptyStaySeconds: 0.8
+  basketFlightSeconds: 0.45
+  trainEnginePrefab: {fileID: 1709254077376921, guid: 959a233d9dd0ba646848febfc1b1443b, type: 3}
+  trainTubeWidth: 0.8
+  trainTubeArc: 2.51
+  trainTubeStagger: 0.2
+  trainTubeMiniScale: 0.42
+  trainTubeHoldTilt: -0.64
+  basketRevealDelay: 0.1
+  basketHoldSeconds: 0.4
+  basketMiniOffsets:
+  - {x: 0.15, y: 0.33}
+  - {x: 0.07, y: -0.01}
+  - {x: -0.21, y: 0.2}
+  doubleColorPrefab: {fileID: 1709254077376921, guid: 7d7ae5b3044353749a397ca06e67b3e5, type: 3}
+  swapArrowPrefab: {fileID: 1709254077376921, guid: b7286ab10d2a87d43bd7448077793cbb, type: 3}
+  boardTunnelPrefab: {fileID: 1709254077376921, guid: 7c68bc5a3c71dc54d8a3f0f3156245b4, type: 3}
+  boardTunnelBadgePrefab: {fileID: 1709254077376921, guid: b2ea1b38b100d5245920b419e1cc9432, type: 3}
+  boardTunnelDepthShift: 0.45
+  boardTunnelPushInterval: 0.02
+  boardTunnelPushSpeed: 40
+  boardTunnelEuler: {x: -90, y: 0, z: 0}
+  qmarkBoardMaterial: {fileID: 2100000, guid: 32634e79aff4eb540a97addc2861b6fe, type: 2}
+  qmarkBoardBigMaterial: {fileID: 2100000, guid: 151ce36c73e2f3e45a9464d9bc8570bd, type: 2}
+  qmarkBackground: {r: 0.2, g: 0.26, b: 0.29, a: 1}
+  qmarkGlossiness: 0
+  qmarkDissolveSeconds: 0.6
+  bombPrefab: {fileID: 1709254077376921, guid: 33212d478bd503e42875e971769206e8, type: 3}
+  bombTiltDegrees: 20
+  bombShadowBrightness: 0.62
+  bombRampThreshold: 0.4
+  bombWidthRatio: 0.95
+  bombLoseDelay: 1.4
+  bombSecondsPerTick: 1
   ammoPrefab: {fileID: 1709254077376921, guid: 23bfe0e115989644ca2848bb3dc440e0, type: 3}
   tunnelPrefab: {fileID: 1709254077376921, guid: f49df944846d34947948223e39193f84, type: 3}
   ballPrefab: {fileID: 1709254077376921, guid: 033b85e3b6596064a824161bbe0945af, type: 3}
@@ -90,6 +152,28 @@ MonoBehaviour:
     trayPanel: {fileID: 2100000, guid: 8efe363526345904e9e7af0659f6435c, type: 2}
     trayHole: {fileID: 2100000, guid: f8db6810bbfdf2541b2fd4da455c623d, type: 2}
     trayOutline: {r: 0.9882353, g: 0.67058825, b: 0.60784316, a: 1}
+  crabTheme:
+    useColors: 1
+    backgroundTop: {r: 0.27, g: 0.29, b: 0.66, a: 1}
+    backgroundBottom: {r: 0.17, g: 0.18, b: 0.42, a: 1}
+    plane: {fileID: 2100000, guid: ad8d8e7b9ae19a04a81cc647ef78e72b, type: 2}
+    conveyorSurface: {fileID: 2100000, guid: cc70514f3bec3524eacbc5d6eb0aebaa, type: 2}
+    conveyorSide: {fileID: 2100000, guid: 54ed8aac70544f248a791af739b40713, type: 2}
+    conveyorGround: {fileID: 0}
+    ammoCell: {fileID: 2100000, guid: 963a661d2e7d4624d8c72a309f0f4171, type: 2}
+    ammoWall: {fileID: 2100000, guid: a901e8264ee1b3e4c9fccd8f5d12b797, type: 2}
+    groundColor: {r: 0.28235295, g: 0.3137255, b: 0.68235296, a: 1}
+    arrowColor: {r: 0.227, g: 0.243, b: 0.373, a: 1}
+    pinsColor: {r: 0.282, g: 0.322, b: 0.706, a: 1}
+    wallTint: 1.6
+    crusherBrightness: 1
+    backgroundMask: {fileID: 21300000, guid: 41095813a4754c74bb030dd2945a816a, type: 2}
+    maskAlpha: 1
+    cameraBackground: {r: 0.98, g: 0.8, b: 0.55, a: 1}
+    trayWall: {fileID: 2100000, guid: 63d6c21297ec7d548b05a757127eebf9, type: 2}
+    trayPanel: {fileID: 2100000, guid: 359755fa0e9b7534a86f19f632b9c9a6, type: 2}
+    trayHole: {fileID: 2100000, guid: 3f98aa1d8a41b02478120bb1a9eeba4d, type: 2}
+    trayOutline: {r: 0.86, g: 0.64, b: 0.38, a: 1}
   superHardTheme:
     useColors: 1
     backgroundTop: {r: 0.2, g: 0.2, b: 0.21, a: 1}
@@ -300,6 +384,30 @@ MonoBehaviour:
     height: 14
   arenaTopY: 7.45
   dispenserOutlet: {x: 5.3, y: 6.62}
+  crabMode: 1
+  crabSandMargin: 4
+  crabBoardWidth: 9.2
+  crabBoardMaxHeight: 10.9
+  crabBoardBottomY: -3.1
+  crabTrayBottomPad: 0.7
+  crabLevelOrder: 0100000002000000030000000400000006000000090000000b0000001100000013000000150000001b000000290000002c00000084000000be000000d7000000f3000000f80000005f0100006a010000c3010000d60100009101000004020000
+  crabPrefab: {fileID: 4336563365316607068, guid: ec72618d91f821942bb820f1451968f7, type: 3}
+  crabSpeed: 6
+  crabHatchTime: 0.15
+  crabChompTime: 0.35
+  crabPoofTime: 0.22
+  crabSpawnInterval: 0.12
+  crabSpawnRate: 20
+  crabSpawnBurst: 3
+  crabSpawnJitter: 0.25
+  maxCrabs: 80
+  crabScale: 0.7
+  crabZ: -1.5
+  crabNibbleFxSize: 0.8
+  crabPoofFxSize: 0.55
+  crabBurrowDustColor: {r: 1, g: 0.86, b: 0.6, a: 1}
+  crabPathSmoothing: 2
+  crabLaneJitter: 0.6
   ballRadius: 0.17
   ballSpeed: 18
   ballSpawnSpread: 55

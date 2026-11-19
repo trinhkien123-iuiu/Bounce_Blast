@@ -59,6 +59,10 @@ namespace BounceBlast.Gameplay
         /// <summary>Cửa kính "/door-N" (BlockerType.AmmoCover)</summary>
         public int Door;
         public bool DoorClosed;
+        /// <summary>Ammo đôi "/dc-LX": sau khi hộp này bị lấy đi, hộp Next (lấy từ cột L của file tunnel) hiện ra ở chính ô đó</summary>
+        public AmmoBoxData Next;
+        /// <summary>Đổi màu "/acs-N": hai hộp cùng nhóm N đổi màu cho nhau sau mỗi lần bấm (0 = không có)</summary>
+        public int SwapGroup;
     }
 
     /// <summary>Dùng cho dữ liệu ống nhả hộp của level</summary>
@@ -66,6 +70,8 @@ namespace BounceBlast.Gameplay
     {
         public char Id;
         public Vector2Int Direction;
+        /// <summary>Giỏ "/ba-LX" (BlockerBasket): ống không có hướng, đóng nắp cho tới khi một hộp kề bên được lấy đi</summary>
+        public bool Basket;
         public List<AmmoBoxData> Queue = new List<AmmoBoxData>();
     }
 

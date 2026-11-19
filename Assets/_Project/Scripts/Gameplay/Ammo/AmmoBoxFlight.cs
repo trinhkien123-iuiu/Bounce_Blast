@@ -102,7 +102,7 @@ namespace BounceBlast.Gameplay
             {
                 start,
                 start + startUp * (_cell * 0.9f) + lift,
-                dock + dockUp * (DockLen + 1.2f) + lift,
+                dock + dockUp * (DockLen + (_config.crabMode ? _config.crabFlightApex : 1.2f)) + lift,
                 dock - dockUp * DockBottom,
             }, Mathf.Max(sBox, dw) * 1.3f);
             _visual.gameObject.SetActive(false);

@@ -65,6 +65,16 @@ namespace BounceBlast.UI
         [SerializeField] Style hard = new Style();
         [SerializeField] Style superHard = new Style();
 
+        [Header("Crab Mode (dải nền tông cát/gỗ)")]
+        [Tooltip("Hình 4 nút + nút khoá khi chơi Crab Mode (khung Crab Stash + icon cũ). Trống = dùng theo độ khó")] [SerializeField] Style crab = new Style();
+        [Tooltip("Màu vạch GoldLine ở mode thường (scene có thể đang lưu ở dạng Crab Mode)")] [SerializeField] Color normalLineColor = new Color(1f, 0.66f, 0.12f, 1f);
+        [SerializeField] Color crabStripColor = new Color(0.80f, 0.58f, 0.34f, 1f);
+        [SerializeField] Color crabLineColor = new Color(1f, 0.90f, 0.62f, 1f);
+        [Tooltip("Vạch kẻ trên dải nền (GoldLine) – trống thì tự tìm con tên GoldLine")] [SerializeField] Image goldLine;
+
+        /// <summary>GameUI bật khi chơi Crab Mode</summary>
+        public bool CrabMode { get; set; }
+
         /// <summary>Bấm vào một nút booster</summary>
         public event Action<BoosterType> OnPressed;
 
@@ -110,8 +120,20 @@ namespace BounceBlast.UI
         public void ApplyDifficulty(LevelDifficulty difficulty)
         {
             Style s = difficulty == LevelDifficulty.SuperHard ? superHard : difficulty == LevelDifficulty.Hard ? hard : normal;
+            if (CrabMode && crab.magicHand != null) s = crab;
             _style = s;
             if (strip != null && s.stripColor.a > 0f) strip.color = s.stripColor;
+            if (!CrabMode)
+            {
+                if (goldLine == null && strip != null) { Transform gl = strip.transform.Find("GoldLine"); if (gl != null) goldLine = gl.GetComponent<Image>(); }
+                if (goldLine != null) goldLine.color = normalLineColor;
+            }
+            if (CrabMode)
+            {
+                if (strip != null) strip.color = crabStripColor;
+                if (goldLine == null && strip != null) { Transform gl = strip.transform.Find("GoldLine"); if (gl != null) goldLine = gl.GetComponent<Image>(); }
+                if (goldLine != null) goldLine.color = crabLineColor;
+            }
             foreach (Entry e in boosters)
             {
                 if (e == null) continue;

@@ -10,6 +10,8 @@ namespace BounceBlast.Gameplay
     {
         public event Action OnBoardCleared;
         public event Action<BoardBlock> OnBlockDestroyed;
+        /// <summary>Vừa dựng xong bàn của level mới</summary>
+        public event Action OnBuilt;
 
         GameConfig _config;
         ColorLibrary _colors;
@@ -27,6 +29,8 @@ namespace BounceBlast.Gameplay
         /// <summary>Hệ số nhân của level: một ô CSV = Multiplier×Multiplier ô mịn (rèm dựng theo ô CSV)</summary>
         public int Multiplier { get; private set; } = 1;
         public IReadOnlyList<BoardBlock> Blocks => _blocks;
+        /// <summary>Crab Mode: flood fill "có đường ăn" (null khi mode cũ)</summary>
+        public BoardReach Reach { get; private set; }
 
         public GameConfig Config => _config;
         public ColorLibrary Colors => _colors;
@@ -41,6 +45,12 @@ namespace BounceBlast.Gameplay
             Multiplier = Mathf.Max(1, level.Multiplier);
             float cell = config.arena.width / level.BoardCols;
             var origin = new Vector2(config.arena.xMin, config.arena.yMin + config.boardOffsetY);
+            if (config.crabMode)
+            {
+                // Crab Mode: tranh nhỏ lại, căn giữa, chừa chỗ hàng vỏ sò phía dưới
+                cell = Mathf.Min(config.crabBoardWidth / level.BoardCols, config.crabBoardMaxHeight / Mathf.Max(1, level.BoardRows));
+                origin = new Vector2(config.arena.center.x - level.BoardCols * cell * 0.5f, config.crabBoardBottomY);
+            }
             _grid = new BoardGrid(level.BoardCols, level.BoardRows, origin, cell);
             _targeting = new BoardTargeting(_grid, _blocks);
             _visuals.Setup(config, colors, cell);
@@ -51,7 +61,28 @@ namespace BounceBlast.Gameplay
             foreach (BoardItemData item in level.BoardItems) Spawn(item);
             _tunnels.Init();
             RecountDestructibles();
+            Reach = config.crabMode ? new BoardReach(_grid, level.BoardCols, level.BoardRows, config.crabSandMargin) : null;
             _settleRequested = true;
+            OnBuilt?.Invoke();
+        }
+
+        /// <summary>Hình chữ nhật (thế giới) bao mọi khối hiện có; false nếu bàn trống</summary>
+        public bool TryGetBlocksBounds(out Rect rect)
+        {
+            rect = default;
+            if (_grid == null || _blocks.Count == 0) return false;
+            int x0 = int.MaxValue, y0 = int.MaxValue, x1 = int.MinValue, y1 = int.MinValue;
+            foreach (BoardBlock b in _blocks)
+            {
+                if (b == null || b.IsDestroyed) continue;
+                RectInt r = b.Cells;
+                x0 = Mathf.Min(x0, r.xMin); y0 = Mathf.Min(y0, r.yMin);
+                x1 = Mathf.Max(x1, r.xMax); y1 = Mathf.Max(y1, r.yMax);
+            }
+            if (x0 == int.MaxValue) return false;
+            float c = _grid.Cell;
+            rect = new Rect(_grid.Origin.x + x0 * c, _grid.Origin.y + y0 * c, (x1 - x0) * c, (y1 - y0) * c);
+            return true;
         }
 
         /// <summary>Dùng cho đổi ô lưới sang toạ độ thế giới</summary>
@@ -124,7 +155,7 @@ namespace BounceBlast.Gameplay
         {
             if (!_settleRequested) return;
             _settleRequested = false;
-            Settle();
+            if (_config == null || !_config.crabMode) Settle(); // Crab Mode: tranh đứng yên, block không rơi
             RevealUncovered();
         }
 

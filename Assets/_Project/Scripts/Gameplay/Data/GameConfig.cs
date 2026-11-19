@@ -34,6 +34,53 @@ namespace BounceBlast.Gameplay
         public GameObject curtainChainPrefab;
         [Tooltip("Tỉ lệ xích + con lắc so với prefab gốc (1 = nguyên bản)")] public float curtainChainScale = 0.85f;
         [Tooltip("Xích + con lắc nhô ra trước mặt vải bao nhiêu ô CSV (tránh dính vải)")] public float curtainChainOffsetZ = 0.45f;
+        [Header("Rèm /cur – thời gian & kích thước")]
+        [Tooltip("Số giây vải rèm rút lên khi mở")] public float curtainLiftSeconds = 0.35f;
+        [Tooltip("Con lắc đứng yên bao lâu sau khi rèm mở rồi mới biến mất (giây)")] public float curtainMedalSeconds = 0.3f;
+        [Tooltip("Mảnh vải phóng to để chồng khít, không hở khe (1.15 = hằng số ScaleOverrideOfPrimitives của game gốc)")] public float curtainPieceOverlap = 1.15f;
+        [Tooltip("Rèm cao từ bao nhiêu hàng CSV thì dùng xích dài (3x)")] public int curtainLongChainRows = 12;
+        [Tooltip("Rèm cao từ bao nhiêu hàng CSV thì dùng xích vừa (2x)")] public int curtainMediumChainRows = 7;
+        [Tooltip("Đường kính số trên con lắc (đơn vị ô CSV)")] public float curtainMedalDiameter = 1.25f;
+        [Tooltip("Số nổi lên trước mặt con lắc (đơn vị ô CSV)")] public float curtainLabelLift = 0.3f;
+        [Tooltip("Mảnh gạch bay lên con lắc: số giây bay")] public float curtainPieceFlightSeconds = 0.45f;
+        [Tooltip("Mảnh gạch bay lên con lắc: độ cong quỹ đạo (đơn vị cỡ mảnh)")] public float curtainPieceArc = 2.5f;
+        [Header("Bom /bomb – hiệu ứng")]
+        [Tooltip("Số giây bom biến mất khi bi chạm")] public float bombVanishSeconds = 0.3f;
+        [Tooltip("Bom phồng tối đa bao nhiêu lần trước khi co")] public float bombPopScale = 1.18f;
+        [Tooltip("Phần thời gian đầu (0–1) dùng để phồng")] [Range(0.05f, 0.95f)] public float bombPopPortion = 0.3f;
+        [Tooltip("Số nổi ra trước mặt bom (tỉ lệ theo bề ngang bom)")] public float bombLabelLift = 0.06f;
+        [Header("Tunnel trên bàn /btu – tấm số")]
+        [Tooltip("Số giây tunnel biến mất khi hết việc")] public float boardTunnelBreakSeconds = 0.25f;
+        [Tooltip("Cỡ tấm số (đơn vị ô CSV)")] public float boardTunnelBadgeScale = 0.9f;
+        [Tooltip("Tấm số nhô ra trước mặt tunnel (đơn vị ô CSV)")] public float boardTunnelBadgeDepth = 0.8f;
+        [Tooltip("Chữ số nổi lên trước tấm số (đơn vị ô CSV)")] public float boardTunnelLabelLift = 0.12f;
+        [Header("Mechanics mới – prefab & vật liệu")]
+        [Tooltip("Giỏ /ba (BlockerBasket): ống không hướng trong khay đạn, mở khi một hộp kề bên được lấy đi")] public GameObject basketPrefab;
+        [Tooltip("Xoay thân giỏ (prefab gốc dựng khung \"nhìn từ trên\")")] public Vector3 basketEuler = new Vector3(-90f, 0f, 0f);
+        [Tooltip("Cỡ giỏ so với ô khay")] public float basketSize = 1f;
+        [Tooltip("Dời vị trí giỏ so với tâm ô khay, đơn vị ô khay: X sang phải, Y lên trên, Z ra trước camera (âm = ra trước). Ammo nhỏ trong giỏ đi theo. Đổi lúc Play thấy ngay")] public Vector3 basketOffset = Vector3.zero;
+        [Tooltip("Góc mở của nắp giỏ (độ, quanh trục Z của nắp)")] public float basketCoverOpenAngle = 110f;
+        [Tooltip("Tông màu nhân vào vật liệu giỏ (Basket.mat gốc để trắng nên lên nhạt/hồng; game gốc đo được cam nâu RGB ≈ 173,100,40). Trắng = giữ nguyên")] public Color basketTint = new Color(1f, 0.97f, 0.55f, 1f);
+        [Tooltip("Độ sáng vùng bóng của giỏ (_SColor, gốc 0.46). Giảm = giỏ đậm hơn")] [Range(0f, 1f)] public float basketShadowBrightness = 0.46f;
+        [Tooltip("Số giây nắp giỏ mở/đóng")] public float basketCoverSeconds = 0.25f;
+        [Tooltip("Cỡ chữ số đếm trên giỏ (nhân với cỡ ô khay)")] public float basketLabelSize = 6f;
+        [Tooltip("Số trên giỏ nhô ra trước mặt giỏ (đơn vị ô khay)")] public float basketLabelDepth = 1f;
+        [Tooltip("DEBUG: tick để mấy cục ammo nhỏ LUÔN hiện trong giỏ (cả khi giỏ còn đóng), kéo basketMiniOffsets/trainTubeMiniScale/trainTubeHoldTilt chỉnh live; kết hợp với basketHideCover để thấy rõ")] public bool basketDebugShowMinis;
+        [Tooltip("DEBUG: tick để ẨN nắp giỏ, nhìn rõ mấy cục ammo nhỏ bên trong (đổi lúc Play thấy ngay)")] public bool basketHideCover;
+        [Tooltip("Số giây giỏ co lại biến mất sau khi nhả hộp cuối")] public float basketVanishSeconds = 0.4f;
+        [Tooltip("Giỏ trống nằm lại bao lâu (nắp dựng đứng) sau khi mấy ammo đã nhảy ra rồi mới co biến mất (giây)")] public float basketEmptyStaySeconds = 0.8f;
+        [Tooltip("Số giây mỗi hộp bay từ giỏ tới ô trống của nó")] public float basketFlightSeconds = 0.45f;
+        [Tooltip("Prefab ống TrainEngine gốc (mesh Cube.008 gắn xương) cho cảnh hộp bay ra khỏi giỏ; trống = hộp trượt thẳng")] public GameObject trainEnginePrefab;
+        [Tooltip("Bề ngang ống bay so với ô khay")] public float trainTubeWidth = 0.8f;
+        [Tooltip("Độ cong quỹ đạo ống bay (đơn vị ô khay)")] public float trainTubeArc = 1.2f;
+        [Tooltip("Trễ giữa hai ống bay liên tiếp từ cùng một giỏ (giây)")] public float trainTubeStagger = 0.03f;
+        [Tooltip("Cỡ cục ammo nhỏ nằm trong giỏ so với hộp đủ cỡ (video: ~0.45)")] public float trainTubeMiniScale = 0.45f;
+        [Tooltip("Độ nghiêng ngẫu nhiên của mỗi cục ammo nhỏ khi nằm trong giỏ (0 = chúi thẳng vào camera; 0.35 ≈ 19°)")] public float trainTubeHoldTilt = 0.35f;
+        [Tooltip("Sau khi nắp bắt đầu mở bao lâu thì mấy cục ammo nhỏ hiện lên trong giỏ (giây)")] public float basketRevealDelay = 0.12f;
+        [Tooltip("Mấy cục ammo nhỏ nằm trong giỏ bao lâu rồi mới nhảy ra (giây; video ≈ 0.35)")] public float basketHoldSeconds = 0.35f;
+        [Tooltip("Vị trí 3 cục ammo nhỏ trong giỏ (đơn vị ô khay, lệch so với tâm giỏ; lấy lần lượt, vòng lại nếu nhiều hơn 3)")] public Vector2[] basketMiniOffsets = { new Vector2(-0.18f, 0.05f), new Vector2(0.18f, 0.05f), new Vector2(0f, -0.15f) };
+        [Tooltip("Chỉ báo ammo đôi /dc (BlockerAmmoDoubleColorIndicator): hộp nhỏ màu của hộp thứ hai")] public GameObject doubleColorPrefab;
+        [Tooltip("Mũi tên đổi màu /acs (BlockerAmmoColorSwapArrow): biểu tượng xoay trên hộp")] public GameObject swapArrowPrefab;
         [Tooltip("Tunnel trên bàn (ModularPrimitiveBoardTunnel) – mảnh Left/Mid/Right × Front/Back")] public GameObject boardTunnelPrefab;
         [Tooltip("Tunnel trên bàn gộp (CombinedCubicBoardTunnel) – lấy tấm số (Model/3D Text)")] public GameObject boardTunnelBadgePrefab;
         [Tooltip("Lùi tấm tunnel ra sau (đơn vị ô CSV) so với mặt trước của gạch, để gạch kề che viền và cube trồi lên không đè lên tấm")] public float boardTunnelDepthShift = 0.45f;
@@ -83,6 +130,7 @@ namespace BounceBlast.Gameplay
         [Header("Theme theo độ khó")]
         public Theme normalTheme;
         public Theme hardTheme;
+        [Tooltip("Crab Mode: bộ màu/vật liệu riêng (khay cát…). Dùng cho MỌI độ khó khi crabMode bật")] public Theme crabTheme;
         public Theme superHardTheme;
 
         [Header("Âm thanh")]
@@ -97,6 +145,34 @@ namespace BounceBlast.Gameplay
         public float arenaTopY = 7.45f;
         [Tooltip("Điểm thả bi vào bàn: phải nằm DƯỚI mép bịt cửa phun (y = 6.92) và trên nêm tam giác (đỉnh y = 6.30)")]
         public Vector2 dispenserOutlet = new Vector2(5.30f, 6.62f);
+
+        [Header("Crab Mode")]
+        [Tooltip("Bật: ammo bay vào hàng 5 máy xay (GrinderQueue) thay cho máng + bi. Cần GameManager.grinderQueue đã đặt trong scene")] public bool crabMode;
+        [Tooltip("Crab Mode: số ô cát trống bao quanh bàn (cua đi vòng trong vùng này)")] [Min(1)] public int crabSandMargin = 4;
+        [Tooltip("Crab Mode: bề ngang tối đa của tranh (đv thế giới); tranh căn giữa theo arena")] public float crabBoardWidth = 8.0f;
+        [Tooltip("Crab Mode: chiều cao tối đa của tranh")] public float crabBoardMaxHeight = 11f;
+        [Tooltip("Crab Mode: y mép dưới tranh (chừa chỗ cho hàng vỏ sò bên dưới)")] public float crabBoardBottomY = -4.3f;
+        [Tooltip("Crab Mode: chừa thêm khoảng trống (đv thế giới) giữa đáy khay ammo và hàng nút booster")] public float crabTrayBottomPad = 0.7f;
+        [Tooltip("Crab Mode: thứ tự level chơi thử. Lv n trong game = level gốc crabLevelOrder[n-1]; quá danh sách thì dùng số level như cũ. Trống = không đổi")] public int[] crabLevelOrder = new int[0];
+        [Tooltip("Crab Mode: thời gian hộp bay từ khay vào máy xay (giây)")] public float crabBoxFlyDuration = 0.42f;
+        [Tooltip("Crab Mode: ống bay vồng lên trên miệng máy bao cao trước khi rơi vào (đv thế giới; bản cũ 1.2)")] public float crabFlightApex = 0.35f;
+        [Tooltip("Prefab cua (có component Crab)")] public GameObject crabPrefab;
+        [Tooltip("Tốc độ cua chạy (đv thế giới / giây)")] public float crabSpeed = 3.5f;
+        [Tooltip("Thời gian cua chui ra khỏi máy (giây)")] public float crabHatchTime = 0.2f;
+        [Tooltip("Thời gian cua cạp một khối (giây)")] public float crabChompTime = 0.35f;
+        [Tooltip("Thời gian cua biến mất sau khi cạp (giây)")] public float crabPoofTime = 0.25f;
+        [Tooltip("Khoảng cách giữa hai lần máy xay nhả cua (giây)")] public float crabSpawnInterval = 0.12f;
+        [Tooltip("Mỗi máy xay nhả bao nhiêu cua / giây")] public float crabSpawnRate = 20f;
+        [Tooltip("Tối đa bao nhiêu cua một máy được nhả dồn trong một khung hình")] public float crabSpawnBurst = 3f;
+        [Tooltip("Cua mới nhả lệch ngẫu nhiên quanh miệng máy (đv thế giới) cho khỏi chồng lên nhau")] public float crabSpawnJitter = 0.15f;
+        [Tooltip("Số cua tối đa chạy cùng lúc")] public int maxCrabs = 40;
+        [Tooltip("Cỡ cua (đv thế giới)")] public float crabScale = 0.5f;
+        [Tooltip("Độ sâu z của cua (âm = gần camera hơn khối)")] public float crabZ = -1.5f;
+        [Tooltip("Cỡ vụn thạch mỗi nhát cạp (theo cỡ ô)")] public float crabNibbleFxSize = 0.8f;
+        [Tooltip("Cỡ làn bụi khi cua lặn xuống cát")] public float crabPoofFxSize = 0.55f;
+        [Tooltip("Màu bụi cát khi cua lặn")] public Color crabBurrowDustColor = new Color(1f, 0.86f, 0.6f, 1f);
+        [Tooltip("Số lần bo góc đường chạy (0 = đi gấp khúc theo ô)")] [Range(0, 3)] public int crabPathSmoothing = 2;
+        [Tooltip("Mỗi con cua lệch làn ngẫu nhiên tối đa bao nhiêu ô")] public float crabLaneJitter = 0.3f;
 
         [Header("Bi")]
         public float ballRadius = 0.17f;
@@ -427,7 +503,11 @@ namespace BounceBlast.Gameplay
         }
 
         /// <summary>Dùng cho lấy theme theo độ khó</summary>
+        /// <summary>Số level gốc (trong bộ 550) ứng với Lv hiện tại</summary>
+        public int SourceLevel(int id) => crabMode && crabLevelOrder != null && id >= 1 && id <= crabLevelOrder.Length && crabLevelOrder[id - 1] > 0 ? crabLevelOrder[id - 1] : id;
+
         public Theme ThemeFor(LevelDifficulty d) =>
+            crabMode && crabTheme != null && crabTheme.trayPanel != null ? crabTheme :
             d == LevelDifficulty.SuperHard ? superHardTheme : d == LevelDifficulty.Hard ? hardTheme : normalTheme;
     }
 }

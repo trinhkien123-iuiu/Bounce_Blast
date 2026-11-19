@@ -75,13 +75,13 @@ namespace BounceBlast.Gameplay
             _grid.ClearAll();
             foreach (AmmoBox stray in FindObjectsOfType<AmmoBox>()) Destroy(stray.gameObject);
 
-            Level = _playtest != null ? LevelParser.Build(_playtest.ToTokens(id)) : LevelParser.Load(_config, id);
+            Level = _playtest != null ? LevelParser.Build(_playtest.ToTokens(id)) : LevelParser.Load(_config, _config.SourceLevel(id));
             if (Level == null) return;
             currentLevel = id;
 
             _fitter.SetLevel(Level);
             _fitter.Fit();
-            _grid.AreaBottomOverride = _fitter.AmmoAreaBottom();
+            _grid.AreaBottomOverride = _fitter.AmmoAreaBottom() + (_config.crabMode ? _config.crabTrayBottomPad : 0f); // Crab Mode: chừa lề trên hàng nút booster mới
             _board.Build(Level, _config, _colors);
             _grid.Build(Level, _config, _colors);
 

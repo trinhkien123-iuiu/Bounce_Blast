@@ -190,12 +190,32 @@ namespace BounceBlast.Gameplay
         /// <summary>Xử lý trạng thái bấm được, nhô lên và tư thế của hộp</summary>
         public void SetClickable(bool value, bool raised, bool pathOpen, bool instant = false)
         {
-            IsClickable = value;
+            IsClickable = value && !Arriving;
             _pathOpen = pathOpen;
             _scaleTarget = raised ? _config.ammoActiveScale : _config.ammoInactiveScale;
             _tintTarget = raised ? 1f : 0.92f;
             _sinkTarget = raised ? 0f : 1f;
             if (instant) { _scaleNow = _scaleTarget; _tint = _tintTarget; _sink = _sinkTarget; _doorSink = DoorSinkTarget; ApplyScale(); ApplyTint(); }
+        }
+
+        /// <summary>Hộp đang "đến nơi" (ống từ giỏ còn bay): ẩn hình và chưa bấm được</summary>
+        public bool Arriving { get; private set; }
+
+        /// <summary>Bật/tắt chế độ đến nơi: ẩn mọi renderer của hộp khi đang chờ ống bay tới</summary>
+        public void SetArriving(bool arriving)
+        {
+            Arriving = arriving;
+            if (arriving) IsClickable = false;
+            foreach (Renderer r in GetComponentsInChildren<Renderer>(true)) r.enabled = !arriving;
+        }
+
+        /// <summary>Đổi màu hộp (cơ chế /acs): đổi vật liệu và nhún một cái</summary>
+        public void SetColor(string colorCode)
+        {
+            if (Data == null || string.Equals(Data.ColorCode, colorCode, StringComparison.OrdinalIgnoreCase)) return;
+            Data.ColorCode = colorCode;
+            ApplyAppearance();
+            _wobble = 1f;
         }
 
         /// <summary>Lộ màu hộp "?" khi nó thông đường ra</summary>

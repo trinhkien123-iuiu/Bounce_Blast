@@ -21,13 +21,17 @@ namespace BounceBlast.Gameplay
             _colors = colors;
             _cell = cell;
             _font = config.worldFont;
+            Pitch = config.crabMode ? 0f : ViewSpace.LegacyPitch;
             _fontMaterial = _font != null ? _font.material : null;
         }
+
+        /// <summary>Góc ngả khối theo góc nhìn cũ. Crab Mode: 0 (ăn từ 4 phía nên khối nhìn thẳng, không ngả)</summary>
+        static float Pitch = ViewSpace.LegacyPitch;
 
         /// <summary>Khối nhiều ô / tường: xiên mesh thay vì xoay</summary>
         public void ApplyViewShear(Transform visual)
         {
-            if (visual == null) return;
+            if (visual == null || Pitch == 0f) return;
             foreach (MeshFilter smf in visual.GetComponentsInChildren<MeshFilter>(true))
                 if (smf.sharedMesh != null && smf.sharedMesh.isReadable && smf.GetComponent<TextMeshPro>() == null && !smf.sharedMesh.name.StartsWith("Solid"))
                     smf.sharedMesh = ShearForView(smf.sharedMesh);
@@ -71,7 +75,7 @@ namespace BounceBlast.Gameplay
             }
 
             Transform model = v.transform.Find("Model");
-            if (model != null) model.localRotation = kind.CubeLook ? Quaternion.Euler(-ViewSpace.LegacyPitch, 0f, 0f) : Quaternion.identity;
+            if (model != null) model.localRotation = kind.CubeLook ? Quaternion.Euler(-Pitch, 0f, 0f) : Quaternion.identity;
 
             float nx = size.x / _cell, ny = size.y / _cell;
             if (nx > 1.01f || ny > 1.01f)
@@ -277,8 +281,8 @@ namespace BounceBlast.Gameplay
                 for (int i = 0; i < V.Count; i++)
                     if (V[i].y >= maxY - b - 1e-4f) { Vector3 q = V[i]; q.y -= trimY; V[i] = q; }
             }
-            float tan = ViewSpace.LegacyTan;
-            Quaternion rot = Quaternion.Euler(-ViewSpace.LegacyPitch, 0f, 0f);
+            float tan = Mathf.Tan(Pitch * Mathf.Deg2Rad);
+            Quaternion rot = Quaternion.Euler(-Pitch, 0f, 0f);
             float drop = b * tan;
             for (int i = 0; i < V.Count; i++)
             {

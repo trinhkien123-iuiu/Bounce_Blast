@@ -32,6 +32,10 @@ namespace BounceBlast.Gameplay
         [Tooltip("Khay hộp đạn")] public AmmoGridController ammoGrid;
         [Tooltip("Máng + máy xay")] public ConveyorSystem conveyor;
         [Tooltip("Bi")] public BallManager balls;
+        [Tooltip("Crab Mode: hàng 5 máy xay đặt sẵn trong scene (chỉ dùng khi GameConfig.crabMode bật)")] public GrinderQueue grinderQueue;
+        [Tooltip("Crab Mode: pool cua (đặt sẵn trong scene)")] public CrabManager crabManager;
+        [Tooltip("Crab Mode: các object của bản cũ cần ẩn (máng băng chuyền, 2 máy xay cũ, tam giác cửa phun…). Kéo vào từ Hierarchy")] public GameObject[] hideInCrabMode;
+        [Tooltip("Crab Mode: các object chỉ hiện ở Crab Mode (nền biển…). Để tắt sẵn trong scene")] public GameObject[] showInCrabMode;
         [Tooltip("Áp theme theo độ khó")] public ThemeApplier theme;
         [Tooltip("Cha của các hiệu ứng hạt (vỡ gạch, nổ…)")] public Transform vfxRoot;
         [Tooltip("Tường vật lý của lòng bàn (điểm đã nung sẵn, xem Gizmo khi chọn)")] public ArenaWalls arenaWalls;
@@ -63,6 +67,10 @@ namespace BounceBlast.Gameplay
         void Awake()
         {
             Instance = this;
+            // Bật/tắt object theo mode NGAY ĐẦU (scene có thể đang lưu ở trạng thái Crab Mode hoặc mode cũ)
+            bool crab = config != null && config.crabMode;
+            if (hideInCrabMode != null) foreach (GameObject go in hideInCrabMode) if (go != null) go.SetActive(!crab);
+            if (showInCrabMode != null) foreach (GameObject go in showInCrabMode) if (go != null) go.SetActive(crab);
             if (gameCamera == null) gameCamera = Camera.main;
 
             PlayerData.UseLevelSet(config.ActiveSetName);
@@ -113,6 +121,14 @@ namespace BounceBlast.Gameplay
             boosterManager.SetColors(colors);
             boosterManager.Init(config, gameCamera, _ui, board, ammoGrid, launchManager, levelManager);
             launchManager.Init(_ui, board, ammoGrid, conveyor, balls, boosterManager, levelManager);
+            if (config.crabMode)
+            {
+                if (grinderQueue == null) Debug.LogError("GameManager: crabMode bật nhưng ô Grinder Queue trống");
+                else { if (crabManager != null) crabManager.Init(config, colors, board);
+                    grinderQueue.Init(config, board, crabManager); launchManager.UseGrinders(grinderQueue); }
+                _ui.SetCapacityBarVisible(false);
+                _ui.SetCrabMode(true);
+            }
             onboardingManager = Get(onboardingManager, "OnboardingManager");
             inputManager.Init(gameCamera, _ui, board, ammoGrid, boosterManager, launchManager, balls, onboardingManager);
             debugManager.Init(_ui, board, launchManager);
@@ -168,6 +184,7 @@ namespace BounceBlast.Gameplay
             Vfx.Spawn(config.confettiVfx, new Vector3(config.arena.center.x, 2f, -3f), Color.white, 2.5f);
             conveyor.ClearAll();
             balls.ClearAll();
+            if (grinderQueue != null) grinderQueue.ClearAll();
             yield return _ui.PlayWinSequence(levelManager.CurrentLevel, CurrentDifficulty, WinCoins, levelManager.LoadNext);
         }
 

@@ -1,0 +1,551 @@
+level,difficulty,result,reason,blocks,blocks_left_best,nodes,specials,special_counts_for_win
+1,Normal,WIN,,192,32,6,,False
+2,Normal,WIN,,240,40,7,,False
+3,Normal,WIN,,288,32,9,,False
+4,Normal,WIN,,289,32,11,,False
+5,Normal,WIN,,280,42,10,,False
+6,Normal,WIN,,290,40,12,,False
+7,Normal,WIN,,384,24,16,,False
+8,Normal,WIN,,386,40,14,,False
+9,Normal,WIN,,480,32,16,,False
+10,Normal,WIN,,560,50,15,,False
+11,Normal,WIN,,520,40,15,,False
+12,Normal,WIN,,293,1,17,,False
+13,Normal,WIN,,465,48,16,,False
+14,Hard,WIN,,466,52,15,,False
+15,Normal,WIN,Queue full,560,61,22,,False
+16,Normal,WIN,,440,1,21,,False
+17,Normal,WIN,,560,76,16,,False
+18,Normal,WIN,,245,1,22,,False
+19,SuperHard,WIN,,530,24,19,,False
+20,Normal,WIN,,560,46,17,,False
+21,Normal,WIN,,498,32,19,,False
+22,Normal,WIN,,560,40,18,,False
+23,Normal,WIN,,308,48,20,,False
+24,Hard,WIN,Queue full,468,1,37,,False
+25,Normal,WIN,,616,56,15,,False
+26,Normal,WIN,,387,1,23,,False
+27,Normal,WIN,,560,32,17,,False
+28,Normal,WIN,,410,40,20,,False
+29,SuperHard,WIN,,406,1,25,,False
+30,Normal,WIN,,750,55,15,,False
+31,Normal,WIN,,308,1,22,Crate,True
+32,Normal,WIN,Queue full,400,28,22,Crate,True
+33,Normal,WIN,,419,1,19,,False
+34,Hard,WIN,,440,1,24,,False
+35,Normal,WIN,,750,44,17,,False
+36,Normal,LOSE,Queue full,368,108,1794,Crate,True
+37,Normal,WIN,,151,1,18,,False
+38,Normal,WIN,,560,32,18,,False
+39,SuperHard,WIN,,264,1,30,Crate,True
+40,Normal,WIN,,750,40,17,,False
+41,Normal,WIN,,278,56,16,,False
+42,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,222,2,4001,Crate,True
+43,Normal,WIN,,329,1,30,,False
+44,Hard,WIN,,280,48,29,,False
+45,Normal,WIN,,1344,72,25,,False
+46,Normal,WIN,,262,1,31,,False
+47,Normal,WIN,No more moves,560,40,19,,False
+48,Normal,WIN,,372,1,17,,False
+49,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,335,41,4001,Crate,True
+50,Normal,WIN,,1344,20,29,,False
+51,Normal,WIN,No more moves,560,48,15,,False
+52,Normal,WIN,,280,33,37,Crate,True
+53,Normal,WIN,,371,40,16,,False
+54,Hard,WIN,,9,1,27,,False
+55,Normal,WIN,Queue full,1344,60,101,,False
+56,Normal,WIN,,297,1,25,,False
+57,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,220,1,4001,Crate,True
+58,Normal,WIN,,445,48,27,,False
+59,SuperHard,WIN,,294,1,32,,False
+60,Normal,WIN,,1344,60,26,,False
+61,Normal,WIN,,278,1,27,,False
+62,Normal,WIN,,309,1,29,,False
+63,Normal,WIN,,284,48,25,,False
+64,Hard,WIN,,15,1,47,,False
+65,Normal,WIN,,1344,60,26,,False
+66,Normal,WIN,,397,9,32,,False
+67,Normal,WIN,No more moves,500,1,24,,False
+68,Normal,WIN,,346,48,24,,False
+69,SuperHard,WIN,,295,1,34,,False
+70,Normal,WIN,No more moves,1344,60,25,,False
+71,Normal,WIN,,316,1,19,Column,False
+72,Normal,WIN,,294,24,32,,False
+73,Normal,WIN,No more moves,504,24,31,Column,False
+74,Hard,WIN,,184,48,38,,False
+75,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,1344,64,4001,,False
+76,Normal,WIN,,346,1,23,Column/Crate,True
+77,Normal,WIN,,560,24,28,,False
+78,Normal,LOSE,Queue full,288,80,395,Crate,True
+79,SuperHard,WIN,,260,1,23,Crate,True
+80,Normal,WIN,,1344,69,30,,False
+81,Normal,WIN,Queue full,112,28,138,Crate,True
+82,Normal,WIN,,10,1,37,,False
+83,Normal,WIN,,560,20,23,,False
+84,Hard,WIN,,198,1,27,Column/Crate,True
+85,Normal,WIN,,1344,65,24,,False
+86,Normal,WIN,No more moves,323,1,22,Crate,True
+87,Normal,WIN,,488,32,13,Column,False
+88,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,416,108,4001,Crate,True
+89,SuperHard,WIN,No more moves,560,24,28,,False
+90,Normal,WIN,Queue full,1344,60,50,,False
+91,Normal,WIN,,229,52,26,Stone/Column,True
+92,Normal,WIN,,215,1,29,,False
+93,Normal,WIN,,400,32,13,Column/Crate,True
+94,Hard,WIN,Queue full,309,1,36,Stone,True
+95,Normal,WIN,,1344,62,26,,False
+96,Normal,WIN,,560,20,28,,False
+97,Normal,LOSE,Queue full,216,84,75,Column/Stone/Crate,True
+98,Normal,WIN,,312,52,25,,False
+99,SuperHard,WIN,,421,1,30,,False
+100,Normal,WIN,,1344,60,26,,False
+101,Normal,WIN,No more moves,210,33,37,Stone,True
+102,Normal,WIN,,436,1,29,,False
+103,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,290,33,4001,Stone/Crate,True
+104,Hard,LOSE,Queue full,214,182,458,Stone,True
+105,Normal,WIN,,1344,65,30,,False
+106,Normal,WIN,,357,1,29,,False
+107,Normal,LOSE,Queue full,368,48,3613,Crate,True
+108,Normal,WIN,,408,1,35,,False
+109,SuperHard,WIN,,560,24,23,,False
+110,Normal,WIN,,1344,60,31,,False
+111,Normal,WIN,,307,40,14,Curtain,True
+112,Normal,WIN,Queue full,370,1,103,Crate,True
+113,Normal,WIN,,259,33,21,Column/Stone,True
+114,Hard,WIN,,308,1,33,,False
+115,Normal,WIN,,1344,60,27,,False
+116,Normal,WIN,,434,40,18,Crate,True
+117,Normal,WIN,,560,28,27,,False
+118,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,10,3,4001,Stone,True
+119,SuperHard,WIN,,202,1,43,,False
+120,Normal,WIN,,1344,63,26,,False
+121,Normal,WIN,,511,20,28,,False
+122,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,214,48,4001,Stone/Crate,True
+123,Normal,WIN,,432,56,14,Curtain,True
+124,Hard,WIN,,296,1,39,,False
+125,Normal,WIN,,1344,70,24,,False
+126,Normal,WIN,Queue full,336,8,17,Curtain,True
+127,Normal,LOSE,Queue full,232,112,208,Stone/Crate,True
+128,Normal,WIN,,227,1,34,,False
+129,SuperHard,WIN,,388,48,28,,False
+130,Normal,WIN,,1344,60,27,,False
+131,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,228,1,4001,Curtain,True
+132,Normal,WIN,,52,44,17,,False
+133,Normal,WIN,Queue full,288,28,237,Crate,True
+134,Hard,WIN,,206,1,31,Column,False
+135,Normal,WIN,Queue full,1344,20,190,,False
+136,Normal,WIN,,448,16,24,Curtain,True
+137,Normal,WIN,,343,33,31,Column,False
+138,Normal,WIN,,560,32,24,,False
+139,SuperHard,WIN,,278,1,39,,False
+140,Normal,WIN,,1344,65,26,,False
+141,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,245,1,4001,Curtain,True
+142,Normal,WIN,,0,0,0,Stone,True
+143,Normal,WIN,,236,24,7,Stone/Column/Crate/Curtain,True
+144,Hard,WIN,,304,48,34,,False
+145,Normal,WIN,,1344,72,24,,False
+146,Normal,WIN,,372,84,20,Stone,True
+147,Normal,WIN,Queue full,322,1,29,Curtain/Crate,True
+148,Normal,WIN,Queue full,71,1,57,Crate,True
+149,SuperHard,WIN,No more moves,239,1,64,Column,False
+150,Normal,WIN,,1344,65,26,,False
+151,Normal,LOSE,Queue full,432,256,723,Stone/Bomb,True
+152,Normal,WIN,,482,1,18,Bomb,True
+153,Normal,LOSE,Queue full,240,92,192,Crate,True
+154,Hard,WIN,,325,1,29,,False
+155,Normal,WIN,,483,1,27,,False
+156,Normal,WIN,,312,1,31,,False
+157,Normal,WIN,,184,1,29,,False
+158,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,418,33,4001,Crate,True
+159,SuperHard,WIN,,346,32,22,Column/Crate,True
+160,Normal,LOSE,Queue full,144,88,235,Stone/Column,True
+161,Normal,WIN,Queue full,406,1,53,,False
+162,Normal,WIN,No more moves,528,24,20,Bomb,True
+163,Normal,WIN,,185,24,57,,False
+164,Hard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,229,1,4001,Stone/Column/Crate,True
+165,Normal,LOSE,Queue full,71,71,662,Stone,True
+166,Normal,WIN,,270,1,39,Column,False
+167,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,400,20,4001,Stone,True
+168,Normal,WIN,,464,40,14,Stone/Bomb,True
+169,SuperHard,WIN,,262,1,31,Crate,True
+170,Normal,WIN,Queue full,210,1,68,Stone,True
+171,Normal,WIN,,448,48,15,Crate/Curtain,True
+172,Normal,LOSE,Queue full,165,165,618,Stone/Column,True
+173,Normal,LOSE,Queue full,304,136,226,Stone/Column,True
+174,Hard,LOSE,Queue full,368,68,1496,Curtain,True
+175,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,214,101,4001,Stone,True
+176,Normal,WIN,Queue full,272,20,1943,Curtain,True
+177,Normal,WIN,,560,40,17,,False
+178,Normal,WIN,,74,1,47,,False
+179,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,404,2,4001,Curtain,True
+180,Normal,WIN,Queue full,306,32,55,Curtain,True
+181,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,182,93,4001,Stone,True
+182,Normal,WIN,,268,1,24,Column/Stone/Bomb,True
+183,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,266,1,4001,Crate/Curtain,True
+184,Hard,WIN,Queue full,164,2,228,Crate,True
+185,Normal,WIN,Queue full,434,1,41,Crate,True
+186,Normal,WIN,,560,40,13,,False
+187,Normal,WIN,,6,1,19,Stone/Curtain,True
+188,Normal,WIN,,448,28,15,Column,False
+189,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,305,32,4001,Crate,True
+190,Normal,WIN,,304,1,32,,False
+191,Normal,WIN,,260,1,39,Stone,True
+192,Normal,WIN,No more moves,379,1,25,Stone,True
+193,Normal,WIN,Queue full,272,16,188,Stone/Column,True
+194,Hard,WIN,,385,1,18,Crate,True
+195,Normal,WIN,Queue full,209,48,405,Curtain,True
+196,Normal,WIN,Queue full,339,1,528,Crate,True
+197,Normal,WIN,,250,2,33,,False
+198,Normal,WIN,,168,17,36,,False
+199,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,231,60,4001,Curtain,True
+200,Normal,WIN,No more moves,493,1,17,,False
+201,Normal,WIN,,237,1,19,Column/Curtain,True
+202,Normal,WIN,Queue full,180,1,28,Crate,True
+203,Normal,LOSE,Queue full,440,8,2460,Stone/Bomb,True
+204,Hard,WIN,Queue full,338,1,38,Crate,True
+205,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,288,20,4001,Curtain/Crate,True
+206,Normal,WIN,Queue full,352,48,67,Column,False
+207,Normal,WIN,,117,56,30,Stone,True
+208,Normal,WIN,Queue full,384,24,164,Stone/Column/Crate,True
+209,SuperHard,WIN,,329,1,34,,False
+210,Normal,WIN,No more moves,206,48,29,Column/Bomb,True
+211,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,256,4,4001,Stone,True
+212,Normal,WIN,,378,16,21,Stone,True
+213,Normal,WIN,Queue full,238,1,290,Stone/Column/Curtain/Crate,True
+214,Hard,WIN,Queue full,216,1,292,Curtain,True
+215,Normal,WIN,,374,44,30,,False
+216,Normal,WIN,,491,1,23,,False
+217,Normal,WIN,No more moves,374,1,145,,False
+218,Normal,WIN,,394,1,31,Column,False
+219,SuperHard,WIN,Queue full,9,1,44,Stone/Curtain,True
+220,Normal,WIN,,323,1,19,Crate,True
+221,Normal,WIN,,340,48,28,,False
+222,Normal,WIN,,292,1,22,Stone,True
+223,Normal,WIN,No more moves,448,20,25,Column,False
+224,Hard,WIN,,443,1,22,Crate,True
+225,Normal,WIN,Queue full,236,1,17,Curtain,True
+226,Normal,LOSE,No more moves,433,16,459,Stone/Bomb,True
+227,Normal,WIN,,396,48,22,,False
+228,Normal,WIN,,293,1,36,,False
+229,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,354,2,4001,Curtain/Crate,True
+230,Normal,WIN,,356,40,22,Column,False
+231,Normal,WIN,,167,1,36,Crate,True
+232,Normal,WIN,,250,44,36,,False
+233,Normal,WIN,,280,17,22,,False
+234,Hard,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,416,28,4001,Stone,True
+235,Normal,WIN,,560,28,15,,False
+236,Normal,WIN,,530,48,16,,False
+237,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,492,4,4001,,False
+238,Normal,WIN,No more moves,352,32,34,Column,False
+239,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,146,2,4001,Curtain,True
+240,Normal,WIN,,560,40,17,,False
+241,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,224,76,4001,Stone/Crate,True
+242,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,370,37,4001,Crate,True
+243,Normal,WIN,,391,1,35,,False
+244,Hard,WIN,,88,1,37,Curtain,True
+245,Normal,WIN,,380,48,24,,False
+246,Normal,WIN,,389,40,20,,False
+247,Normal,WIN,Queue full,372,1,3900,Stone,True
+248,Normal,WIN,,399,60,31,,False
+249,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,263,28,4001,Crate,True
+250,Normal,WIN,,314,1,24,,False
+251,Normal,WIN,,421,40,19,,False
+252,Normal,WIN,,297,1,37,Crate,True
+253,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,276,1,4001,Curtain,True
+254,Hard,WIN,,560,16,27,,False
+255,Normal,WIN,,468,48,20,,False
+256,Normal,WIN,,242,52,34,Stone,True
+257,Normal,WIN,,318,32,24,Column,False
+258,Normal,WIN,Queue full,470,48,29,,False
+259,SuperHard,WIN,,202,1,43,,False
+260,Normal,WIN,No more moves,468,1,28,,False
+261,Normal,WIN,,560,32,16,,False
+262,Normal,WIN,,265,1,33,,False
+263,Normal,WIN,,374,56,25,,False
+264,Hard,WIN,Queue full,236,41,100,Curtain,True
+265,Normal,WIN,,560,48,15,,False
+266,Normal,WIN,,300,1,38,,False
+267,Normal,WIN,,468,48,24,,False
+268,Normal,WIN,No more moves,328,17,31,,False
+269,SuperHard,WIN,,279,1,36,,False
+270,Normal,WIN,,429,1,24,,False
+271,Normal,WIN,,380,32,21,Column,False
+272,Normal,WIN,,294,40,30,,False
+273,Normal,WIN,,357,1,20,Crate,True
+274,Hard,WIN,,504,28,20,Column,False
+275,Normal,WIN,Queue full,368,20,27,Curtain,True
+276,Normal,WIN,,440,48,14,Column/Crate,True
+277,Normal,WIN,,359,40,30,,False
+278,Normal,WIN,,182,1,17,,False
+279,SuperHard,WIN,,119,1,40,,False
+280,Normal,WIN,Queue full,560,24,70,,False
+281,Normal,WIN,,229,48,36,Column,False
+282,Normal,WIN,,286,1,24,Stone,True
+283,Normal,WIN,,560,20,23,,False
+284,Hard,WIN,,342,40,34,,False
+285,Normal,WIN,,405,1,29,,False
+286,Normal,WIN,,323,40,20,Crate,True
+287,Normal,WIN,,426,32,20,Column,False
+288,Normal,WIN,Queue full,292,1,934,Curtain,True
+289,SuperHard,WIN,Queue full,277,1,92,Curtain,True
+290,Normal,WIN,,420,32,22,,False
+291,Normal,WIN,,244,44,23,Stone/Column,True
+292,Normal,WIN,,308,40,28,,False
+293,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,282,1,4001,Column/Crate,True
+294,Hard,WIN,Queue full,276,40,27,Crate,True
+295,Normal,WIN,,560,32,26,,False
+296,Normal,WIN,Queue full,132,1,73,Curtain,True
+297,Normal,WIN,Queue full,274,28,61,Column/Stone/Crate,True
+298,Normal,WIN,,372,1,29,,False
+299,SuperHard,WIN,,312,40,39,,False
+300,Normal,LOSE,Queue full,368,128,262,Stone,True
+301,Normal,WIN,,388,40,21,BoardTunnel,True
+302,Normal,WIN,,422,48,29,BoardTunnel,True
+303,Normal,LOSE,Queue full,268,268,542,Stone/Crate,True
+304,Hard,WIN,No more moves,252,1,40,,False
+305,Normal,WIN,Queue full,384,20,24,BoardTunnel/Column,True
+306,Normal,WIN,,10,1,46,,False
+307,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,308,33,4001,Crate,True
+308,Normal,WIN,,300,1,39,,False
+309,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,201,1,4001,Crate,True
+310,Normal,WIN,,400,24,19,Curtain,True
+311,Normal,WIN,,536,48,14,BoardTunnel,True
+312,Normal,WIN,,374,1,24,,False
+313,Normal,WIN,,299,40,23,Column/Stone,True
+314,Hard,WIN,,375,1,32,BoardTunnel,True
+315,Normal,WIN,Queue full,266,1,37,Crate/Curtain,True
+316,Normal,WIN,,389,1,28,Crate,True
+317,Normal,WIN,,15,1,42,Stone,True
+318,Normal,WIN,,298,1,41,,False
+319,SuperHard,WIN,Queue full,449,32,49,BoardTunnel,True
+320,Normal,WIN,,366,44,33,,False
+321,Normal,WIN,,261,1,29,,False
+322,Normal,WIN,,296,1,39,,False
+323,Normal,LOSE,Queue full,312,16,949,BoardTunnel/Curtain,True
+324,Hard,LOSE,Queue full,328,100,187,Stone/Crate,True
+325,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,225,25,4001,Stone/Column,True
+326,Normal,WIN,,178,1,34,,False
+327,Normal,WIN,,497,44,19,,False
+328,Normal,WIN,,356,32,27,Crate,True
+329,SuperHard,WIN,,410,36,31,,False
+330,Normal,WIN,,428,40,25,BoardTunnel,True
+331,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,277,1,4001,Curtain,True
+332,Normal,WIN,Queue full,416,16,42,Crate,True
+333,Normal,WIN,,327,40,40,,False
+334,Hard,WIN,,206,48,27,Column,False
+335,Normal,WIN,Queue full,536,48,21,BoardTunnel,True
+336,Normal,WIN,,386,1,23,Curtain,True
+337,Normal,WIN,No more moves,345,1,84,Column,False
+338,Normal,WIN,Queue full,21,1,27,Stone/Column,True
+339,SuperHard,WIN,,148,60,32,,False
+340,Normal,WIN,,400,32,14,Column/Crate,True
+341,Normal,WIN,,253,17,32,Column/BoardTunnel,True
+342,Normal,WIN,Queue full,292,1,934,Curtain,True
+343,Normal,LOSE,Queue full,236,80,293,Stone/Column/Crate/Curtain,True
+344,Hard,WIN,,353,1,36,,False
+345,Normal,WIN,,560,20,21,,False
+346,Normal,WIN,Queue full,421,40,61,Stone/BoardTunnel,True
+347,Normal,WIN,Queue full,464,24,22,Curtain,True
+348,Normal,WIN,,514,1,21,,False
+349,SuperHard,WIN,,366,1,27,BoardTunnel,True
+350,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,202,1,4001,Crate,True
+351,Normal,WIN,,560,24,30,,False
+352,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,355,12,4001,Stone,True
+353,Normal,WIN,,537,48,17,,False
+354,Hard,WIN,Queue full,324,40,85,Crate,True
+355,Normal,WIN,,379,52,20,BoardTunnel,True
+356,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,254,1,4001,Crate,True
+357,Normal,WIN,,496,4,28,Stone,True
+358,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,392,32,4001,Crate,True
+359,SuperHard,WIN,Queue full,157,1,55,Crate,True
+360,Normal,WIN,Queue full,328,20,348,Stone/Column,True
+361,Normal,WIN,,411,1,22,BoardTunnel/Column,True
+362,Normal,WIN,,262,1,42,,False
+363,Normal,WIN,,211,20,53,,False
+364,Hard,WIN,No more moves,468,52,28,,False
+365,Normal,WIN,,400,36,13,Column/Crate,True
+366,Normal,LOSE,Queue full,166,166,30,Stone,True
+367,Normal,LOSE,Queue full,352,40,1870,Column/Crate,True
+368,Normal,WIN,,335,1,26,Stone,True
+369,SuperHard,WIN,,296,36,35,BoardTunnel,True
+370,Normal,WIN,,560,48,16,,False
+371,Normal,WIN,,294,48,20,Stone,True
+372,Normal,WIN,Queue full,433,32,25,Crate/Curtain,True
+373,Normal,WIN,Queue full,416,24,91,Column/Crate,True
+374,Hard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,338,44,4001,Curtain,True
+375,Normal,WIN,Queue full,323,1,116,Stone/Column,True
+376,Normal,WIN,,366,1,31,,False
+377,Normal,WIN,Queue full,243,1,206,Crate,True
+378,Normal,WIN,,248,48,38,BoardTunnel,True
+379,SuperHard,WIN,,388,52,27,,False
+380,Normal,WIN,,482,1,22,,False
+381,Normal,WIN,,324,1,20,Curtain,True
+382,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,218,80,4001,Stone,True
+383,Normal,WIN,,349,1,29,Column,False
+384,Hard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,15,1,4001,,False
+385,Normal,WIN,,467,1,27,,False
+386,Normal,WIN,,317,40,29,BoardTunnel/Crate,True
+387,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,468,4,4001,,False
+388,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,7,1,4001,Stone/Curtain,True
+389,SuperHard,WIN,,445,1,27,,False
+390,Normal,WIN,,373,48,30,,False
+391,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,197,1,4001,,False
+392,Normal,WIN,,260,1,42,Stone,True
+393,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,321,4,4001,Stone,True
+394,Hard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,330,1,4001,BoardTunnel/Curtain,True
+395,Normal,WIN,,459,1,24,,False
+396,Normal,LOSE,Queue full,216,16,653,Column/Curtain,True
+397,Normal,WIN,,437,48,25,,False
+398,Normal,WIN,,217,48,40,,False
+399,SuperHard,WIN,,139,1,64,,False
+400,Normal,WIN,,552,40,16,BoardTunnel,True
+401,Normal,WIN,,349,48,24,,False
+402,Normal,WIN,Queue full,242,1,23,BoardTunnel/Crate,True
+403,Normal,WIN,No more moves,356,1,37,Curtain,True
+404,Hard,WIN,,419,1,28,,False
+405,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,370,26,4001,Crate,True
+406,Normal,WIN,,202,1,22,Stone,True
+407,Normal,WIN,,151,1,18,,False
+408,Normal,WIN,,324,40,28,Column,False
+409,SuperHard,WIN,,274,1,50,,False
+410,Normal,WIN,,238,48,33,,False
+411,Normal,WIN,,269,1,32,BoardTunnel,True
+412,Normal,WIN,Queue full,229,1,36,Curtain,True
+413,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,199,2,4001,Crate,True
+414,Hard,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,245,16,4001,,False
+415,Normal,WIN,,329,44,30,,False
+416,Normal,WIN,,468,1,27,,False
+417,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,255,41,4001,Stone/Crate,True
+418,Normal,WIN,Queue full,400,1,99,Column,False
+419,SuperHard,WIN,,298,1,52,,False
+420,Normal,WIN,Queue full,412,29,90,BoardTunnel,True
+421,Normal,WIN,Queue full,280,40,18,Curtain,True
+422,Normal,WIN,,310,48,34,Crate,True
+423,Normal,WIN,,371,40,26,,False
+424,Hard,WIN,No more moves,445,48,27,,False
+425,Normal,WIN,,220,1,33,,False
+426,Normal,WIN,,221,1,29,,False
+427,Normal,WIN,,244,24,22,Crate,True
+428,Normal,WIN,Queue full,246,1,40,,False
+429,SuperHard,WIN,,9,1,36,,False
+430,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,252,8,4001,Stone/Curtain/Crate,True
+431,Normal,WIN,,310,32,24,,False
+432,Normal,WIN,,286,1,32,BoardTunnel,True
+433,Normal,WIN,,236,48,25,Column,False
+434,Hard,WIN,,388,52,27,,False
+435,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,338,16,4001,Curtain,True
+436,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,454,1,4001,,False
+437,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,261,33,4001,Curtain,True
+438,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,432,72,4001,Stone/BoardTunnel,True
+439,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,281,4,4001,,False
+440,Normal,WIN,,342,48,31,,False
+441,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,320,1,4001,Column,False
+442,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,315,1,4001,Column/Curtain,True
+443,Normal,WIN,,203,1,42,,False
+444,Hard,WIN,,198,1,27,,False
+445,Normal,WIN,Queue full,420,48,32,,False
+446,Normal,WIN,,383,48,25,Stone,True
+447,Normal,WIN,,488,36,17,Column/Crate,True
+448,Normal,WIN,,387,1,32,BoardTunnel,True
+449,SuperHard,WIN,,248,44,28,Crate,True
+450,Normal,WIN,,312,40,12,Curtain,True
+451,Normal,WIN,,421,40,18,,False
+452,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,312,2,4001,Crate,True
+453,Normal,WIN,,467,1,25,,False
+454,Hard,WIN,,346,48,25,,False
+455,Normal,WIN,,460,1,21,BoardTunnel,True
+456,Normal,WIN,Queue full,228,44,289,Stone,True
+457,Normal,WIN,Queue full,424,40,111,,False
+458,Normal,WIN,,318,52,24,Column,False
+459,SuperHard,WIN,,202,1,43,,False
+460,Normal,WIN,,468,52,24,,False
+461,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,560,8,4001,,False
+462,Normal,WIN,,265,1,33,,False
+463,Normal,WIN,Queue full,366,1,31,BoardTunnel,True
+464,Hard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,236,1,4001,Curtain,True
+465,Normal,WIN,,500,40,22,,False
+466,Normal,WIN,,300,48,38,,False
+467,Normal,WIN,,468,48,24,,False
+468,Normal,WIN,No more moves,282,1,36,,False
+469,SuperHard,WIN,,294,56,32,,False
+470,Normal,WIN,,429,1,24,,False
+471,Normal,WIN,,450,40,19,Column,False
+472,Normal,WIN,,317,48,26,BoardTunnel,True
+473,Normal,WIN,,294,1,30,,False
+474,Hard,WIN,,327,1,24,Crate,True
+475,Normal,WIN,No more moves,371,1,23,,False
+476,Normal,WIN,,370,40,21,Column/Crate,True
+477,Normal,WIN,,374,40,29,,False
+478,Normal,WIN,Queue full,344,16,895,BoardTunnel/Curtain,True
+479,SuperHard,WIN,Queue full,204,1,231,Crate,True
+480,Normal,WIN,Queue full,560,24,31,,False
+481,Normal,WIN,,358,1,64,,False
+482,Normal,WIN,,286,1,23,Stone,True
+483,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,119,1,4001,,False
+484,Hard,WIN,Queue full,164,2,228,Crate,True
+485,Normal,WIN,,403,36,21,,False
+486,Normal,WIN,,288,1,38,,False
+487,Normal,WIN,,498,40,22,,False
+488,Normal,WIN,,312,56,23,,False
+489,SuperHard,WIN,Queue full,339,1,47,Curtain,True
+490,Normal,WIN,,420,1,22,,False
+491,Normal,WIN,,188,1,22,Stone/Column,True
+492,Normal,WIN,,278,1,32,,False
+493,Normal,WIN,,424,40,29,,False
+494,Hard,WIN,,217,1,42,BoardTunnel/Curtain,True
+495,Normal,WIN,,529,1,19,,False
+496,Normal,WIN,Queue full,328,1,80,,False
+497,Normal,WIN,Queue full,216,24,991,Column/Stone/Crate,True
+498,Normal,WIN,,372,1,28,,False
+499,SuperHard,WIN,,277,1,28,Crate,True
+500,Normal,WIN,,468,20,27,,False
+501,Normal,WIN,,412,1,27,,False
+502,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,310,1,4001,Crate,True
+503,Normal,WIN,Queue full,306,1,32,Curtain,True
+504,Hard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,213,8,4001,Curtain,True
+505,Normal,WIN,Queue full,236,1,147,,False
+506,Normal,WIN,,343,48,30,,False
+507,Normal,WIN,,212,32,21,BoardTunnel/Crate,True
+508,Normal,WIN,,560,32,18,,False
+509,SuperHard,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,278,1,4001,,False
+510,Normal,WIN,,458,1,22,Crate,True
+511,Normal,WIN,,278,48,27,,False
+512,Normal,WIN,,368,1,26,,False
+513,Normal,WIN,,284,48,25,,False
+514,Hard,WIN,,445,40,32,,False
+515,Normal,WIN,,514,24,24,,False
+516,Normal,WIN,,310,1,32,,False
+517,Normal,WIN,,346,48,24,,False
+518,Normal,WIN,,442,1,23,BoardTunnel,True
+519,SuperHard,WIN,,233,48,40,,False
+520,Normal,WIN,,391,48,23,,False
+521,Normal,WIN,,236,1,26,Column/Curtain,True
+522,Normal,WIN,No more moves,326,1,34,,False
+523,Normal,WIN,,279,1,32,,False
+524,Hard,LOSE,Queue full,183,38,804,Crate,True
+525,Normal,WIN,,261,1,23,,False
+526,Normal,WIN,,305,1,29,Column/Crate,True
+527,Normal,WIN,,552,40,14,,False
+528,Normal,WIN,No more moves,536,20,65,BoardTunnel,True
+529,SuperHard,WIN,,356,48,24,,False
+530,Normal,WIN,Queue full,320,48,47,,False
+531,Normal,WIN,,230,1,24,Crate,True
+532,Normal,WIN,,455,1,29,,False
+533,Normal,LOSE,Queue full,176,24,521,Crate,True
+534,Hard,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,536,20,4001,BoardTunnel,True
+535,Normal,WIN,,341,44,26,,False
+536,Normal,WIN,Queue full,195,1,52,Curtain/Crate,True
+537,Normal,WIN,,482,1,22,Column,False
+538,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – Queue full,464,72,4001,Crate,True
+539,SuperHard,WIN,,170,1,44,,False
+540,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,470,98,4001,,False
+541,Normal,UNKNOWN,Hết ngân sách tìm (4000 nút) – No more moves,237,1,4001,Column/Stone,True
+542,Normal,WIN,,309,40,30,Stone,True
+543,Normal,WIN,,342,1,32,Crate,True
+544,Hard,WIN,,259,1,26,BoardTunnel,True
+545,Normal,WIN,,560,16,28,,False
+546,Normal,WIN,,214,1,36,,False
+547,Normal,WIN,,391,1,34,,False
+548,Normal,WIN,,309,44,21,Curtain,True
+549,SuperHard,WIN,Queue full,170,1,64,Column/Stone/Crate,True
+550,Normal,LOSE,Queue full,368,128,1053,Stone,True

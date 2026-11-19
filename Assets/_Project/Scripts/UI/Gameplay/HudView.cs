@@ -47,6 +47,16 @@ namespace BounceBlast.UI
         [SerializeField] Style hard = new Style();
         [SerializeField] Style superHard = new Style();
 
+        [Header("Crab Mode (tông cát/gỗ)")]
+        [Tooltip("Badge level khi chơi Crab Mode (viên kem). Trống = theo độ khó")] [SerializeField] Sprite crabBadge;
+        [Tooltip("Nút Settings khi chơi Crab Mode (khung xanh ngọc như nút booster)")] [SerializeField] Sprite crabSettingsIcon;
+        [Tooltip("Màu chữ \"Lv n\" ở mode thường (scene có thể đang lưu ở dạng Crab Mode)")] [SerializeField] Color normalLevelTextColor = Color.white;
+        [Tooltip("Màu chữ \"Lv n\" trên badge kem")] [SerializeField] Color crabLevelTextColor = new Color(0.45f, 0.26f, 0.12f, 1f);
+
+        /// <summary>GameUI bật khi chơi Crab Mode</summary>
+        public bool CrabMode { get; set; }
+        Color? _levelTextColor;
+
         /// <summary>Bấm nút Settings</summary>
         public event Action OnSettingsPressed;
 
@@ -77,16 +87,26 @@ namespace BounceBlast.UI
 
         Style StyleFor(LevelDifficulty d) => d == LevelDifficulty.SuperHard ? superHard : d == LevelDifficulty.Hard ? hard : normal;
 
-        /// <summary>Hiện level và đổi toàn bộ kiểu dáng theo độ khó</summary>
+        /// <summary>Hiện level và đổi toàn bộ kiểu dáng theo độ khó (Crab Mode: thay badge + nút Settings sang tông cát)</summary>
         public void Apply(int level, LevelDifficulty difficulty)
+        {
+            ApplyDifficulty(level, difficulty);
+            if (levelText != null && _levelTextColor == null) _levelTextColor = levelText.color;
+            if (!CrabMode) { if (levelText != null) levelText.color = normalLevelTextColor; return; }
+            if (badge != null && crabBadge != null) badge.sprite = crabBadge;
+            if (settingsIcon != null && crabSettingsIcon != null) settingsIcon.sprite = crabSettingsIcon;
+            if (levelText != null) levelText.color = crabLevelTextColor;
+        }
+
+        void ApplyDifficulty(int level, LevelDifficulty difficulty)
         {
             Style s = StyleFor(difficulty);
             if (difficulty == LevelDifficulty.Normal)
             {
                 if (levelText != null) { levelText.text = "Lv " + level; Load(levelText.rectTransform, _levelRect); }
-                if (badge != null) { badge.sprite = _badgeSprite; Load(badge.rectTransform, _badgeRect); }
+                if (badge != null) { badge.sprite = normal.badge != null ? normal.badge : _badgeSprite; Load(badge.rectTransform, _badgeRect); }
                 if (difficultyText != null) { difficultyText.gameObject.SetActive(_diffActive); Load(difficultyText.rectTransform, _diffRect); }
-                if (settingsIcon != null) settingsIcon.sprite = _settingsSprite;
+                if (settingsIcon != null) settingsIcon.sprite = normal.settingsIcon != null ? normal.settingsIcon : _settingsSprite;
                 SetGroup(normal, true); SetGroup(hard, false); SetGroup(superHard, false);
                 return;
             }

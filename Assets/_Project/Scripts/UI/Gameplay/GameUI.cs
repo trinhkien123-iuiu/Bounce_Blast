@@ -121,6 +121,9 @@ namespace BounceBlast.UI
             _hudView.OnSettingsPressed += () => OnSettingsPressed?.Invoke();
         }
 
+        /// <summary>Crab Mode: hàng booster đổi sang tông cát/gỗ</summary>
+        public void SetCrabMode(bool on) { if (_boosterBarView != null) _boosterBarView.CrabMode = on; if (_hudView != null) _hudView.CrabMode = on; }
+
         /// <summary>Xử lý hiện số level và đổi tông theo độ khó</summary>
         public void SetLevel(int level, LevelDifficulty difficulty)
         {
@@ -135,6 +138,12 @@ namespace BounceBlast.UI
             _capacity = GetView(_capacity, "CapacityBar", v => v.Validate());
             if (_capacity == null) return;
             _capacity.gameObject.SetActive(true);
+        }
+
+        /// <summary>Crab Mode: ẩn thanh Capacity (hàng chờ máy xay thay cho sức chứa)</summary>
+        public void SetCapacityBarVisible(bool visible)
+        {
+            if (_capacity != null) _capacity.gameObject.SetActive(visible);
         }
 
         /// <summary>Thanh Capacity (hiệu ứng booster +25% bám vào đây)</summary>

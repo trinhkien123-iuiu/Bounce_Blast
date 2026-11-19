@@ -138,6 +138,14 @@ namespace BounceBlast.Gameplay
             return !IsDestroyed && Rules.Accepts(this, ballColor);
         }
 
+        /// <summary>Giật nảy khối (không trừ máu) – cua gặm từng nhát</summary>
+        public void Punch()
+        {
+            if (IsDestroyed) return;
+            _punch = 1f;
+            Wake(false);
+        }
+
         /// <summary>Trừ 1 máu. Trả về true nếu khối vừa bị phá</summary>
         public bool TakeHit()
         {

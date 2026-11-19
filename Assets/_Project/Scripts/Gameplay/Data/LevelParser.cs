@@ -327,6 +327,21 @@ namespace BounceBlast.Gameplay
                     if (cell.Length == 0 || cell.StartsWith("/awl")) { data.Kind = AmmoCellKind.Wall; data.SolidWall = cell.Length > 0; continue; }
                     if (cell == "-") { data.Kind = AmmoCellKind.Empty; continue; }
 
+                    if (cell.StartsWith("/ba-"))
+                    {
+                        // giỏ: hàng đợi lấy từ cột cùng chữ của file tunnel (giống /tu nhưng không có hướng)
+                        char bid = cell.Length > 4 ? char.ToUpperInvariant(cell[4]) : 'A';
+                        var basket = new AmmoTunnelData { Id = bid, Direction = Vector2Int.zero, Basket = true };
+                        if (tunnelLists.TryGetValue(bid, out List<string> blist))
+                            foreach (string entry in blist)
+                            {
+                                AmmoBoxData bbox = ParseBox(entry, mm, tunnelLists);
+                                if (bbox != null) basket.Queue.Add(bbox);
+                            }
+                        data.Kind = AmmoCellKind.Tunnel;
+                        data.Tunnel = basket;
+                        continue;
+                    }
                     if (cell.StartsWith("/tu-") || cell.StartsWith("tu-"))
                     {
                         string code = cell.Substring(cell.IndexOf("tu-", StringComparison.Ordinal) + 3);
@@ -336,7 +351,7 @@ namespace BounceBlast.Gameplay
                         if (tunnelLists.TryGetValue(id, out List<string> list))
                             foreach (string entry in list)
                             {
-                                AmmoBoxData box = ParseBox(entry, mm);
+                                AmmoBoxData box = ParseBox(entry, mm, tunnelLists);
                                 if (box != null) tunnel.Queue.Add(box);
                             }
                         data.Kind = AmmoCellKind.Tunnel;
@@ -344,14 +359,14 @@ namespace BounceBlast.Gameplay
                         continue;
                     }
 
-                    AmmoBoxData parsed = ParseBox(cell, mm);
+                    AmmoBoxData parsed = ParseBox(cell, mm, tunnelLists);
                     data.Kind = parsed != null ? AmmoCellKind.Box : AmmoCellKind.Empty;
                     data.Box = parsed;
                 }
             }
         }
 
-        static AmmoBoxData ParseBox(string code, int ballMultiplier)
+        static AmmoBoxData ParseBox(string code, int ballMultiplier, Dictionary<char, List<string>> tunnelLists = null)
         {
             string[] parts = code.Split('/');
             string[] t = parts[0].Split('-');
@@ -363,6 +378,13 @@ namespace BounceBlast.Gameplay
                 string[] b = parts[i].Split('-');
                 if (b[0] == "ice") box.IceHits = b.Length > 1 && int.TryParse(b[1], out int k) ? k : 1;
                 else if (b[0] == "qm") box.Hidden = true;
+                else if (b[0] == "acs") box.SwapGroup = b.Length > 1 && int.TryParse(b[1], out int sg) ? sg : 1;
+                else if (b[0] == "dc" && tunnelLists != null && b.Length > 1 && b[1].Length > 0)
+                {
+                    // ammo đôi "dc-LX": hộp thứ hai là phần tử đầu của cột L trong file tunnel
+                    if (tunnelLists.TryGetValue(char.ToUpperInvariant(b[1][0]), out List<string> dlist) && dlist.Count > 0)
+                        box.Next = ParseBox(dlist[0], ballMultiplier, null);
+                }
                 else if (b[0] == "door")
                 {
                     box.Door = b.Length > 1 && int.TryParse(b[1], out int dv) ? dv : 1;
@@ -438,6 +460,7 @@ namespace BounceBlast.Gameplay
             level.TotalBalls += box.Balls;
             level.BallsByColor.TryGetValue(box.ColorCode, out int v);
             level.BallsByColor[box.ColorCode] = v + box.Balls;
+            if (box.Next != null) AddBalls(level, box.Next);
         }
 
         static RectInt Union(RectInt a, RectInt b)

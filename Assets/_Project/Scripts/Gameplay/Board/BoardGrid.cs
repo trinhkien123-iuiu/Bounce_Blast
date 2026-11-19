@@ -11,6 +11,8 @@ namespace BounceBlast.Gameplay
         public Vector2 Origin { get; }
         public float Cell { get; }
         public int Version { get; private set; }
+        public int Cols => _cells.GetLength(0);
+        public int Rows => _rows;
 
         public BoardGrid(int cols, int rows, Vector2 origin, float cell)
         {
