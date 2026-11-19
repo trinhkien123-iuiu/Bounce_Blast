@@ -43,14 +43,9 @@ namespace BounceBlast.Gameplay
             _config = config;
             _colors = colors;
             Multiplier = Mathf.Max(1, level.Multiplier);
-            float cell = config.arena.width / level.BoardCols;
-            var origin = new Vector2(config.arena.xMin, config.arena.yMin + config.boardOffsetY);
-            if (config.crabMode)
-            {
-                // Crab Mode: tranh nhỏ lại, căn giữa, chừa chỗ hàng vỏ sò phía dưới
-                cell = Mathf.Min(config.crabBoardWidth / level.BoardCols, config.crabBoardMaxHeight / Mathf.Max(1, level.BoardRows));
-                origin = new Vector2(config.arena.center.x - level.BoardCols * cell * 0.5f, config.crabBoardBottomY);
-            }
+            // tranh nhỏ lại, căn giữa, chừa chỗ hàng máy xay phía dưới
+            float cell = Mathf.Min(config.crabBoardWidth / level.BoardCols, config.crabBoardMaxHeight / Mathf.Max(1, level.BoardRows));
+            var origin = new Vector2(config.arena.center.x - level.BoardCols * cell * 0.5f, config.crabBoardBottomY);
             _grid = new BoardGrid(level.BoardCols, level.BoardRows, origin, cell);
             _targeting = new BoardTargeting(_grid, _blocks);
             _visuals.Setup(config, colors, cell);
@@ -61,7 +56,7 @@ namespace BounceBlast.Gameplay
             foreach (BoardItemData item in level.BoardItems) Spawn(item);
             _tunnels.Init();
             RecountDestructibles();
-            Reach = config.crabMode ? new BoardReach(_grid, level.BoardCols, level.BoardRows, config.crabSandMargin) : null;
+            Reach = new BoardReach(_grid, level.BoardCols, level.BoardRows, config.crabSandMargin);
             _settleRequested = true;
             OnBuilt?.Invoke();
         }
@@ -155,7 +150,7 @@ namespace BounceBlast.Gameplay
         {
             if (!_settleRequested) return;
             _settleRequested = false;
-            if (_config == null || !_config.crabMode) Settle(); // Crab Mode: tranh đứng yên, block không rơi
+            // tranh đứng yên: block không rơi (Settle chỉ còn dùng cho tunnel trên bàn – chưa hỗ trợ)
             RevealUncovered();
         }
 

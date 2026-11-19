@@ -101,7 +101,6 @@ namespace BounceBlast.Gameplay
         [Tooltip("Số giây của 1 nhịp đếm ngược (user chốt: giây bình thường = 1)")] public float bombSecondsPerTick = 1f;
         public GameObject ammoPrefab;
         public GameObject tunnelPrefab;
-        public GameObject ballPrefab;
         [Tooltip("Nắp cửa kính của hộp đạn (AmmunationBlockerCover) – lấy material của node Cover")]
         public GameObject ammoCoverPrefab;
         [Tooltip("Mảng tường khay đạn (ModularPrimitiveAmmoWall - Wallbase) – lấy material t4-wall làm nền khay")]
@@ -123,14 +122,13 @@ namespace BounceBlast.Gameplay
         public Material crateMaterial;
         public Material ammoCellMaterial;
         public Material ammoFrameMaterial;
-        public Material trailMaterial;
         public Material iceMaterial;
         public Material qmarkMaterial;
 
         [Header("Theme theo độ khó")]
         public Theme normalTheme;
         public Theme hardTheme;
-        [Tooltip("Crab Mode: bộ màu/vật liệu riêng (khay cát…). Dùng cho MỌI độ khó khi crabMode bật")] public Theme crabTheme;
+        [Tooltip("Crab Mode: bộ màu/vật liệu riêng (khay cát…). Dùng cho MỌI độ khó")] public Theme crabTheme;
         public Theme superHardTheme;
 
         [Header("Âm thanh")]
@@ -143,11 +141,8 @@ namespace BounceBlast.Gameplay
         [Header("Bàn chơi (toạ độ world, lấy từ collider gốc của Board - Default)")]
         public Rect arena = new Rect(1.07f, -6.35f, 8.46f, 14.0f);
         public float arenaTopY = 7.45f;
-        [Tooltip("Điểm thả bi vào bàn: phải nằm DƯỚI mép bịt cửa phun (y = 6.92) và trên nêm tam giác (đỉnh y = 6.30)")]
-        public Vector2 dispenserOutlet = new Vector2(5.30f, 6.62f);
 
         [Header("Crab Mode")]
-        [Tooltip("Bật: ammo bay vào hàng 5 máy xay (GrinderQueue) thay cho máng + bi. Cần GameManager.grinderQueue đã đặt trong scene")] public bool crabMode;
         [Tooltip("Crab Mode: số ô cát trống bao quanh bàn (cua đi vòng trong vùng này)")] [Min(1)] public int crabSandMargin = 4;
         [Tooltip("Crab Mode: bề ngang tối đa của tranh (đv thế giới); tranh căn giữa theo arena")] public float crabBoardWidth = 8.0f;
         [Tooltip("Crab Mode: chiều cao tối đa của tranh")] public float crabBoardMaxHeight = 11f;
@@ -161,7 +156,6 @@ namespace BounceBlast.Gameplay
         [Tooltip("Thời gian cua chui ra khỏi máy (giây)")] public float crabHatchTime = 0.2f;
         [Tooltip("Thời gian cua cạp một khối (giây)")] public float crabChompTime = 0.35f;
         [Tooltip("Thời gian cua biến mất sau khi cạp (giây)")] public float crabPoofTime = 0.25f;
-        [Tooltip("Khoảng cách giữa hai lần máy xay nhả cua (giây)")] public float crabSpawnInterval = 0.12f;
         [Tooltip("Mỗi máy xay nhả bao nhiêu cua / giây")] public float crabSpawnRate = 20f;
         [Tooltip("Tối đa bao nhiêu cua một máy được nhả dồn trong một khung hình")] public float crabSpawnBurst = 3f;
         [Tooltip("Cua mới nhả lệch ngẫu nhiên quanh miệng máy (đv thế giới) cho khỏi chồng lên nhau")] public float crabSpawnJitter = 0.15f;
@@ -173,28 +167,6 @@ namespace BounceBlast.Gameplay
         [Tooltip("Màu bụi cát khi cua lặn")] public Color crabBurrowDustColor = new Color(1f, 0.86f, 0.6f, 1f);
         [Tooltip("Số lần bo góc đường chạy (0 = đi gấp khúc theo ô)")] [Range(0, 3)] public int crabPathSmoothing = 2;
         [Tooltip("Mỗi con cua lệch làn ngẫu nhiên tối đa bao nhiêu ô")] public float crabLaneJitter = 0.3f;
-
-        [Header("Bi")]
-        public float ballRadius = 0.17f;
-        public float ballSpeed = 11f;
-        public float ballSpawnSpread = 55f;
-        [Tooltip("Tốc độ dọc tối thiểu sau mỗi lần nảy – chống bi nảy ngang mãi giữa 2 vách")]
-        public float ballMinVerticalSpeed = 1.6f;
-        [Tooltip("Lệch ngẫu nhiên (độ) mỗi lần nảy, tránh quỹ đạo lặp vô hạn")]
-        public float ballDeflectDeg = 8f;
-        [Tooltip("Số lần nảy tối thiểu trước khi bi được phép ngắm thẳng vào khối cùng màu")]
-        public int ballAimMinBounces = 3;
-
-        [Header("Máng (conveyor)")]
-        [Tooltip("Số bi dựng sẵn vào pool lúc vào màn (rải vài viên mỗi khung). Hộp đầu tiên lên máy xay không phải dựng bi → hết khựng trên máy yếu")]
-        [Range(0, 200)] public int ballPrewarm = 60;
-        public float laneSpeed = 5.5f;
-        public float laneBallSpacing = 0.27f;
-        public float boxFlyDuration = 0.6f;
-        [Tooltip("Khoảng cách giữa 2 mũi tên chạy trên máng")]
-        public float laneArrowSpacing = 1.25f;
-        [Tooltip("Tốc độ mũi tên chạy trên máng")]
-        public float laneArrowSpeed = 1.5f;
 
         [Header("Khay đạn")]
         public float ammoCellMax = 1.70f;
@@ -504,10 +476,10 @@ namespace BounceBlast.Gameplay
 
         /// <summary>Dùng cho lấy theme theo độ khó</summary>
         /// <summary>Số level gốc (trong bộ 550) ứng với Lv hiện tại</summary>
-        public int SourceLevel(int id) => crabMode && crabLevelOrder != null && id >= 1 && id <= crabLevelOrder.Length && crabLevelOrder[id - 1] > 0 ? crabLevelOrder[id - 1] : id;
+        public int SourceLevel(int id) => crabLevelOrder != null && id >= 1 && id <= crabLevelOrder.Length && crabLevelOrder[id - 1] > 0 ? crabLevelOrder[id - 1] : id;
 
         public Theme ThemeFor(LevelDifficulty d) =>
-            crabMode && crabTheme != null && crabTheme.trayPanel != null ? crabTheme :
+            crabTheme != null && crabTheme.trayPanel != null ? crabTheme :
             d == LevelDifficulty.SuperHard ? superHardTheme : d == LevelDifficulty.Hard ? hardTheme : normalTheme;
     }
 }

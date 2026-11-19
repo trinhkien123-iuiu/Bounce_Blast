@@ -110,7 +110,6 @@ namespace BounceBlast.EditorTools
             c.curtainChainPrefab = Prefab("Assets/_Project/Prefabs/Gameplay/Board/CombinedCubicCurtain.prefab");
             c.ammoPrefab = Prefab("Assets/Resources/prefabs/Ammunation.prefab");
             c.tunnelPrefab = Prefab("Assets/Resources/prefabs/BlockerAmmoTunnel.prefab");
-            c.ballPrefab = Prefab("Assets/Resources/prefabs/Ball.prefab");
             c.cubeBreakVfx = Prefab("Assets/Resources/prefabs/Block Break Particle Variant.prefab");
             c.crateBreakVfx = Prefab("Assets/_Ripped/GameObject/MetalExplosionBig.prefab") ?? c.cubeBreakVfx;
             c.ammoLaunchVfx = Prefab("Assets/_Ripped/GameObject/StarExplosion.prefab");
@@ -123,7 +122,6 @@ namespace BounceBlast.EditorTools
             c.ammoCellMaterial = Mat("Tunnel Super Hard") ?? Mat("Tunnel");
             c.iceMaterial = Mat("Ice");
             c.qmarkMaterial = Mat("QMark Mat Cube");
-            c.trailMaterial = TrailMaterial();
 
             c.normalTheme = new GameConfig.Theme
             {

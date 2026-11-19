@@ -23,7 +23,7 @@ namespace BounceBlast.Gameplay
         AmmoGridController _grid;
         BoosterManager _boosters;
         LaunchManager _launch;
-        BallManager _balls;
+        CrabManager _crabs;
         bool _playing;
         AmmoBox _heldBox;
         bool _heldMagic;
@@ -35,10 +35,10 @@ namespace BounceBlast.Gameplay
         OnboardingManager _onboarding;
 
         /// <summary>Xử lý khởi tạo đầu vào</summary>
-        public void Init(Camera camera, GameUI ui, BoardController board, AmmoGridController grid, BoosterManager boosters, LaunchManager launch, BallManager balls, OnboardingManager onboarding = null)
+        public void Init(Camera camera, GameUI ui, BoardController board, AmmoGridController grid, BoosterManager boosters, LaunchManager launch, CrabManager crabs, OnboardingManager onboarding = null)
         {
             _onboarding = onboarding;
-            _camera = camera; _ui = ui; _board = board; _grid = grid; _boosters = boosters; _launch = launch; _balls = balls;
+            _camera = camera; _ui = ui; _board = board; _grid = grid; _boosters = boosters; _launch = launch; _crabs = crabs;
         }
 
         /// <summary>Nhận trạng thái đang chơi, huỷ thao tác dở khi dừng</summary>
@@ -65,7 +65,7 @@ namespace BounceBlast.Gameplay
             Time.timeScale = Mathf.MoveTowards(Time.timeScale, holdSpeed, step);
         }
 
-        bool HasBalls => _balls != null && _balls.ActiveCount > 0;
+        bool HasBalls => _crabs != null && _crabs.ActiveCount > 0;
 
         /// <summary>Tắt tăng tốc. Chỉ trả timeScale về 1 khi chính mình đã tăng</summary>
         void StopSpeed()

@@ -34,8 +34,6 @@ namespace BounceBlast.Gameplay
         float _holdU;
         Action _doneAfterHold;
 
-        /// <summary>Máng đã chọn cho hộp đang dừng giữa chuyến bay</summary>
-        public ConveyorLane HeldLane { get; set; }
         public bool IsHoldingFlight => _holdingFlight;
 
         /// <summary>Bấm hộp làm vượt sức chứa</summary>
@@ -102,7 +100,7 @@ namespace BounceBlast.Gameplay
             {
                 start,
                 start + startUp * (_cell * 0.9f) + lift,
-                dock + dockUp * (DockLen + (_config.crabMode ? _config.crabFlightApex : 1.2f)) + lift,
+                dock + dockUp * (DockLen + _config.crabFlightApex) + lift,
                 dock - dockUp * DockBottom,
             }, Mathf.Max(sBox, dw) * 1.3f);
             _visual.gameObject.SetActive(false);

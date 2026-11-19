@@ -30,17 +30,16 @@ namespace BounceBlast.Gameplay
         GameUI _ui;
         BoardController _board;
         AmmoGridController _grid;
-        ConveyorSystem _conveyor;
-        BallManager _balls;
+        GrinderQueue _grinders;
         ThemeApplier _theme;
         CameraFitter _fitter;
 
         /// <summary>Xử lý khởi tạo quản lý level</summary>
         public void Init(GameConfig config, ColorLibrary colors, GameUI ui, BoardController board, AmmoGridController grid,
-                         ConveyorSystem conveyor, BallManager balls, ThemeApplier theme, CameraFitter fitter)
+                         GrinderQueue grinders, ThemeApplier theme, CameraFitter fitter)
         {
             _config = config; _colors = colors; _ui = ui; _board = board; _grid = grid;
-            _conveyor = conveyor; _balls = balls; _theme = theme; _fitter = fitter;
+            _grinders = grinders; _theme = theme; _fitter = fitter;
         }
 
         IEnumerator Start()
@@ -69,8 +68,7 @@ namespace BounceBlast.Gameplay
             id = _playtest != null ? 1 : Mathf.Clamp(id, 1, _config.MaxLevel);
 
             _ui.ClosePopup();
-            _balls.ClearAll();
-            _conveyor.ClearAll();
+            _grinders.ClearAll();
             _board.ClearAll();
             _grid.ClearAll();
             foreach (AmmoBox stray in FindObjectsOfType<AmmoBox>()) Destroy(stray.gameObject);
@@ -81,7 +79,7 @@ namespace BounceBlast.Gameplay
 
             _fitter.SetLevel(Level);
             _fitter.Fit();
-            _grid.AreaBottomOverride = _fitter.AmmoAreaBottom() + (_config.crabMode ? _config.crabTrayBottomPad : 0f); // Crab Mode: chừa lề trên hàng nút booster mới
+            _grid.AreaBottomOverride = _fitter.AmmoAreaBottom() + _config.crabTrayBottomPad; // chừa lề trên hàng nút booster
             _board.Build(Level, _config, _colors);
             _grid.Build(Level, _config, _colors);
 
@@ -91,7 +89,7 @@ namespace BounceBlast.Gameplay
             _ui.SetLevel(id, Level.Difficulty);
 
             Debug.Log($"[BounceBlast] Level {id} ({Level.Difficulty}) – board {Level.BoardCols}x{Level.BoardRows} x{Level.Multiplier}, " +
-                      $"capacity {Level.Capacity}, tổng bi {Level.TotalBalls}, khối {_board.DestructibleCount}");
+                      $"tổng đạn {Level.TotalBalls}, khối {_board.DestructibleCount}");
             OnLevelLoaded?.Invoke(Level);
             SceneFlow.MarkLevelReady();
         }

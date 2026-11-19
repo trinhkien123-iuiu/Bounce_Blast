@@ -37,7 +37,7 @@ namespace BounceBlast.Gameplay
             _autoTimer = 0.6f;
             foreach (AmmoBox b in FindObjectsOfType<AmmoBox>())
             {
-                if (!b.IsClickable || b.IsLaunched || !_launch.Capacity.CanAdd(b.Data.Balls)) continue;
+                if (!b.IsClickable || b.IsLaunched || !_launch.Grinders.HasFree) continue;
                 _launch.TryLaunch(b, false);
                 return;
             }

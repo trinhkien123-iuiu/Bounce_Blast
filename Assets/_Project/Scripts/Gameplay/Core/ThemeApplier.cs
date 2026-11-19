@@ -24,7 +24,6 @@ namespace BounceBlast.Gameplay
         Sprite _origMask;
         Renderer _pins;
         MaterialPropertyBlock _mpb;
-        ConveyorSystem _conveyorSystem;
 
         /// <summary>Xử lý khởi tạo áp theme</summary>
         public void Init(Transform boardRoot, Camera cam)
@@ -59,7 +58,6 @@ namespace BounceBlast.Gameplay
         }
 
         /// <summary>Nhận hệ máng để đổi màu theo theme</summary>
-        public void SetConveyor(ConveyorSystem conveyor) => _conveyorSystem = conveyor;
 
         /// <summary>groundColor của theme Normal</summary>
         public void SetReferenceGround(Color normalGround) => _normalGround = normalGround;
@@ -134,7 +132,6 @@ namespace BounceBlast.Gameplay
                 _mpb.SetColor("_SColor", theme.pinsColor * 0.8f);
                 _pins.SetPropertyBlock(_mpb);
             }
-            if (_conveyorSystem != null) _conveyorSystem.SetArrowColor(theme.arrowColor);
         }
 
         /// <summary>Xử lý áp theme theo độ khó</summary>

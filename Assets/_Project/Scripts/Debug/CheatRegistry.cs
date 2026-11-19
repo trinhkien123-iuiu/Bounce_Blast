@@ -15,13 +15,12 @@ namespace BounceBlast.Cheats
         public const string GroupSpeed = "Speed";
         public static readonly string[] Groups = { GroupLevel, GroupResources, GroupSpeed };
 
-        static bool _infiniteCapacity, _paused, _confirmReset;
+        static bool _paused, _confirmReset;
         static float _speedBeforePause = 1f;
 
         /// <summary>Gọi lại sau mỗi lần nạp level</summary>
         public static void ReapplyPersistent(GameManager gm)
         {
-            if (gm != null && gm.launchManager != null) gm.launchManager.Capacity.Infinite = _infiniteCapacity;
         }
 
         /// <summary>Dựng danh sách các mục cheat cho bản test</summary>
@@ -52,8 +51,6 @@ namespace BounceBlast.Cheats
             {
                 foreach (BoosterType t in Enum.GetValues(typeof(BoosterType))) gm.boosterManager.Boosters.Add(t, 5);
             }));
-            Add(Tgl(GroupResources, "Infinite capacity", () => _infiniteCapacity, v => { _infiniteCapacity = v; ReapplyPersistent(gm); }));
-            Add(Btn(GroupResources, "Capacity +25%", () => gm.launchManager.Capacity.Increase(0.25f)));
             Add(new CheatItem
             {
                 group = GroupResources, kind = CheatKind.Button,

@@ -54,7 +54,7 @@ namespace BounceBlast.UI
         [Tooltip("Màu chữ \"Lv n\" trên badge kem")] [SerializeField] Color crabLevelTextColor = new Color(0.45f, 0.26f, 0.12f, 1f);
 
         /// <summary>GameUI bật khi chơi Crab Mode</summary>
-        public bool CrabMode { get; set; }
+        public bool CrabMode { get; set; } = true;
         Color? _levelTextColor;
 
         /// <summary>Bấm nút Settings</summary>

@@ -77,12 +77,9 @@ namespace BounceBlast.Gameplay
                     _grid.ShuffleColors();
                     break;
                 case BoosterType.Capacity:
-                    Boosters.Consume(type);
-                    const float capacityBonus = 0.25f;
-                    Transform bar = _ui.CapacityBarTransform;
-                    if (BoosterFx.Instance != null && bar != null) BoosterFx.Instance.Capacity(bar.position, bar, capacityBonus, () => _launch.Capacity.Increase(capacityBonus));
-                    else { _launch.Capacity.Increase(capacityBonus); AudioManager.Play(Sfx.Magic); }
-                    _ui.Toast("Capacity +25%");
+                    // Crab Mode không còn sức chứa: booster này chưa có tác dụng (không trừ lượt)
+                    AudioManager.Play(Sfx.Error);
+                    _ui.Toast("Coming soon!");
                     break;
             }
         }

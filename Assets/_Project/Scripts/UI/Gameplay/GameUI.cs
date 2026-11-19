@@ -17,11 +17,9 @@ namespace BounceBlast.UI
         [Header("Các View đặt sẵn trong scene (UI/...)")]
         [SerializeField] OverlayView _overlayView;
         [SerializeField] HudView _hudView;
-        [SerializeField] CapacityBarView _capacity;
         [SerializeField] FailPopupView _fail;
         [SerializeField] SuccessPopupView _success;
         [SerializeField] SettingsPopupView _settings;
-        [SerializeField] OutOfCapacityPopupView _outOfCapacity;
         [SerializeField] BoosterBuyPopupView _boosterBuy;
         [SerializeField] BoosterTutorialPopupView _boosterTutorial;
         [Tooltip("Viền trắng khi nhấn giữ tăng tốc (prefab SpeedUpCanvas)")] [SerializeField] SpeedUpView _speedUp;
@@ -48,7 +46,6 @@ namespace BounceBlast.UI
 
             BuildOverlay();
             BuildHud();
-            BuildCapacityBar();
             HideScenePopups();
         }
 
@@ -121,9 +118,6 @@ namespace BounceBlast.UI
             _hudView.OnSettingsPressed += () => OnSettingsPressed?.Invoke();
         }
 
-        /// <summary>Crab Mode: hàng booster đổi sang tông cát/gỗ</summary>
-        public void SetCrabMode(bool on) { if (_boosterBarView != null) _boosterBarView.CrabMode = on; if (_hudView != null) _hudView.CrabMode = on; }
-
         /// <summary>Xử lý hiện số level và đổi tông theo độ khó</summary>
         public void SetLevel(int level, LevelDifficulty difficulty)
         {
@@ -132,30 +126,6 @@ namespace BounceBlast.UI
             if (_boosterBarView != null) _boosterBarView.ApplyDifficulty(difficulty);
         }
 
-        /// <summary>Thanh sức chứa là prefab có script quản lý riêng</summary>
-        void BuildCapacityBar()
-        {
-            _capacity = GetView(_capacity, "CapacityBar", v => v.Validate());
-            if (_capacity == null) return;
-            _capacity.gameObject.SetActive(true);
-        }
-
-        /// <summary>Crab Mode: ẩn thanh Capacity (hàng chờ máy xay thay cho sức chứa)</summary>
-        public void SetCapacityBarVisible(bool visible)
-        {
-            if (_capacity != null) _capacity.gameObject.SetActive(visible);
-        }
-
-        /// <summary>Thanh Capacity (hiệu ứng booster +25% bám vào đây)</summary>
-        public Transform CapacityBarTransform => _capacity != null ? _capacity.transform : null;
-
-        /// <summary>Xử lý cập nhật thanh sức chứa và cảnh báo</summary>
-        public void SetCapacity(float fill, bool started, bool infinite)
-        {
-            if (_capacity != null) _capacity.SetFill(fill, started, infinite);
-            if (_boosterBarView != null) _boosterBarView.SetWarn(!infinite && started && fill >= 0.9f);
-            if (_overlayView != null) _overlayView.SetDanger(fill);
-        }
 
         /// <summary>Xử lý hiện thông báo ngắn</summary>
         public void Toast(string message, float seconds = 1.6f)
@@ -213,35 +183,10 @@ namespace BounceBlast.UI
             Time.timeScale = 0;
         }
 
-        bool _failWired, _outWired, _settingsWired, _successWired, _buyWired;
+        bool _failWired, _settingsWired, _successWired, _buyWired;
 
         Action _failRetry;
 
-        Action _outPlayOn, _outGiveUp;
-
-        /// <summary>Xử lý hiện popup hết sức chứa</summary>
-        public void ShowOutOfCapacity(LevelDifficulty diff, Action onAddCapacity, Action onGiveUp)
-        {
-            _difficulty = diff;
-            ClosePopup();
-            if (!_outWired)
-            {
-                _outOfCapacity = GetPopupView(_outOfCapacity, "OutOfCapacityPopup");
-                if (_outOfCapacity != null)
-                {
-                    _outWired = true;
-                    _outOfCapacity.OnPlayOn += () => { ClosePopup(); _outPlayOn?.Invoke(); };
-                    _outOfCapacity.OnGiveUp += () => { ClosePopup(); _outGiveUp?.Invoke(); };
-                }
-            }
-            if (_outOfCapacity == null) return;
-            _outPlayOn = onAddCapacity;
-            _outGiveUp = onGiveUp;
-            _outOfCapacity.Show(diff);
-            _activeView = _outOfCapacity;
-
-            Time.timeScale = 0;
-        }
 
         Action<BoosterType, int, int> _buyAction;
 

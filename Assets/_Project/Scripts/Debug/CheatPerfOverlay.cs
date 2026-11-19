@@ -39,8 +39,8 @@ namespace BounceBlast.Cheats
             _sb.Length = 0;
             _sb.Append("FPS ").Append(_fps.ToString("0")).Append("   worst ").Append((_worst * 1000f).ToString("0")).Append(" ms   slow ").Append(_slow).Append('\n');
             _sb.Append("mem ").Append((UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() / 1048576L)).Append(" MB");
-            if (gm != null && gm.board != null && gm.balls != null)
-                _sb.Append("   blocks ").Append(gm.board.Blocks.Count).Append("   balls ").Append(gm.balls.ActiveCount);
+            if (gm != null && gm.board != null)
+                _sb.Append("   blocks ").Append(gm.board.Blocks.Count).Append("   crabs ").Append(gm.crabManager != null ? gm.crabManager.ActiveCount : 0);
             if (gm != null && gm.levelManager != null) _sb.Append("   Lv ").Append(gm.levelManager.currentLevel);
             label.text = _sb.ToString();
         }

@@ -16,7 +16,7 @@ namespace BounceBlast.Gameplay
         LevelManager _level;
         BoosterManager _boosters;
         AmmoGridController _grid;
-        BallManager _balls;
+        CrabManager _crabs;
         Camera _cam;
         OnboardingView _view;
 
@@ -25,9 +25,9 @@ namespace BounceBlast.Gameplay
         public AmmoBox Target { get; private set; }
 
         /// <summary>Xử lý khởi tạo hướng dẫn</summary>
-        public void Init(GameConfig config, GameUI ui, LevelManager level, BoosterManager boosters, AmmoGridController grid, BallManager balls, Camera cam, OnboardingView view)
+        public void Init(GameConfig config, GameUI ui, LevelManager level, BoosterManager boosters, AmmoGridController grid, CrabManager crabs, Camera cam, OnboardingView view)
         {
-            _config = config; _ui = ui; _level = level; _boosters = boosters; _grid = grid; _balls = balls; _cam = cam; _view = view;
+            _config = config; _ui = ui; _level = level; _boosters = boosters; _grid = grid; _crabs = crabs; _cam = cam; _view = view;
             if (_view != null) { string miss = _view.Validate(); if (miss != null) Debug.LogError("OnboardingCanvas chưa nối đủ tham chiếu: " + miss); }
             _level.OnLevelLoading += Abort;
             _level.OnLevelLoaded += m => StartCoroutine(Run(m));
@@ -116,8 +116,9 @@ namespace BounceBlast.Gameplay
 
         IEnumerator CapacityStep()
         {
-            Transform bar = _ui.CapacityBarTransform;
-            if (bar == null) yield break;
+            yield break; // không còn thanh sức chứa
+#pragma warning disable CS0162
+            Transform bar = null;
             Rect rect = ScreenRectOf(bar);
             _view.Show("Watch the capacity!\nThe area can only hold a limited number of balls!", rect.center, rect.size * 0.5f + new Vector2(24f, 20f), rect.height * 0.5f, true, false, true, -Screen.height * 0.17f);
             float prev = Time.timeScale;
@@ -127,11 +128,12 @@ namespace BounceBlast.Gameplay
             Time.timeScale = prev > 0f ? prev : 1f; _paused = false;
             _view.Hide();
             MarkSeen("capacity");
+#pragma warning restore CS0162
         }
 
         IEnumerator SpeedStep()
         {
-            while (_balls.ActiveCount == 0) yield return null;
+            while (_crabs.ActiveCount == 0) yield return null;
             Vector2 pos = _cam.WorldToScreenPoint(_grid.HoldSpotWorld());
             _view.Show("HOLD WALL\nTO SPEED UP!", pos, Vector2.zero, 0f, false, true, false, Screen.height * 0.2f);
             float t = 0f;

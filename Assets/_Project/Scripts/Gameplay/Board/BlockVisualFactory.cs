@@ -21,7 +21,7 @@ namespace BounceBlast.Gameplay
             _colors = colors;
             _cell = cell;
             _font = config.worldFont;
-            Pitch = config.crabMode ? 0f : ViewSpace.LegacyPitch;
+            Pitch = 0f; // ăn từ 4 phía: khối nhìn thẳng, không ngả
             _fontMaterial = _font != null ? _font.material : null;
         }
 

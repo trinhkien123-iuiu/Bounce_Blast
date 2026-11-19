@@ -85,7 +85,7 @@ namespace BounceBlast.Gameplay
             box.transform.SetParent(slot.transform, true);
             box.Flight.DockWidth = slot.dockWidth;
             box.Flight.DockRotation = slot.DockRotation;
-            float dur = _config != null ? (_config.crabMode ? _config.crabBoxFlyDuration : _config.boxFlyDuration) : 0.6f;
+            float dur = _config != null ? _config.crabBoxFlyDuration : 0.6f;
             box.Flight.FlyTo(slot.DockPosition, dur, slot.OnFlightDone, slot.OnLanded);
             NotifyIfChanged();
         }

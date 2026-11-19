@@ -73,7 +73,7 @@ namespace BounceBlast.UI
         [Tooltip("Vạch kẻ trên dải nền (GoldLine) – trống thì tự tìm con tên GoldLine")] [SerializeField] Image goldLine;
 
         /// <summary>GameUI bật khi chơi Crab Mode</summary>
-        public bool CrabMode { get; set; }
+        public bool CrabMode { get; set; } = true;
 
         /// <summary>Bấm vào một nút booster</summary>
         public event Action<BoosterType> OnPressed;
